@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Little Red Riding Hood · SparkRealm StoryGraph</title>
+<style>:root {
+  color-scheme: light;
+  --bg: #f5f6f5; --panel: #ffffff; --panel-2: #f0f2f1;
+  --ink: #202823; --muted: #5b665f; --dim: #69756e; --border: #dce2de;
+  --accent: #177b63; --accent-soft: #e7f2ed;
+  --before: #687b91; --causes: #ba5063; --setsUp: #987017; --overlaps: #7564b5;
+  --left-width: 240px; --right-width: 344px;
+  --shadow: 0 6px 24px #18261d12;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #101a2e; --panel: #17233b; --panel-2: #1d2c47;
+  --ink: #e8eefb; --muted: #9fb0cc; --dim: #7385a3; --border: #2b3b5a;
+  --accent: #4cc2f5; --accent-soft: #16324c;
+  --before: #6ba4f7; --causes: #f2798a; --setsUp: #f2c14e; --overlaps: #a894f5;
+  --shadow: 0 6px 24px #00000055;
+}
+* { box-sizing: border-box; letter-spacing: 0; }
+html, body { margin: 0; height: 100%; }
+body { font: 14px/1.5 ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--ink); background: var(--bg); display: grid; grid-template: 60px 48px minmax(0, 1fr) / var(--left-width) minmax(0, 1fr) 0; grid-template-areas: "top top top" "bar bar bar" "left canvas right"; height: 100dvh; overflow: hidden; }
+body.left-closed { --left-width: 0px; }
+body.right-open { grid-template-columns: var(--left-width) minmax(0, 1fr) 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .38; }
+button, select, input { border: 1px solid var(--border); border-radius: 6px; background: var(--panel); }
+button:hover:not(:disabled) { background: var(--panel-2); }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+button { -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+.icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.icon-defs { width: 0; height: 0; position: absolute; }
+.icon-button { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; flex: none; padding: 0; border-color: transparent; background: transparent; }
+.divider { height: 20px; width: 1px; background: var(--border); flex: none; }
+.topbar { grid-area: top; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 0 20px; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 25; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand strong { font-size: 16px; white-space: nowrap; }
+.brand-icon { color: var(--accent); width: 24px; height: 24px; }
+.brand-logo { width: 26px; height: 26px; object-fit: contain; flex: none; }
+.story-title { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-actions { display: flex; align-items: center; gap: 12px; flex: none; }
+.search-wrap { width: 244px; position: relative; display: flex; align-items: center; }
+.search-wrap > .icon { position: absolute; left: 10px; color: var(--dim); pointer-events: none; }
+#search { padding: 7px 10px 7px 34px; width: 100%; background: var(--panel-2); font-size: 13px; }
+.search-results { position: absolute; right: 0; top: 42px; width: 360px; max-width: calc(100vw - 24px); max-height: 380px; overflow: auto; padding: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); }
+.search-result { display: block; text-align: left; width: 100%; border: 0; padding: 10px; }
+.search-result.active { background: var(--accent-soft); }
+.search-result .result-type { font-size: 11px; color: var(--dim); display: block; }
+.search-result .result-text { display: block; overflow-wrap: anywhere; }
+mark { color: var(--ink); background: var(--accent-soft); font-weight: 650; }
+.search-empty { padding: 16px; color: var(--muted); }
+.workspace-bar { grid-area: bar; display: flex; align-items: center; gap: 12px; padding: 0 14px; border-bottom: 1px solid var(--border); background: var(--panel); z-index: 10; }
+.seg { display: flex; height: 100%; gap: 20px; }
+.seg button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 0 4px; background: transparent; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.seg button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 650; }
+.subseg { margin-left: 8px; gap: 14px; }
+.subseg button { font-size: 12px; }
+.workspace-count { margin-left: auto; font-size: 12px; color: var(--dim); }
+#toggle-right { margin-left: auto; }
+.workspace-count + #toggle-right { margin-left: 0; }
+.left { grid-area: left; min-width: 0; overflow: auto; border-right: 1px solid var(--border); background: var(--panel); z-index: 12; }
+.left-closed .left { visibility: hidden; }
+.panel { padding: 18px 14px; border-bottom: 1px solid var(--border); }
+.section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.section-heading h2, .panel > summary { font-size: 12px; font-weight: 650; margin: 0; }
+.section-heading > span { color: var(--dim); font-size: 12px; }
+.panel > summary { cursor: pointer; }
+.panel[open] > summary { margin-bottom: 14px; }
+.act { margin-top: 10px; }
+.act > summary { cursor: pointer; font-size: 12px; color: var(--dim); padding: 6px 0; overflow-wrap: anywhere; }
+.scene-item, .entity-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; border: 0; padding: 8px; font-size: 13px; }
+.scene-item > span:last-child, .entity-item > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-number { color: var(--dim); font: 11px ui-monospace, monospace; width: 20px; flex: none; }
+.scene-item.active, .entity-item.active { background: var(--accent-soft); color: var(--accent); }
+.group-title { color: var(--dim); font-size: 11px; margin: 14px 0 6px; }
+.entity-group { margin: 8px 0; }
+.entity-group > summary { cursor: pointer; color: var(--dim); font-size: 11px; padding: 5px 0; }
+.entity-group[open] > summary { margin-bottom: 4px; }
+.entity-item .count { color: var(--dim); margin-left: auto; flex: none; font-size: 11px; }
+.filter-label { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 5px 0; }
+input[type="checkbox"] { accent-color: var(--accent); }
+.line-swatch { width: 20px; height: 0; border-top: 2px solid var(--before); }
+.line-swatch.causes { border-color: var(--causes); }
+.line-swatch.setsUp { border-color: var(--setsUp); border-top-style: dashed; }
+.line-swatch.overlaps { border-color: var(--overlaps); border-top-style: dotted; }
+.canvas { grid-area: canvas; position: relative; min-width: 0; min-height: 0; overflow: hidden; background: radial-gradient(circle at 1px 1px, var(--border) .7px, transparent 1px) 0 0 / 24px 24px, var(--bg); }
+.story-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: none; cursor: grab; touch-action: none; }
+.story-svg.active { display: block; }
+.story-svg.panning { cursor: grabbing; }
+.context-bar { position: absolute; left: 18px; right: 18px; top: 14px; z-index: 4; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; pointer-events: none; }
+#mode-context { background: var(--bg); padding: 2px 5px; font-size: 11px; color: var(--dim); }
+.layout-toggle { pointer-events: auto; font-size: 11px; padding: 3px 10px; border-radius: 6px; background: var(--panel); color: var(--muted); white-space: nowrap; }
+.layout-toggle:hover { color: var(--ink); border-color: var(--dim); }
+#relation-scope-wrap { font-size: 12px; color: var(--muted); pointer-events: auto; display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; }
+#relation-scope { max-width: 180px; width: 150px; font-size: 12px; padding: 4px; border: 0; }
+.column-label { fill: var(--muted); font-size: 13px; font-weight: 600; }
+.graph-node { cursor: pointer; outline: none; }
+.node-box { fill: var(--panel); stroke: var(--border); stroke-width: 1.2; }
+.graph-node:hover .node-box { stroke: var(--dim); }
+.graph-node.selected .node-box, .graph-node:focus-visible .node-box { stroke: var(--accent); stroke-width: 2.5; }
+.graph-node.neighbor .node-box { stroke: var(--accent); stroke-opacity: .55; }
+.graph-node.dim { opacity: .42; }
+.node-content { width: 100%; height: 100%; padding: 15px; overflow: hidden; color: var(--ink); font-size: 13px; line-height: 1.5; }
+.node-heading { display: flex; align-items: flex-start; gap: 9px; height: 43px; }
+.node-number { flex: none; font: 11px/22px ui-monospace, monospace; color: var(--dim); }
+.node-title { font-size: 14px; font-weight: 650; line-height: 21px; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.node-summary { margin: 6px 0 10px; height: 40px; color: var(--muted); font-size: 13px; line-height: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.node-people, .node-location { color: var(--muted); font-size: 11px; line-height: 19px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.node-location { color: var(--dim); }
+.node-footer { display: flex; justify-content: space-between; gap: 6px; align-items: center; border-top: 1px solid var(--border); padding-top: 7px; margin-top: 8px; color: var(--dim); font-size: 10px; }
+.node-badges { display: flex; gap: 8px; color: var(--accent); }
+.role-climax .node-badges { color: var(--causes); }
+.role-turningPoint .node-badges { color: var(--setsUp); }
+.compact .node-content { padding: 10px 12px; }
+.compact .node-heading { height: auto; }
+.compact .node-title { font-size: 13px; line-height: 19px; }
+.entity .node-content { padding: 10px 12px; }
+.entity-heading { display: flex; align-items: center; gap: 8px; }
+.entity-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.entity-kind { color: var(--accent); font-size: 10px; flex: none; }
+.entity-kind.kind-location { color: var(--before); }
+.entity-kind.kind-prop { color: var(--setsUp); }
+.entity-count { color: var(--dim); font-size: 11px; margin-top: 7px; }
+.sequence-edge { fill: none; stroke: var(--dim); stroke-width: 1.2; opacity: .45; }
+.marker-sequence { fill: var(--dim); }
+.logic-edge, .pair-edge { outline: none; cursor: pointer; }
+.edge-line, .part-edge { fill: none; stroke-width: 1.7; }
+.edge-hit { fill: none; stroke: transparent; stroke-width: 16; pointer-events: stroke; }
+.logic-edge { opacity: 0; pointer-events: none; }
+.logic-edge .edge-hit { pointer-events: none; }
+.logic-edge.visible, .logic-edge.hot, .logic-edge.hover-show { opacity: .8; pointer-events: auto; }
+.logic-edge.visible .edge-hit, .logic-edge.hot .edge-hit, .logic-edge.hover-show .edge-hit { pointer-events: stroke; }
+.edge-line { stroke: var(--before); }
+.rel-causes .edge-line { stroke: var(--causes); }
+.rel-setsUp .edge-line { stroke: var(--setsUp); stroke-dasharray: 5 4; }
+.rel-overlaps .edge-line { stroke: var(--overlaps); stroke-dasharray: 2 4; }
+.marker-before { fill: var(--before); }
+.marker-causes { fill: var(--causes); }
+.marker-setsUp { fill: var(--setsUp); }
+.marker-person { fill: var(--accent); }
+.pair-edge .edge-line { stroke: var(--accent); }
+/* 要素关系：连线默认隐藏，选中/悬停或勾选“显示连线”才出现 */
+.pair-edge, .part-edge { opacity: 0; pointer-events: none; }
+.part-edge { stroke: var(--dim); }
+.edge-line, .sequence-edge, .part-edge { vector-effect: non-scaling-stroke; }
+.hot .edge-line, .logic-edge:focus-visible .edge-line, .pair-edge:focus-visible .edge-line { stroke-width: 3; }
+.part-edge.hot, .part-edge.hover-show, .charm-svg.show-edges .part-edge { opacity: .5; stroke: var(--dim); }
+.part-edge.hot { stroke: var(--accent); opacity: .8; stroke-width: 2; pointer-events: auto; }
+.pair-edge.hot, .pair-edge.hover-show, .charm-svg.show-edges .pair-edge { opacity: .78; pointer-events: auto; }
+.pair-edge.dim { opacity: .12; }
+.scope-off, .type-off, .filter-off { display: none !important; }
+.canvas-toolbar { position: absolute; left: 18px; bottom: 18px; display: flex; gap: 3px; align-items: center; padding: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); z-index: 5; }
+.zoom-value { width: 54px; border: 0; font-size: 12px; padding: 7px 0; background: transparent; font-variant-numeric: tabular-nums; }
+.clear-selection { position: absolute; top: 52px; left: 22px; display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 7px; z-index: 5; }
+.clear-selection .icon { width: 13px; height: 13px; }
+.minimap { position: absolute; right: 18px; bottom: 18px; width: 144px; height: 96px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); z-index: 5; cursor: crosshair; }
+.minimap rect { fill: var(--dim); opacity: .4; }
+.minimap rect.vp { fill: var(--accent); fill-opacity: .12; stroke: var(--accent); opacity: 1; }
+.right { position: fixed; right: 0; top: 108px; bottom: 0; width: var(--right-width); min-width: 0; overflow: auto; background: var(--panel); border-left: 1px solid var(--border); box-shadow: var(--shadow); visibility: hidden; z-index: 15; }
+.right-open .right { visibility: visible; }
+.detail-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 2; color: var(--dim); font-size: 12px; }
+.detail-toolbar-left { display: flex; align-items: center; gap: 8px; }
+.detail { padding: 20px; font-size: 13px; overflow-wrap: anywhere; }
+.detail h3 { margin: 0 0 10px; font-size: 19px; line-height: 1.5; }
+.detail h4, .detail details > summary { margin: 24px 0 10px; font-size: 12px; font-weight: 650; }
+.detail details > summary { cursor: pointer; }
+.detail p { color: var(--muted); line-height: 1.8; }
+.detail .sub { color: var(--dim); font-size: 11px; margin-bottom: 10px; }
+.detail .row { margin: 7px 0; color: var(--muted); }
+.detail .row b { color: var(--ink); font-weight: 550; }
+.detail .ref-row { margin: 7px 0; }
+.ref-kind { display: inline-block; min-width: 28px; color: var(--dim); font-size: 11px; margin-right: 6px; }
+.ref-row .jump { color: var(--accent); }
+.ref-row .jump:hover { text-decoration: underline; }
+.ref-state { color: var(--muted); }
+.detail .tag { display: inline-block; background: var(--panel-2); border-radius: 3px; padding: 2px 6px; font-size: 11px; margin: 0 4px 4px 0; }
+.detail .jump { color: var(--accent); border: 0; background: transparent; padding: 0; text-align: left; cursor: pointer; }
+.detail .jump:hover { text-decoration: underline; }
+.edit-btn { font-size: 11px; padding: 2px 8px; margin-left: 6px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--accent); cursor: pointer; vertical-align: middle; }
+.edit-btn:hover { border-color: var(--accent); }
+.scene-nav { display: flex; justify-content: space-between; margin: 18px 0; }
+.scene-nav button { display: flex; align-items: center; gap: 4px; padding: 6px 8px; font-size: 12px; }
+.beat-item { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-left: 2px solid var(--border); border-radius: 0; padding: 8px 10px; margin: 4px 0; line-height: 1.8; font-size: 13px; overflow-wrap: anywhere; }
+.beat-item b { display: block; color: var(--dim); font-size: 11px; }
+.beat-item.selected { border-left-color: var(--accent); background: var(--accent-soft); }
+.relation-item { border-top: 1px solid var(--border); padding: 10px 0; line-height: 1.8; }
+.relation-item .scope-label { display: block; color: var(--dim); font-size: 11px; }
+.pair-block { margin: 10px 0; }
+.pair-block > summary { cursor: pointer; font-size: 13px; font-weight: 550; padding: 6px 0; }
+.pair-block.static { font-size: 13px; font-weight: 550; }
+.pair-chain { display: block; color: var(--muted); font-size: 12px; font-weight: 400; margin-top: 3px; }
+.pair-block > summary .jump { border: 0; background: transparent; padding: 0; color: var(--accent); }
+.detail .evo-event { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: 9px 4px; line-height: 1.7; color: var(--ink); cursor: pointer; }
+.detail .evo-event:hover { background: var(--panel-2); }
+.rel-kinds { color: var(--ink); font-size: 12px; margin: 4px 0 6px; }
+.evo-event b { display: block; }
+.evo-transition { color: var(--accent); }
+.evo-reason { display: block; color: var(--muted); font-size: 12px; }
+.evo-preview { padding: 8px 4px 12px; border-top: 1px dashed var(--border); background: var(--panel-2); border-radius: 6px; }
+.evo-preview .row { margin: 5px 0; }
+.preview-beat { margin: 5px 0; color: var(--muted); line-height: 1.7; }
+.preview-beat b { display: inline-block; min-width: 30px; color: var(--dim); font-weight: 500; margin-right: 6px; }
+.detail .scene-appearance { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.detail .scene-appearance button { display: inline-flex; align-items: baseline; gap: 8px; }
+.detail .scene-appearance p { margin: 6px 0; }
+.detail code { font-size: 11px; }
+.ref-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 8px; vertical-align: middle; }
+#empty-state { position: absolute; inset: 40% 0 auto; text-align: center; color: var(--muted); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 1100px) {
+  :root { --left-width: 210px; --right-width: 320px; }
+  body.right-open { grid-template-columns: var(--left-width) minmax(0, 1fr) 0; }
+  .minimap { display: none; }
+}
+@media (max-width: 700px) {
+  body, body.right-open { grid-template-columns: 0 minmax(0, 1fr) 0; }
+  .topbar { padding: 0 12px; gap: 12px; }
+  .brand { gap: 7px; }
+  .brand strong { font-size: 14px; }
+  .brand .divider, .story-title { display: none; }
+  .header-actions { gap: 3px; min-width: 0; }
+  .search-wrap { width: 132px; }
+  .workspace-bar { gap: 5px; padding: 0 8px; }
+  .seg { gap: 14px; }
+  .seg button { font-size: 12px; }
+  .workspace-count { display: none; }
+  #toggle-right { margin-left: auto; }
+  .left { position: fixed; left: 0; top: 108px; bottom: 0; width: 260px; box-shadow: var(--shadow); }
+  .right { width: min(344px, 100vw); }
+  .context-bar { left: 12px; right: 12px; flex-wrap: wrap; }
+  #relation-scope-wrap { margin-left: auto; }
+  .canvas-toolbar { left: 12px; bottom: 12px; }
+  .clear-selection { top: 84px; left: 12px; }
+}
+</style>
+</head>
+<body>
+<!-- Lucide icons, lucide-static v1.47.0, ISC license. -->
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="icon-panel-left" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></symbol>
+  <symbol id="icon-panel-right" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+  <symbol id="icon-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol>
+  <symbol id="icon-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol>
+  <symbol id="icon-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2"/><path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715"/><path d="M16 12a4 4 0 0 0-4-4"/><path d="m19 5-1.256 1.256"/><path d="M20 12h2"/></symbol>
+  <symbol id="icon-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="icon-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="icon-network" viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></symbol>
+  <symbol id="icon-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+</defs></svg>
+
+<header class="topbar">
+  <div class="brand"><img class="brand-logo" src="data:image/png;base64,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" alt="SparkRealm"><strong>SparkRealm</strong><span class="divider"></span><span class="story-title" title="Little Red Riding Hood">Little Red Riding Hood</span></div>
+  <div class="header-actions">
+    <div class="search-wrap"><svg class="icon"><use href="#icon-search"/></svg><input id="search" type="search" autocomplete="off" placeholder="搜索故事" data-i18n-placeholder="search_placeholder" aria-label="搜索场景、节拍或要素" data-i18n-aria="aria_search" aria-controls="search-results" aria-expanded="false"><div id="search-results" class="search-results" hidden></div></div>
+    <button class="icon-button" id="theme" type="button" title="切换主题" data-i18n-title="title_theme" aria-label="切换主题" data-i18n-aria="title_theme"><svg class="icon"><use href="#icon-sun-moon"/></svg></button>
+  </div>
+</header>
+<nav class="workspace-bar" aria-label="图谱视图" data-i18n-aria="aria_workspace">
+  <button class="icon-button" id="toggle-left" title="显示或收起目录" data-i18n-title="title_toggle_left" aria-label="显示或收起目录" data-i18n-aria="title_toggle_left" aria-expanded="true" aria-controls="left-panel"><svg class="icon"><use href="#icon-panel-left"/></svg></button>
+  <div class="seg" role="tablist" aria-label="故事视图" data-i18n-aria="aria_views">
+    <button role="tab" data-view="logic" aria-selected="true" class="active" data-i18n="tab_logic">故事逻辑</button>
+    <button role="tab" data-view="charmap" aria-selected="false" tabindex="-1" data-i18n="tab_charmap">要素关系</button>
+  </div>
+
+  <span id="story-count" class="workspace-count"></span>
+  <button class="icon-button" id="toggle-right" title="显示或收起详情" data-i18n-title="title_toggle_right" aria-label="显示或收起详情" data-i18n-aria="title_toggle_right" aria-expanded="false" aria-controls="right-panel"><svg class="icon"><use href="#icon-panel-right"/></svg></button>
+</nav>
+<aside class="left" id="left-panel" aria-label="故事目录" data-i18n-aria="nav_outline">
+  <section class="panel"><div class="section-heading"><h2 data-i18n="nav_outline">故事大纲</h2><span id="scene-count"></span></div><div id="outline"></div></section>
+  <details class="panel" open><summary data-i18n="nav_entities">故事要素</summary><div id="entities"></div></details>
+  <details class="panel"><summary data-i18n="nav_plot">故事情节</summary><div id="legend"></div></details>
+</aside>
+<main class="canvas" id="canvas" aria-label="故事图谱画布" data-i18n-aria="aria_canvas">
+  <div class="context-bar"><span id="mode-context"></span><button type="button" id="layout-toggle" class="layout-toggle" hidden></button><label id="relation-scope-wrap" hidden><span data-i18n="relation_scope_label">关系时点</span> <select id="relation-scope" aria-label="关系生效场景" data-i18n-aria="relation_scope_label"></select></label></div>
+  <svg class="story-svg" data-mode="telling" viewBox="0 0 1164 930" aria-label="Telling-order graph"><defs><marker id="telling-before" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-before"/></marker><marker id="telling-causes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-causes"/></marker><marker id="telling-setsUp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-setsUp"/></marker><marker id="telling-sequence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-sequence"/></marker><marker id="telling-person" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-person"/></marker></defs><g class="edges"><path class="sequence-edge" d="M 336 169 C 362 169 374 169 400 169" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 700 169 C 726 169 738 169 764 169" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 764 169 C 592.8 169 507.20000000000005 471 336 471" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 336 471 C 362 471 374 471 400 471" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 700 471 C 726 471 738 471 764 471" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 764 471 C 592.8 471 507.20000000000005 773 336 773" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 336 773 C 362 773 374 773 400 773" marker-end="url(#telling-sequence)"/><g class="logic-edge rel-before" data-edge-id="lr_001" data-source="scene_001" data-target="scene_002" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 336 151 C 362 151 374 151 400 151"/><path class="edge-line" d="M 336 151 C 362 151 374 151 400 151" marker-end="url(#telling-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_002" data-source="scene_002" data-target="scene_003" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 700 151 C 726 151 738 151 764 151"/><path class="edge-line" d="M 700 151 C 726 151 738 151 764 151" marker-end="url(#telling-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_003" data-source="scene_003" data-target="scene_004" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 764 151 C 592.8 151 507.20000000000005 453 336 453"/><path class="edge-line" d="M 764 151 C 592.8 151 507.20000000000005 453 336 453" marker-end="url(#telling-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_004" data-source="scene_004" data-target="scene_005" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 336 453 C 362 453 374 453 400 453"/><path class="edge-line" d="M 336 453 C 362 453 374 453 400 453" marker-end="url(#telling-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_005" data-source="scene_005" data-target="scene_006" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 700 453 C 726 453 738 453 764 453"/><path class="edge-line" d="M 700 453 C 726 453 738 453 764 453" marker-end="url(#telling-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_006" data-source="scene_006" data-target="scene_007" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 764 453 C 592.8 453 507.20000000000005 755 336 755"/><path class="edge-line" d="M 764 453 C 592.8 453 507.20000000000005 755 336 755" marker-end="url(#telling-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_007" data-source="scene_007" data-target="scene_008" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 336 755 C 362 755 374 755 400 755"/><path class="edge-line" d="M 336 755 C 362 755 374 755 400 755" marker-end="url(#telling-before)"/><title>Sequence：</title></g><g class="logic-edge rel-setsUp" data-edge-id="lr_008" data-source="scene_002" data-target="scene_003" data-kind="setsUp" tabindex="0" role="button" aria-label="Setup：The yellow eyes in the thicket foreshadow the meeting in the woods."><path class="edge-hit" d="M 700 160 C 726 160 738 160 764 160"/><path class="edge-line" d="M 700 160 C 726 160 738 160 764 160" marker-end="url(#telling-setsUp)"/><title>Setup：The yellow eyes in the thicket foreshadow the meeting in the woods.</title></g><g class="logic-edge rel-causes" data-edge-id="lr_009" data-source="scene_003" data-target="scene_004" data-kind="causes" tabindex="0" role="button" aria-label="Causality：Little Red Riding Hood reveals Grandma&#39;s address, prompting the wolf to race there."><path class="edge-hit" d="M 764 160 C 592.8 160 507.20000000000005 462 336 462"/><path class="edge-line" d="M 764 160 C 592.8 160 507.20000000000005 462 336 462" marker-end="url(#telling-causes)"/><title>Causality：Little Red Riding Hood reveals Grandma&#39;s address, prompting the wolf to race there.</title></g><g class="logic-edge rel-causes" data-edge-id="lr_010" data-source="scene_007" data-target="scene_008" data-kind="causes" tabindex="0" role="button" aria-label="Causality：The hunter frees Little Red Riding Hood and Grandma, leading to the reunion."><path class="edge-hit" d="M 336 764 C 362 764 374 764 400 764"/><path class="edge-line" d="M 336 764 C 362 764 374 764 400 764" marker-end="url(#telling-causes)"/><title>Causality：The hunter frees Little Red Riding Hood and Grandma, leading to the reunion.</title></g></g><g class="nodes"><g class="graph-node scene role-setup" data-node-id="scene_001" data-node-type="scene" transform="translate(36 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">01</span><span class="node-title" title="Mother&#39;s Warning">Mother&#39;s Warning</span></div>
+    <p class="node-summary" title="At home in the village, Little Red Riding Hood receives the basket her mother prepared and is told to take the main road and not talk to strangers.">At home in the village, Little Red Riding Hood receives the basket her mother prepared and is told to take the main road and not talk to strangers.</p>
+    <div class="node-location" title="Village">Village</div>
+    <div class="node-people" title="Little Red Riding Hood, Mother">Little Red Riding Hood, Mother</div>
+    <div class="node-footer"><span>5 beats</span><span class="node-badges"><span>Setup</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-setup" data-node-id="scene_002" data-node-type="scene" transform="translate(400 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">02</span><span class="node-title" title="A Walk in the Woods">A Walk in the Woods</span></div>
+    <p class="node-summary" title="Little Red Riding Hood walks the sunny forest path, delighting in flowers and butterflies.">Little Red Riding Hood walks the sunny forest path, delighting in flowers and butterflies.</p>
+    <div class="node-location" title="Forest Path">Forest Path</div>
+    <div class="node-people" title="Little Red Riding Hood">Little Red Riding Hood</div>
+    <div class="node-footer"><span>4 beats</span><span class="node-badges"><span>Setup</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_003" data-node-type="scene" transform="translate(764 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">03</span><span class="node-title" title="The Wolf Appears">The Wolf Appears</span></div>
+    <p class="node-summary" title="In the deep forest the Big Bad Wolf stops Little Red Riding Hood, pretending to be friendly and coaxing out that she is going to Grandma&#39;s.">In the deep forest the Big Bad Wolf stops Little Red Riding Hood, pretending to be friendly and coaxing out that she is going to Grandma&#39;s.</p>
+    <div class="node-location" title="Deep Forest">Deep Forest</div>
+    <div class="node-people" title="Little Red Riding Hood, Big Bad Wolf">Little Red Riding Hood, Big Bad Wolf</div>
+    <div class="node-footer"><span>7 beats</span><span class="node-badges"><span>Turning point</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_004" data-node-type="scene" transform="translate(36 374)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">04</span><span class="node-title" title="The Wolf&#39;s Trick">The Wolf&#39;s Trick</span></div>
+    <p class="node-summary" title="The Big Bad Wolf races a shortcut to Grandma&#39;s, knocks and deceives her, then swallows her whole.">The Big Bad Wolf races a shortcut to Grandma&#39;s, knocks and deceives her, then swallows her whole.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Big Bad Wolf, Grandmother">Big Bad Wolf, Grandmother</div>
+    <div class="node-footer"><span>4 beats</span><span class="node-badges"><span>Turning point</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_005" data-node-type="scene" transform="translate(400 374)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">05</span><span class="node-title" title="The Disguise">The Disguise</span></div>
+    <p class="node-summary" title="The Big Bad Wolf puts on Grandma&#39;s nightgown and cap, and lies in bed waiting for Little Red Riding Hood.">The Big Bad Wolf puts on Grandma&#39;s nightgown and cap, and lies in bed waiting for Little Red Riding Hood.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Big Bad Wolf">Big Bad Wolf</div>
+    <div class="node-footer"><span>3 beats</span><span class="node-badges"><span>Transition</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_006" data-node-type="scene" transform="translate(764 374)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">06</span><span class="node-title" title="The Classic Questions">The Classic Questions</span></div>
+    <p class="node-summary" title="Little Red Riding Hood arrives and questions the wolf&#39;s eyes, ears and mouth, until he reveals his true face.">Little Red Riding Hood arrives and questions the wolf&#39;s eyes, ears and mouth, until he reveals his true face.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Little Red Riding Hood, Big Bad Wolf">Little Red Riding Hood, Big Bad Wolf</div>
+    <div class="node-footer"><span>8 beats</span><span class="node-badges"><span>Climax</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_007" data-node-type="scene" transform="translate(36 676)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">07</span><span class="node-title" title="The Hunter Arrives">The Hunter Arrives</span></div>
+    <p class="node-summary" title="A passing hunter hears strange snoring inside, breaks in and finds the wolf.">A passing hunter hears strange snoring inside, breaks in and finds the wolf.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Hunter, Big Bad Wolf">Hunter, Big Bad Wolf</div>
+    <div class="node-footer"><span>4 beats</span><span class="node-badges"><span>Turning point</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_008" data-node-type="scene" transform="translate(400 676)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">08</span><span class="node-title" title="Reunion">Reunion</span></div>
+    <p class="node-summary" title="The hunter frees Grandma and Little Red Riding Hood with his axe; the three are reunited and she learns her lesson.">The hunter frees Grandma and Little Red Riding Hood with his axe; the three are reunited and she learns her lesson.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Little Red Riding Hood, Grandmother, Hunter">Little Red Riding Hood, Grandmother, Hunter</div>
+    <div class="node-footer"><span>5 beats</span><span class="node-badges"><span>Transition</span></span></div></div></foreignObject>
+  </g></g><text class="column-label" x="36" y="53">Act I: Setting Out</text><text class="column-label" x="36" y="355">Act II: The Crisis</text><text class="column-label" x="36" y="657">Act III: The Rescue</text></svg><svg class="story-svg" data-mode="time" viewBox="0 0 436 2272" aria-label="Story-time graph"><defs><marker id="time-before" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-before"/></marker><marker id="time-causes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-causes"/></marker><marker id="time-setsUp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-setsUp"/></marker><marker id="time-sequence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-sequence"/></marker><marker id="time-person" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-person"/></marker></defs><g class="edges"><g class="logic-edge rel-before" data-edge-id="lr_001" data-source="scene_001" data-target="scene_002" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 168 266 C 168 299.6 168 316.4 168 350"/><path class="edge-line" d="M 168 266 C 168 299.6 168 316.4 168 350" marker-end="url(#time-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_002" data-source="scene_002" data-target="scene_003" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 168 544 C 168 577.6 168 594.4 168 628"/><path class="edge-line" d="M 168 544 C 168 577.6 168 594.4 168 628" marker-end="url(#time-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_003" data-source="scene_003" data-target="scene_004" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 168 822 C 168 855.6 168 872.4 168 906"/><path class="edge-line" d="M 168 822 C 168 855.6 168 872.4 168 906" marker-end="url(#time-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_004" data-source="scene_004" data-target="scene_005" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 168 1100 C 168 1133.6 168 1150.4 168 1184"/><path class="edge-line" d="M 168 1100 C 168 1133.6 168 1150.4 168 1184" marker-end="url(#time-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_005" data-source="scene_005" data-target="scene_006" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 168 1378 C 168 1411.6 168 1428.4 168 1462"/><path class="edge-line" d="M 168 1378 C 168 1411.6 168 1428.4 168 1462" marker-end="url(#time-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_006" data-source="scene_006" data-target="scene_007" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 168 1656 C 168 1689.6 168 1706.4 168 1740"/><path class="edge-line" d="M 168 1656 C 168 1689.6 168 1706.4 168 1740" marker-end="url(#time-before)"/><title>Sequence：</title></g><g class="logic-edge rel-before" data-edge-id="lr_007" data-source="scene_007" data-target="scene_008" data-kind="before" tabindex="0" role="button" aria-label="Sequence："><path class="edge-hit" d="M 168 1934 C 168 1967.6 168 1984.4 168 2018"/><path class="edge-line" d="M 168 1934 C 168 1967.6 168 1984.4 168 2018" marker-end="url(#time-before)"/><title>Sequence：</title></g><g class="logic-edge rel-setsUp" data-edge-id="lr_008" data-source="scene_002" data-target="scene_003" data-kind="setsUp" tabindex="0" role="button" aria-label="Setup：The yellow eyes in the thicket foreshadow the meeting in the woods."><path class="edge-hit" d="M 177 544 C 177 577.6 177 594.4 177 628"/><path class="edge-line" d="M 177 544 C 177 577.6 177 594.4 177 628" marker-end="url(#time-setsUp)"/><title>Setup：The yellow eyes in the thicket foreshadow the meeting in the woods.</title></g><g class="logic-edge rel-causes" data-edge-id="lr_009" data-source="scene_003" data-target="scene_004" data-kind="causes" tabindex="0" role="button" aria-label="Causality：Little Red Riding Hood reveals Grandma&#39;s address, prompting the wolf to race there."><path class="edge-hit" d="M 177 822 C 177 855.6 177 872.4 177 906"/><path class="edge-line" d="M 177 822 C 177 855.6 177 872.4 177 906" marker-end="url(#time-causes)"/><title>Causality：Little Red Riding Hood reveals Grandma&#39;s address, prompting the wolf to race there.</title></g><g class="logic-edge rel-causes" data-edge-id="lr_010" data-source="scene_007" data-target="scene_008" data-kind="causes" tabindex="0" role="button" aria-label="Causality：The hunter frees Little Red Riding Hood and Grandma, leading to the reunion."><path class="edge-hit" d="M 177 1934 C 177 1967.6 177 1984.4 177 2018"/><path class="edge-line" d="M 177 1934 C 177 1967.6 177 1984.4 177 2018" marker-end="url(#time-causes)"/><title>Causality：The hunter frees Little Red Riding Hood and Grandma, leading to the reunion.</title></g></g><g class="nodes"><g class="graph-node scene role-setup" data-node-id="scene_001" data-node-type="scene" transform="translate(36 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">01</span><span class="node-title" title="Mother&#39;s Warning">Mother&#39;s Warning</span></div>
+    <p class="node-summary" title="At home in the village, Little Red Riding Hood receives the basket her mother prepared and is told to take the main road and not talk to strangers.">At home in the village, Little Red Riding Hood receives the basket her mother prepared and is told to take the main road and not talk to strangers.</p>
+    <div class="node-location" title="Village">Village</div>
+    <div class="node-people" title="Little Red Riding Hood, Mother">Little Red Riding Hood, Mother</div>
+    <div class="node-footer"><span>5 beats</span><span class="node-badges"><span>Setup</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-setup" data-node-id="scene_002" data-node-type="scene" transform="translate(36 350)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">02</span><span class="node-title" title="A Walk in the Woods">A Walk in the Woods</span></div>
+    <p class="node-summary" title="Little Red Riding Hood walks the sunny forest path, delighting in flowers and butterflies.">Little Red Riding Hood walks the sunny forest path, delighting in flowers and butterflies.</p>
+    <div class="node-location" title="Forest Path">Forest Path</div>
+    <div class="node-people" title="Little Red Riding Hood">Little Red Riding Hood</div>
+    <div class="node-footer"><span>4 beats</span><span class="node-badges"><span>Setup</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_003" data-node-type="scene" transform="translate(36 628)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">03</span><span class="node-title" title="The Wolf Appears">The Wolf Appears</span></div>
+    <p class="node-summary" title="In the deep forest the Big Bad Wolf stops Little Red Riding Hood, pretending to be friendly and coaxing out that she is going to Grandma&#39;s.">In the deep forest the Big Bad Wolf stops Little Red Riding Hood, pretending to be friendly and coaxing out that she is going to Grandma&#39;s.</p>
+    <div class="node-location" title="Deep Forest">Deep Forest</div>
+    <div class="node-people" title="Little Red Riding Hood, Big Bad Wolf">Little Red Riding Hood, Big Bad Wolf</div>
+    <div class="node-footer"><span>7 beats</span><span class="node-badges"><span>Turning point</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_004" data-node-type="scene" transform="translate(36 906)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">04</span><span class="node-title" title="The Wolf&#39;s Trick">The Wolf&#39;s Trick</span></div>
+    <p class="node-summary" title="The Big Bad Wolf races a shortcut to Grandma&#39;s, knocks and deceives her, then swallows her whole.">The Big Bad Wolf races a shortcut to Grandma&#39;s, knocks and deceives her, then swallows her whole.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Big Bad Wolf, Grandmother">Big Bad Wolf, Grandmother</div>
+    <div class="node-footer"><span>4 beats</span><span class="node-badges"><span>Turning point</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_005" data-node-type="scene" transform="translate(36 1184)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">05</span><span class="node-title" title="The Disguise">The Disguise</span></div>
+    <p class="node-summary" title="The Big Bad Wolf puts on Grandma&#39;s nightgown and cap, and lies in bed waiting for Little Red Riding Hood.">The Big Bad Wolf puts on Grandma&#39;s nightgown and cap, and lies in bed waiting for Little Red Riding Hood.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Big Bad Wolf">Big Bad Wolf</div>
+    <div class="node-footer"><span>3 beats</span><span class="node-badges"><span>Transition</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_006" data-node-type="scene" transform="translate(36 1462)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">06</span><span class="node-title" title="The Classic Questions">The Classic Questions</span></div>
+    <p class="node-summary" title="Little Red Riding Hood arrives and questions the wolf&#39;s eyes, ears and mouth, until he reveals his true face.">Little Red Riding Hood arrives and questions the wolf&#39;s eyes, ears and mouth, until he reveals his true face.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Little Red Riding Hood, Big Bad Wolf">Little Red Riding Hood, Big Bad Wolf</div>
+    <div class="node-footer"><span>8 beats</span><span class="node-badges"><span>Climax</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_007" data-node-type="scene" transform="translate(36 1740)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">07</span><span class="node-title" title="The Hunter Arrives">The Hunter Arrives</span></div>
+    <p class="node-summary" title="A passing hunter hears strange snoring inside, breaks in and finds the wolf.">A passing hunter hears strange snoring inside, breaks in and finds the wolf.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Hunter, Big Bad Wolf">Hunter, Big Bad Wolf</div>
+    <div class="node-footer"><span>4 beats</span><span class="node-badges"><span>Turning point</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_008" data-node-type="scene" transform="translate(36 2018)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">08</span><span class="node-title" title="Reunion">Reunion</span></div>
+    <p class="node-summary" title="The hunter frees Grandma and Little Red Riding Hood with his axe; the three are reunited and she learns her lesson.">The hunter frees Grandma and Little Red Riding Hood with his axe; the three are reunited and she learns her lesson.</p>
+    <div class="node-location" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</div>
+    <div class="node-people" title="Little Red Riding Hood, Grandmother, Hunter">Little Red Riding Hood, Grandmother, Hunter</div>
+    <div class="node-footer"><span>5 beats</span><span class="node-badges"><span>Transition</span></span></div></div></foreignObject>
+  </g></g><text class="column-label" x="36" y="53">Time point 1: 早晨</text><text class="column-label" x="36" y="331">Time point 2: 早晨</text><text class="column-label" x="36" y="609">Time point 3: 正午</text><text class="column-label" x="36" y="887">Time point 4: 正午</text><text class="column-label" x="36" y="1165">Time point 5: 下午</text><text class="column-label" x="36" y="1443">Time point 6: 下午</text><text class="column-label" x="36" y="1721">Time point 7: 下午</text><text class="column-label" x="36" y="1999">Time point 8: 下午</text></svg><svg class="story-svg charm-svg" data-mode="charmap" viewBox="0 0 1380 910" aria-label="Element-relations graph"><defs><marker id="charmap-before" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-before"/></marker><marker id="charmap-causes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-causes"/></marker><marker id="charmap-setsUp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-setsUp"/></marker><marker id="charmap-sequence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-sequence"/></marker><marker id="charmap-person" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-person"/></marker></defs><g class="edges"><path class="part-edge" d="M 276 100 C 337.6 100 368.4 113 430 113" data-source="scene_001" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 276 180 C 337.6 180 368.4 113 430 113" data-source="scene_002" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 276 260 C 337.6 260 368.4 113 430 113" data-source="scene_003" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 156 528 C 156 376 538 300 538 148" data-source="scene_006" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 156 746 C 156 506.79999999999995 538 387.20000000000005 538 148" data-source="scene_008" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 276 100 C 337.6 100 368.4 219 430 219" data-source="scene_001" data-target="char_mother" data-kind="character"/><path class="part-edge" d="M 276 100 C 461.6 100 554.4 113 740 113" data-source="scene_001" data-target="loc_village" data-kind="location"/><path class="part-edge" d="M 276 100 C 585.6 100 740.4 113 1050 113" data-source="scene_001" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 180 C 585.6 180 740.4 113 1050 113" data-source="scene_002" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 260 C 585.6 260 740.4 113 1050 113" data-source="scene_003" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 558 C 585.6 558 740.4 113 1050 113" data-source="scene_006" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 776 C 585.6 776 740.4 113 1050 113" data-source="scene_008" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 180 C 461.6 180 554.4 219 740 219" data-source="scene_002" data-target="loc_forest_path" data-kind="location"/><path class="part-edge" d="M 276 260 C 337.6 260 368.4 325 430 325" data-source="scene_003" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 398 C 337.6 398 368.4 325 430 325" data-source="scene_004" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 478 C 337.6 478 368.4 325 430 325" data-source="scene_005" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 558 C 337.6 558 368.4 325 430 325" data-source="scene_006" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 696 C 337.6 696 368.4 325 430 325" data-source="scene_007" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 260 C 461.6 260 554.4 325 740 325" data-source="scene_003" data-target="loc_forest_deep" data-kind="location"/><path class="part-edge" d="M 276 398 C 337.6 398 368.4 431 430 431" data-source="scene_004" data-target="char_grandma" data-kind="character"/><path class="part-edge" d="M 276 776 C 337.6 776 368.4 431 430 431" data-source="scene_008" data-target="char_grandma" data-kind="character"/><path class="part-edge" d="M 276 398 C 461.6 398 554.4 431 740 431" data-source="scene_004" data-target="loc_grandma_house" data-kind="location"/><path class="part-edge" d="M 276 478 C 461.6 478 554.4 431 740 431" data-source="scene_005" data-target="loc_grandma_house" data-kind="location"/><path class="part-edge" d="M 276 558 C 461.6 558 554.4 431 740 431" data-source="scene_006" data-target="loc_grandma_house" data-kind="location"/><path class="part-edge" d="M 276 696 C 461.6 696 554.4 431 740 431" data-source="scene_007" data-target="loc_grandma_house" data-kind="location"/><path class="part-edge" d="M 276 776 C 461.6 776 554.4 431 740 431" data-source="scene_008" data-target="loc_grandma_house" data-kind="location"/><path class="part-edge" d="M 276 696 C 337.6 696 368.4 537 430 537" data-source="scene_007" data-target="char_hunter" data-kind="character"/><path class="part-edge" d="M 276 776 C 337.6 776 368.4 537 430 537" data-source="scene_008" data-target="char_hunter" data-kind="character"/><path class="part-edge" d="M 276 696 C 585.6 696 740.4 219 1050 219" data-source="scene_007" data-target="prop_axe" data-kind="prop"/><path class="part-edge" d="M 276 776 C 585.6 776 740.4 219 1050 219" data-source="scene_008" data-target="prop_axe" data-kind="prop"/><g class="pair-edge" data-relation-id="cr_001" data-source="char_mother" data-target="char_red" tabindex="0" role="button" aria-label="Mother ↔ Little Red Riding Hood：Mother and daughter"><path class="edge-hit" d="M 646 219 C 686 219 686 113 646 113"/><path class="edge-line" d="M 646 219 C 686 219 686 113 646 113"/><title>Mother ↔ Little Red Riding Hood：Mother and daughter</title></g><g class="pair-edge" data-relation-id="cr_002" data-source="char_red" data-target="char_grandma" tabindex="0" role="button" aria-label="Little Red Riding Hood ↔ Grandmother：Grandmother and grandchild"><path class="edge-hit" d="M 646 113 C 694 113 694 431 646 431"/><path class="edge-line" d="M 646 113 C 694 113 694 431 646 431"/><title>Little Red Riding Hood ↔ Grandmother：Grandmother and grandchild</title></g><g class="pair-edge" data-relation-id="cr_003" data-source="char_red" data-target="char_wolf" tabindex="0" role="button" aria-label="Little Red Riding Hood ↔ Big Bad Wolf：Strangers"><path class="edge-hit" d="M 646 113 C 702 113 702 325 646 325"/><path class="edge-line" d="M 646 113 C 702 113 702 325 646 325"/><title>Little Red Riding Hood ↔ Big Bad Wolf：Strangers</title></g><g class="pair-edge" data-relation-id="cr_004" data-source="char_wolf" data-target="char_red" tabindex="0" role="button" aria-label="Big Bad Wolf → Little Red Riding Hood：Prey"><path class="edge-hit" d="M 646 325 C 730 325 730 113 646 113"/><path class="edge-line" d="M 646 325 C 730 325 730 113 646 113" marker-end="url(#charmap-person)"/><title>Big Bad Wolf → Little Red Riding Hood：Prey</title></g><g class="pair-edge" data-relation-id="cr_005" data-source="char_red" data-target="char_wolf" tabindex="0" role="button" aria-label="Little Red Riding Hood → Big Bad Wolf：Object of fear"><path class="edge-hit" d="M 646 113 C 758 113 758 325 646 325"/><path class="edge-line" d="M 646 113 C 758 113 758 325 646 325" marker-end="url(#charmap-person)"/><title>Little Red Riding Hood → Big Bad Wolf：Object of fear</title></g><g class="pair-edge" data-relation-id="cr_006" data-source="char_wolf" data-target="char_grandma" tabindex="0" role="button" aria-label="Big Bad Wolf → Grandmother：Victim"><path class="edge-hit" d="M 646 325 C 686 325 686 431 646 431"/><path class="edge-line" d="M 646 325 C 686 325 686 431 646 431" marker-end="url(#charmap-person)"/><title>Big Bad Wolf → Grandmother：Victim</title></g><g class="pair-edge" data-relation-id="cr_007" data-source="char_hunter" data-target="char_red" tabindex="0" role="button" aria-label="Hunter → Little Red Riding Hood：Rescuer"><path class="edge-hit" d="M 646 537 C 694 537 694 113 646 113"/><path class="edge-line" d="M 646 537 C 694 537 694 113 646 113" marker-end="url(#charmap-person)"/><title>Hunter → Little Red Riding Hood：Rescuer</title></g><g class="pair-edge" data-relation-id="cr_008" data-source="char_hunter" data-target="char_grandma" tabindex="0" role="button" aria-label="Hunter → Grandmother：Rescuer"><path class="edge-hit" d="M 646 537 C 702 537 702 431 646 431"/><path class="edge-line" d="M 646 537 C 702 537 702 431 646 431" marker-end="url(#charmap-person)"/><title>Hunter → Grandmother：Rescuer</title></g></g><g class="nodes"><g class="graph-node scene compact" data-node-id="scene_001" data-node-type="scene" transform="translate(36 70)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">01</span><span class="node-title" title="Mother&#39;s Warning">Mother&#39;s Warning</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_002" data-node-type="scene" transform="translate(36 150)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">02</span><span class="node-title" title="A Walk in the Woods">A Walk in the Woods</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_003" data-node-type="scene" transform="translate(36 230)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">03</span><span class="node-title" title="The Wolf Appears">The Wolf Appears</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_004" data-node-type="scene" transform="translate(36 368)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">04</span><span class="node-title" title="The Wolf&#39;s Trick">The Wolf&#39;s Trick</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_005" data-node-type="scene" transform="translate(36 448)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">05</span><span class="node-title" title="The Disguise">The Disguise</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_006" data-node-type="scene" transform="translate(36 528)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">06</span><span class="node-title" title="The Classic Questions">The Classic Questions</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_007" data-node-type="scene" transform="translate(36 666)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">07</span><span class="node-title" title="The Hunter Arrives">The Hunter Arrives</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_008" data-node-type="scene" transform="translate(36 746)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">08</span><span class="node-title" title="Reunion">Reunion</span></div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_red" data-node-type="entity" data-kind="character" transform="translate(430 78)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">Character</span><span class="entity-name" title="Little Red Riding Hood">Little Red Riding Hood</span></div><div class="entity-count">in 5 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_mother" data-node-type="entity" data-kind="character" transform="translate(430 184)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">Character</span><span class="entity-name" title="Mother">Mother</span></div><div class="entity-count">in 1 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_wolf" data-node-type="entity" data-kind="character" transform="translate(430 290)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">Character</span><span class="entity-name" title="Big Bad Wolf">Big Bad Wolf</span></div><div class="entity-count">in 5 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_grandma" data-node-type="entity" data-kind="character" transform="translate(430 396)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">Character</span><span class="entity-name" title="Grandmother">Grandmother</span></div><div class="entity-count">in 2 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_hunter" data-node-type="entity" data-kind="character" transform="translate(430 502)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">Character</span><span class="entity-name" title="Hunter">Hunter</span></div><div class="entity-count">in 2 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_village" data-node-type="entity" data-kind="location" transform="translate(740 78)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">Location</span><span class="entity-name" title="Village">Village</span></div><div class="entity-count">in 1 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_forest_path" data-node-type="entity" data-kind="location" transform="translate(740 184)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">Location</span><span class="entity-name" title="Forest Path">Forest Path</span></div><div class="entity-count">in 1 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_forest_deep" data-node-type="entity" data-kind="location" transform="translate(740 290)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">Location</span><span class="entity-name" title="Deep Forest">Deep Forest</span></div><div class="entity-count">in 1 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_grandma_house" data-node-type="entity" data-kind="location" transform="translate(740 396)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">Location</span><span class="entity-name" title="Grandma&#39;s Cottage">Grandma&#39;s Cottage</span></div><div class="entity-count">in 5 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_basket" data-node-type="entity" data-kind="prop" transform="translate(1050 78)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">Prop</span><span class="entity-name" title="Basket">Basket</span></div><div class="entity-count">in 5 scenes</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_axe" data-node-type="entity" data-kind="prop" transform="translate(1050 184)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">Prop</span><span class="entity-name" title="Axe">Axe</span></div><div class="entity-count">in 2 scenes</div></div></foreignObject>
+  </g></g><text class="column-label" x="430" y="53">Character</text><text class="column-label" x="740" y="53">Location</text><text class="column-label" x="1050" y="53">Prop</text><text class="column-label" x="36" y="53">Act I: Setting Out</text><text class="column-label" x="36" y="351">Act II: The Crisis</text><text class="column-label" x="36" y="649">Act III: The Rescue</text></svg>
+  <div id="empty-state" hidden data-i18n="empty_state">故事尚无场景</div>
+  <div class="canvas-toolbar" role="toolbar" aria-label="画布缩放" data-i18n-aria="aria_zoom">
+    <button class="icon-button" id="zoom-out" aria-label="缩小" data-i18n-aria="title_zoom_out" title="缩小" data-i18n-title="title_zoom_out"><svg class="icon"><use href="#icon-minus"/></svg></button>
+    <button id="zoom-reset" class="zoom-value" aria-label="恢复可读缩放" data-i18n-aria="title_zoom_reset" title="恢复可读缩放" data-i18n-title="title_zoom_reset">100%</button>
+    <button class="icon-button" id="zoom-in" aria-label="放大" data-i18n-aria="title_zoom_in" title="放大" data-i18n-title="title_zoom_in"><svg class="icon"><use href="#icon-plus"/></svg></button>
+    <span class="divider"></span>
+    <button class="icon-button" id="fit" aria-label="查看全图" data-i18n-aria="title_fit" title="查看全图" data-i18n-title="title_fit"><svg class="icon"><use href="#icon-scan"/></svg></button>
+    <button class="icon-button" id="focus" aria-label="定位所选节点" data-i18n-aria="title_focus" title="定位所选节点" data-i18n-title="title_focus" disabled><svg class="icon"><use href="#icon-focus"/></svg></button>
+  </div>
+  <button id="clear-selection" class="clear-selection" hidden><svg class="icon"><use href="#icon-x"/></svg><span data-i18n="clear_selection">清除选择</span></button>
+  <div id="minimap" class="minimap" aria-label="图谱缩略图" data-i18n-aria="aria_minimap"></div>
+</main>
+<aside class="right" id="right-panel" aria-label="故事详情" data-i18n-aria="aria_detail" inert>
+  <div class="detail-toolbar"><div class="detail-toolbar-left"><button class="icon-button" id="detail-back" aria-label="返回上一处" data-i18n-aria="title_back" title="返回上一处" data-i18n-title="title_back" disabled><svg class="icon"><use href="#icon-chevron-left"/></svg></button><span data-i18n="story_detail">故事详情</span></div><button class="icon-button" id="close-detail" aria-label="关闭详情" data-i18n-aria="title_close" title="关闭详情" data-i18n-title="title_close"><svg class="icon"><use href="#icon-x"/></svg></button></div>
+  <div id="detail" class="detail"></div>
+</aside>
+<div id="status" role="status" aria-live="polite" class="sr-only"></div>
+<script>window.__I18N__ = {"locale":"en","strings":{"kind_character":"Character","kind_location":"Location","kind_prop":"Prop","beat_action":"Action","beat_dialogue":"Dialogue","beat_narration":"Narration","rel_before":"Sequence","rel_overlaps":"Overlap","rel_causes":"Causality","rel_setsUp":"Setup","role_setup":"Setup","role_turningPoint":"Turning point","role_climax":"Climax","role_transition":"Transition","mode_flashback":"Flashback","mode_flashForward":"Flash-forward","unplaced":"Unplaced","location_tbd":"Location TBD","summary_tbd":"Summary TBD","people_tbd":"Characters TBD","beats_count":"{n} beats","appears_count":"in {n} scenes","aria_telling":"Telling-order graph","aria_time":"Story-time graph","aria_charmap":"Element-relations graph","layout_saved":"Saved layout","time_point":"Time point {n}","time_unknown":"Time unknown","help_telling":"Read in the order the audience sees; grey lines connect consecutive scenes.","help_time":"Only explicit story-time order; scenes without constraints go to \"Time unknown\".","help_charmap":"See which scenes each character, location and prop appears in, and how relationships change.","scenes_count":"{n} scenes","show_edges":"Show edges","scope_all":"All changes","hint":"Select a scene or an element to see its details and relations.","selected":"{x} selected","unspecified":"Unspecified","none":"—","holder_none":"No holder","holder_by":"Held by {x}","scope_global":"Global","scope_scenes":"Active in {n} scenes","rename":"Rename","prompt_scene_title":"New scene title","prompt_entity_name":"New name","no_beats":"No beats yet","no_logic":"No explicit logic relations yet","no_relations":"No character relations in this scene","no_rel_change":"No relationship change in this scene","time_unknown_detail":"Story-time order unknown","scene_index":"Scene {n}","nonlinear":"non-linear telling","prev":"Prev scene","next":"Next scene","sec_location":"Location","sec_mood":"Mood","sec_thread":"Thread","sec_characters":"Characters","sec_props":"Props","sec_beats":"Beats","sec_logic":"Story logic","sec_relations":"Character relations (this scene)","sec_rel_change":"Relationship changes (this scene)","speaker":"Speaker","related_logic":"Related logic","traits":"Fixed traits","motive":"Motivation","relations_title":"Character relations","appears_in":"Appears in","not_appeared":"Not appeared yet","scope":"Active scenes","edge_detail_title":"Story logic relation","charrel_detail_title":"Character relation","to_time":"Switch to story time","to_telling":"Switch to telling order","story_count":"{n} scenes · {m} elements","search_placeholder":"Search story","search_no_match":"No matches","scene_word":"scene","beat_label":"Beat","reason_prefix":"Why: ","pair_with":"with","nav_outline":"Outline","nav_entities":"Entities","nav_plot":"Plot","tab_logic":"Story logic","tab_charmap":"Element relations","title_theme":"Toggle theme","title_toggle_left":"Show/hide outline","title_toggle_right":"Show/hide details","title_zoom_out":"Zoom out","title_zoom_reset":"Reset zoom","title_zoom_in":"Zoom in","title_fit":"Fit to view","title_focus":"Focus selected","clear_selection":"Clear selection","story_detail":"Details","title_back":"Back","title_close":"Close details","relation_scope_label":"Relation at","empty_state":"No scenes yet","aria_search":"Search scenes, beats or elements","aria_workspace":"Graph view","aria_views":"Story views","aria_canvas":"Story graph canvas","aria_zoom":"Canvas zoom","aria_minimap":"Graph minimap","aria_detail":"Story details","validation_failed":"validation failed","reject_prefix":"Change rejected: ","submit_failed":"Submit failed: ","all_scenes":"All scenes","summary_detail_tbd":"Summary TBD","back":"Back"}};</script>
+<script>window.__STORYGRAPH__ = {"meta":{"title":"Little Red Riding Hood","logline":"On her way to Grandma's, Little Red Riding Hood trusts the Big Bad Wolf, and is saved by a hunter at the last moment.","theme":"Trust and its lessons","language":"en"},"storyId":"story_little_red","revision":1,"entities":{"char_red":{"kind":"character","name":"Little Red Riding Hood","description":"A cheerful, naive little girl who always wears a red cloak.","tags":["protagonist"],"fixedTraits":{"age":"7 years old","hair":"brown curly hair","signatureLook":"red velvet cloak, white dress"},"motivation":"to deliver cake and wine to her sick grandmother","voiceDescription":"bright, childlike voice, fast-paced, lifts at the end when curious"},"char_mother":{"kind":"character","name":"Mother","description":"Little Red Riding Hood's mother, careful and cautious.","tags":["supporting"],"fixedTraits":{"look":"apron, hair tied up"},"motivation":"to get her daughter safely to Grandma's with the food","voiceDescription":"gentle middle-aged woman"},"char_wolf":{"kind":"character","name":"Big Bad Wolf","description":"A cunning, treacherous wolf skilled at disguise.","tags":["antagonist"],"fixedTraits":{"body":"tall, grey-brown fur","features":"pointed ears, sharp teeth, bushy tail"},"motivation":"to eat Little Red Riding Hood and Grandma","voiceDescription":"low, hoarse male voice, softened when pretending"},"char_grandma":{"kind":"character","name":"Grandmother","description":"Little Red Riding Hood's grandmother, frail and ill.","tags":["protagonist"],"fixedTraits":{"age":"70 years old","appearance":"grey hair, lace nightcap, white nightgown"},"motivation":"longing for her granddaughter's visit","voiceDescription":"weak, aged female voice"},"char_hunter":{"kind":"character","name":"Hunter","description":"A hunter passing the cottage, alert and decisive.","tags":["supporting"],"fixedTraits":{"appearance":"stocky middle-aged man, green hunting coat, rifle on his back"},"motivation":"to patrol the woods and protect the villagers","voiceDescription":"steady, strong middle-aged male voice"},"loc_village":{"kind":"location","name":"Village","description":"A quiet little European village, cobblestone lanes, garden fences."},"loc_forest_path":{"kind":"location","name":"Forest Path","description":"A woodland trail with sunlight through the canopy, wildflowers and butterflies."},"loc_forest_deep":{"kind":"location","name":"Deep Forest","description":"A dark grove beside a great oak, dim light, tense atmosphere."},"loc_grandma_house":{"kind":"location","name":"Grandma's Cottage","description":"A cozy woodland cottage with a fireplace, rocking chair and floral curtains.","areas":[{"id":"area_doorway","name":"Doorway","description":"A wooden door, dried flowers hanging on the porch."},{"id":"area_bedroom","name":"Bedroom","description":"Floral curtains, an iron bed, a rocking chair by the fireplace."},{"id":"area_dining","name":"Dining Table","description":"A wooden table with a checkered tablecloth."}]},"prop_basket":{"kind":"prop","name":"Basket","description":"A wicker basket covered with a red-and-white checkered cloth, holding cake and wine.","initialOwnerId":"char_red"},"prop_axe":{"kind":"prop","name":"Axe","description":"The iron axe the hunter carries.","initialOwnerId":"char_hunter"}},"threads":{"thread_main":{"id":"thread_main","name":"Main Plot","description":"Little Red Riding Hood delivers food and meets the Big Bad Wolf."}},"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"order":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"unarranged":[],"tellingIndex":{"scene_001":0,"scene_002":1,"scene_003":2,"scene_004":3,"scene_005":4,"scene_006":5,"scene_007":6,"scene_008":7},"layer":{"scene_001":0,"scene_002":1,"scene_003":2,"scene_004":3,"scene_005":4,"scene_006":5,"scene_007":6,"scene_008":7},"sceneTime":{"scene_001":"早晨","scene_002":"早晨","scene_003":"正午","scene_004":"正午","scene_005":"下午","scene_006":"下午","scene_007":"下午","scene_008":"下午"},"timeKnown":["scene_002","scene_001","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"inverted":[],"actsFlat":[{"id":"act_1","title":"Act I: Setting Out","summary":"At her mother's bidding, Little Red Riding Hood carries the basket toward Grandma's and meets the Big Bad Wolf in the forest.","sceneIds":["scene_001","scene_002","scene_003"]},{"id":"act_2","title":"Act II: The Crisis","summary":"The wolf reaches Grandma's first, swallows her, and disguises himself to wait for Little Red Riding Hood.","sceneIds":["scene_004","scene_005","scene_006"]},{"id":"act_3","title":"Act III: The Rescue","summary":"The hunter arrives in time, frees Little Red Riding Hood and Grandma, and the wolf is punished.","sceneIds":["scene_007","scene_008"]}],"beats":[{"id":"beat_0001","kind":"action","text":"Little Red Riding Hood stands at the door, sunlight on her red cloak. Her mother comes out and hands her a wicker basket.","sceneId":"scene_001","index":0},{"id":"beat_0002","kind":"dialogue","text":"Mother, what's in the basket? It smells so good!","speakerId":"char_red","tone":"curious, excited","sceneId":"scene_001","index":1},{"id":"beat_0003","kind":"action","text":"Her mother kneels to straighten the cloak and gently pats her cheek.","sceneId":"scene_001","index":2},{"id":"beat_0004","kind":"narration","text":"Her mother tells her: take the main road, do not linger in the woods, and do not talk to strangers.","sceneId":"scene_001","index":3},{"id":"beat_0005","kind":"action","text":"Little Red Riding Hood nods hard, lifts the basket, and skips down the cobblestones toward the village gate.","sceneId":"scene_001","index":4},{"id":"beat_0006","kind":"action","text":"Little Red Riding Hood walks the leaf-strewn trail, her red cloak flickering between shadows. She carries the basket in one hand and parts the bushes with the other.","sceneId":"scene_002","index":0},{"id":"beat_0007","kind":"action","text":"A blue butterfly lands on the tip of her nose. She giggles and reaches for it, twirling among the flowers.","sceneId":"scene_002","index":1},{"id":"beat_0008","kind":"dialogue","text":"Grandma will love these flowers!","speakerId":"char_red","tone":"murmuring happily","sceneId":"scene_002","index":2},{"id":"beat_0009","kind":"action","text":"She bends to pick a few wildflowers and tucks them carefully into the basket. In the distant thicket, a pair of yellow eyes watches her.","sceneId":"scene_002","index":3},{"id":"beat_0010","kind":"action","text":"Little Red Riding Hood enters the deep forest and everything goes quiet. A tall figure steps slowly from behind the oak — a grey-brown Big Bad Wolf.","sceneId":"scene_003","index":0},{"id":"beat_0011","kind":"dialogue","text":"Hello there, little girl. Where are you going?","speakerId":"char_wolf","tone":"mild and friendly, faintly false","sceneId":"scene_003","index":1},{"id":"beat_0012","kind":"action","text":"Little Red Riding Hood is not afraid. She does not know the wolf and thinks he looks like a big dog.","sceneId":"scene_003","index":2},{"id":"beat_0013","kind":"dialogue","text":"I'm going to Grandma's to bring her cake and wine. She's sick, and lives in the cottage on the other side of the woods.","speakerId":"char_red","tone":"innocent and open","sceneId":"scene_003","index":3},{"id":"beat_0014","kind":"action","text":"The wolf's ears prick up and his tail gives a twitch. In his mind he is already scheming.","sceneId":"scene_003","index":4},{"id":"beat_0015","kind":"dialogue","text":"There are so many lovely flowers in these woods. Why not pick some to bring to Grandma?","speakerId":"char_wolf","tone":"coaxing, calculating","sceneId":"scene_003","index":5},{"id":"beat_0016","kind":"action","text":"Little Red Riding Hood looks at the flowers by the path, eyes brightening. As she turns to pick them, the wolf slips silently away into the thicket.","sceneId":"scene_003","index":6},{"id":"beat_0017","kind":"action","text":"The wolf runs panting to Grandma's door. He smooths his fur and lowers his voice.","sceneId":"scene_004","index":0},{"id":"beat_0018","kind":"dialogue","text":"Grandma, it's me, Little Red Riding Hood. I've brought you cake.","speakerId":"char_wolf","tone":"mimicking a little girl","sceneId":"scene_004","index":1},{"id":"beat_0019","kind":"dialogue","text":"Just lift the latch, child. Grandma is too tired to get up today.","speakerId":"char_grandma","tone":"weak and kind","sceneId":"scene_004","index":2},{"id":"beat_0020","kind":"action","text":"The wolf pushes the door open and bares his white teeth. Grandma's eyes widen in terror, but she cannot call for help.","sceneId":"scene_004","index":3},{"id":"beat_0021","kind":"action","text":"The wolf clumsily pulls on Grandma's white nightgown and jams the lace cap onto his head, pointed ears poking out at the edges.","sceneId":"scene_005","index":0},{"id":"beat_0022","kind":"action","text":"He climbs into bed and pulls the covers to his chin, leaving only the capped head showing. The firelight makes it look almost seamless.","sceneId":"scene_005","index":1},{"id":"beat_0023","kind":"action","text":"Light footsteps and a little girl's humming drift in from outside. The wolf grins.","sceneId":"scene_005","index":2},{"id":"beat_0024","kind":"action","text":"Little Red Riding Hood pushes the door open and sets the basket on the table. She walks to the bed and thinks Grandma looks different today.","sceneId":"scene_006","index":0},{"id":"beat_0025","kind":"dialogue","text":"Grandma, what big ears you have!","speakerId":"char_red","tone":"puzzled","sceneId":"scene_006","index":1},{"id":"beat_0026","kind":"dialogue","text":"The better to hear you with, my child.","speakerId":"char_wolf","tone":"muffling his voice to mimic Grandma","sceneId":"scene_006","index":2},{"id":"beat_0027","kind":"dialogue","text":"Grandma, what big eyes you have!","speakerId":"char_red","tone":"increasingly uneasy","sceneId":"scene_006","index":3},{"id":"beat_0028","kind":"dialogue","text":"The better to see you with, my child.","speakerId":"char_wolf","tone":"voice growing coarser","sceneId":"scene_006","index":4},{"id":"beat_0029","kind":"dialogue","text":"Grandma, what a big mouth you have!","speakerId":"char_red","tone":"trembling with fear","sceneId":"scene_006","index":5},{"id":"beat_0030","kind":"dialogue","text":"The better to EAT you with!","speakerId":"char_wolf","tone":"fierce, mask off","sceneId":"scene_006","index":6},{"id":"beat_0031","kind":"action","text":"The wolf throws off the covers and lunges at Little Red Riding Hood. She screams.","sceneId":"scene_006","index":7},{"id":"beat_0032","kind":"action","text":"The hunter passes the cottage on his rounds and hears thunderous snoring. He frowns — the old woman could never snore like that.","sceneId":"scene_007","index":0},{"id":"beat_0033","kind":"dialogue","text":"Something's wrong...","speakerId":"char_hunter","tone":"muttering, alert","sceneId":"scene_007","index":1},{"id":"beat_0034","kind":"action","text":"The hunter eases the door open and sees a big-bellied wolf in Grandma's nightgown, snoring on the bed.","sceneId":"scene_007","index":2},{"id":"beat_0035","kind":"action","text":"The hunter swings the axe off his back and steps toward the bed. He notices the wolf's swollen belly is still moving.","sceneId":"scene_007","index":3},{"id":"beat_0036","kind":"action","text":"The hunter carefully cuts open the wolf's belly with his axe. Little Red Riding Hood jumps out first, then Grandma is freed.","sceneId":"scene_008","index":0},{"id":"beat_0037","kind":"dialogue","text":"Grandma!","speakerId":"char_red","tone":"crying as she rushes over","sceneId":"scene_008","index":1},{"id":"beat_0038","kind":"action","text":"Little Red Riding Hood hugs Grandma tightly as she weakly strokes her hair. The hunter stands aside with a relieved smile.","sceneId":"scene_008","index":2},{"id":"beat_0039","kind":"action","text":"The three sit around the table eating cake from the basket. Sunlight pours through the window; all is calm again.","sceneId":"scene_008","index":3},{"id":"beat_0040","kind":"narration","text":"From that day on, Little Red Riding Hood never disobeyed her mother again. She had learned the most important lesson: do not trust a stranger's sweet words.","tone":"warm resolution","sceneId":"scene_008","index":4}],"beatsOf":{"scene_001":[{"id":"beat_0001","kind":"action","text":"Little Red Riding Hood stands at the door, sunlight on her red cloak. Her mother comes out and hands her a wicker basket."},{"id":"beat_0002","kind":"dialogue","speakerId":"char_red","tone":"curious, excited","text":"Mother, what's in the basket? It smells so good!"},{"id":"beat_0003","kind":"action","text":"Her mother kneels to straighten the cloak and gently pats her cheek."},{"id":"beat_0004","kind":"narration","text":"Her mother tells her: take the main road, do not linger in the woods, and do not talk to strangers."},{"id":"beat_0005","kind":"action","text":"Little Red Riding Hood nods hard, lifts the basket, and skips down the cobblestones toward the village gate."}],"scene_002":[{"id":"beat_0006","kind":"action","text":"Little Red Riding Hood walks the leaf-strewn trail, her red cloak flickering between shadows. She carries the basket in one hand and parts the bushes with the other."},{"id":"beat_0007","kind":"action","text":"A blue butterfly lands on the tip of her nose. She giggles and reaches for it, twirling among the flowers."},{"id":"beat_0008","kind":"dialogue","speakerId":"char_red","tone":"murmuring happily","text":"Grandma will love these flowers!"},{"id":"beat_0009","kind":"action","text":"She bends to pick a few wildflowers and tucks them carefully into the basket. In the distant thicket, a pair of yellow eyes watches her."}],"scene_003":[{"id":"beat_0010","kind":"action","text":"Little Red Riding Hood enters the deep forest and everything goes quiet. A tall figure steps slowly from behind the oak — a grey-brown Big Bad Wolf."},{"id":"beat_0011","kind":"dialogue","speakerId":"char_wolf","tone":"mild and friendly, faintly false","text":"Hello there, little girl. Where are you going?"},{"id":"beat_0012","kind":"action","text":"Little Red Riding Hood is not afraid. She does not know the wolf and thinks he looks like a big dog."},{"id":"beat_0013","kind":"dialogue","speakerId":"char_red","tone":"innocent and open","text":"I'm going to Grandma's to bring her cake and wine. She's sick, and lives in the cottage on the other side of the woods."},{"id":"beat_0014","kind":"action","text":"The wolf's ears prick up and his tail gives a twitch. In his mind he is already scheming."},{"id":"beat_0015","kind":"dialogue","speakerId":"char_wolf","tone":"coaxing, calculating","text":"There are so many lovely flowers in these woods. Why not pick some to bring to Grandma?"},{"id":"beat_0016","kind":"action","text":"Little Red Riding Hood looks at the flowers by the path, eyes brightening. As she turns to pick them, the wolf slips silently away into the thicket."}],"scene_004":[{"id":"beat_0017","kind":"action","text":"The wolf runs panting to Grandma's door. He smooths his fur and lowers his voice."},{"id":"beat_0018","kind":"dialogue","speakerId":"char_wolf","tone":"mimicking a little girl","text":"Grandma, it's me, Little Red Riding Hood. I've brought you cake."},{"id":"beat_0019","kind":"dialogue","speakerId":"char_grandma","tone":"weak and kind","text":"Just lift the latch, child. Grandma is too tired to get up today."},{"id":"beat_0020","kind":"action","text":"The wolf pushes the door open and bares his white teeth. Grandma's eyes widen in terror, but she cannot call for help."}],"scene_005":[{"id":"beat_0021","kind":"action","text":"The wolf clumsily pulls on Grandma's white nightgown and jams the lace cap onto his head, pointed ears poking out at the edges."},{"id":"beat_0022","kind":"action","text":"He climbs into bed and pulls the covers to his chin, leaving only the capped head showing. The firelight makes it look almost seamless."},{"id":"beat_0023","kind":"action","text":"Light footsteps and a little girl's humming drift in from outside. The wolf grins."}],"scene_006":[{"id":"beat_0024","kind":"action","text":"Little Red Riding Hood pushes the door open and sets the basket on the table. She walks to the bed and thinks Grandma looks different today."},{"id":"beat_0025","kind":"dialogue","speakerId":"char_red","tone":"puzzled","text":"Grandma, what big ears you have!"},{"id":"beat_0026","kind":"dialogue","speakerId":"char_wolf","tone":"muffling his voice to mimic Grandma","text":"The better to hear you with, my child."},{"id":"beat_0027","kind":"dialogue","speakerId":"char_red","tone":"increasingly uneasy","text":"Grandma, what big eyes you have!"},{"id":"beat_0028","kind":"dialogue","speakerId":"char_wolf","tone":"voice growing coarser","text":"The better to see you with, my child."},{"id":"beat_0029","kind":"dialogue","speakerId":"char_red","tone":"trembling with fear","text":"Grandma, what a big mouth you have!"},{"id":"beat_0030","kind":"dialogue","speakerId":"char_wolf","tone":"fierce, mask off","text":"The better to EAT you with!"},{"id":"beat_0031","kind":"action","text":"The wolf throws off the covers and lunges at Little Red Riding Hood. She screams."}],"scene_007":[{"id":"beat_0032","kind":"action","text":"The hunter passes the cottage on his rounds and hears thunderous snoring. He frowns — the old woman could never snore like that."},{"id":"beat_0033","kind":"dialogue","speakerId":"char_hunter","tone":"muttering, alert","text":"Something's wrong..."},{"id":"beat_0034","kind":"action","text":"The hunter eases the door open and sees a big-bellied wolf in Grandma's nightgown, snoring on the bed."},{"id":"beat_0035","kind":"action","text":"The hunter swings the axe off his back and steps toward the bed. He notices the wolf's swollen belly is still moving."}],"scene_008":[{"id":"beat_0036","kind":"action","text":"The hunter carefully cuts open the wolf's belly with his axe. Little Red Riding Hood jumps out first, then Grandma is freed."},{"id":"beat_0037","kind":"dialogue","speakerId":"char_red","tone":"crying as she rushes over","text":"Grandma!"},{"id":"beat_0038","kind":"action","text":"Little Red Riding Hood hugs Grandma tightly as she weakly strokes her hair. The hunter stands aside with a relieved smile."},{"id":"beat_0039","kind":"action","text":"The three sit around the table eating cake from the basket. Sunlight pours through the window; all is calm again."},{"id":"beat_0040","kind":"narration","tone":"warm resolution","text":"From that day on, Little Red Riding Hood never disobeyed her mother again. She had learned the most important lesson: do not trust a stranger's sweet words."}]},"beatOwner":{"beat_0001":"scene_001","beat_0002":"scene_001","beat_0003":"scene_001","beat_0004":"scene_001","beat_0005":"scene_001","beat_0006":"scene_002","beat_0007":"scene_002","beat_0008":"scene_002","beat_0009":"scene_002","beat_0010":"scene_003","beat_0011":"scene_003","beat_0012":"scene_003","beat_0013":"scene_003","beat_0014":"scene_003","beat_0015":"scene_003","beat_0016":"scene_003","beat_0017":"scene_004","beat_0018":"scene_004","beat_0019":"scene_004","beat_0020":"scene_004","beat_0021":"scene_005","beat_0022":"scene_005","beat_0023":"scene_005","beat_0024":"scene_006","beat_0025":"scene_006","beat_0026":"scene_006","beat_0027":"scene_006","beat_0028":"scene_006","beat_0029":"scene_006","beat_0030":"scene_006","beat_0031":"scene_006","beat_0032":"scene_007","beat_0033":"scene_007","beat_0034":"scene_007","beat_0035":"scene_007","beat_0036":"scene_008","beat_0037":"scene_008","beat_0038":"scene_008","beat_0039":"scene_008","beat_0040":"scene_008"},"edges":[{"id":"lr_001","kind":"before","description":"","source":{"type":"scene","id":"scene_001"},"target":{"type":"scene","id":"scene_002"},"sourceScene":"scene_001","targetScene":"scene_002"},{"id":"lr_002","kind":"before","description":"","source":{"type":"scene","id":"scene_002"},"target":{"type":"scene","id":"scene_003"},"sourceScene":"scene_002","targetScene":"scene_003"},{"id":"lr_003","kind":"before","description":"","source":{"type":"scene","id":"scene_003"},"target":{"type":"scene","id":"scene_004"},"sourceScene":"scene_003","targetScene":"scene_004"},{"id":"lr_004","kind":"before","description":"","source":{"type":"scene","id":"scene_004"},"target":{"type":"scene","id":"scene_005"},"sourceScene":"scene_004","targetScene":"scene_005"},{"id":"lr_005","kind":"before","description":"","source":{"type":"scene","id":"scene_005"},"target":{"type":"scene","id":"scene_006"},"sourceScene":"scene_005","targetScene":"scene_006"},{"id":"lr_006","kind":"before","description":"","source":{"type":"scene","id":"scene_006"},"target":{"type":"scene","id":"scene_007"},"sourceScene":"scene_006","targetScene":"scene_007"},{"id":"lr_007","kind":"before","description":"","source":{"type":"scene","id":"scene_007"},"target":{"type":"scene","id":"scene_008"},"sourceScene":"scene_007","targetScene":"scene_008"},{"id":"lr_008","kind":"setsUp","description":"The yellow eyes in the thicket foreshadow the meeting in the woods.","source":{"type":"scene","id":"scene_002"},"target":{"type":"scene","id":"scene_003"},"sourceScene":"scene_002","targetScene":"scene_003"},{"id":"lr_009","kind":"causes","description":"Little Red Riding Hood reveals Grandma's address, prompting the wolf to race there.","source":{"type":"beat","id":"beat_0013"},"target":{"type":"scene","id":"scene_004"},"sourceScene":"scene_003","targetScene":"scene_004"},{"id":"lr_010","kind":"causes","description":"The hunter frees Little Red Riding Hood and Grandma, leading to the reunion.","source":{"type":"scene","id":"scene_007"},"target":{"type":"scene","id":"scene_008"},"sourceScene":"scene_007","targetScene":"scene_008"}],"characterRelations":[{"id":"cr_001","kind":"Mother and daughter","direction":"symmetric","description":"","source":"char_mother","target":"char_red","sourceName":"Mother","targetName":"Little Red Riding Hood","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]},{"id":"cr_002","kind":"Grandmother and grandchild","direction":"symmetric","description":"","source":"char_red","target":"char_grandma","sourceName":"Little Red Riding Hood","targetName":"Grandmother","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]},{"id":"cr_003","kind":"Strangers","direction":"symmetric","description":"Little Red Riding Hood does not know the wolf.","source":"char_red","target":"char_wolf","sourceName":"Little Red Riding Hood","targetName":"Big Bad Wolf","scopeType":"scenes","sceneIds":["scene_003"]},{"id":"cr_004","kind":"Prey","direction":"directed","description":"","source":"char_wolf","target":"char_red","sourceName":"Big Bad Wolf","targetName":"Little Red Riding Hood","scopeType":"scenes","sceneIds":["scene_003","scene_004","scene_005"]},{"id":"cr_005","kind":"Object of fear","direction":"directed","description":"","source":"char_red","target":"char_wolf","sourceName":"Little Red Riding Hood","targetName":"Big Bad Wolf","scopeType":"scenes","sceneIds":["scene_006","scene_007"]},{"id":"cr_006","kind":"Victim","direction":"directed","description":"","source":"char_wolf","target":"char_grandma","sourceName":"Big Bad Wolf","targetName":"Grandmother","scopeType":"scenes","sceneIds":["scene_004"]},{"id":"cr_007","kind":"Rescuer","direction":"directed","description":"","source":"char_hunter","target":"char_red","sourceName":"Hunter","targetName":"Little Red Riding Hood","scopeType":"scenes","sceneIds":["scene_007","scene_008"]},{"id":"cr_008","kind":"Rescuer","direction":"directed","description":"","source":"char_hunter","target":"char_grandma","sourceName":"Hunter","targetName":"Grandmother","scopeType":"scenes","sceneIds":["scene_008"]}],"relationsByPair":[{"key":"char_mother~char_red","a":"char_mother","b":"char_red","facts":[{"id":"cr_001","sourceCharacterId":"char_mother","targetCharacterId":"char_red","kind":"Mother and daughter","direction":"symmetric","description":"","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]}],"perScene":{"scene_001":["cr_001"],"scene_002":["cr_001"],"scene_003":["cr_001"],"scene_004":["cr_001"],"scene_005":["cr_001"],"scene_006":["cr_001"],"scene_007":["cr_001"],"scene_008":["cr_001"]},"changePoints":[],"global":true},{"key":"char_grandma~char_red","a":"char_grandma","b":"char_red","facts":[{"id":"cr_002","sourceCharacterId":"char_red","targetCharacterId":"char_grandma","kind":"Grandmother and grandchild","direction":"symmetric","description":"","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]}],"perScene":{"scene_001":["cr_002"],"scene_002":["cr_002"],"scene_003":["cr_002"],"scene_004":["cr_002"],"scene_005":["cr_002"],"scene_006":["cr_002"],"scene_007":["cr_002"],"scene_008":["cr_002"]},"changePoints":[],"global":true},{"key":"char_red~char_wolf","a":"char_red","b":"char_wolf","facts":[{"id":"cr_003","sourceCharacterId":"char_red","targetCharacterId":"char_wolf","kind":"Strangers","direction":"symmetric","description":"Little Red Riding Hood does not know the wolf.","scopeType":"scenes","sceneIds":["scene_003"]},{"id":"cr_004","sourceCharacterId":"char_wolf","targetCharacterId":"char_red","kind":"Prey","direction":"directed","description":"","scopeType":"scenes","sceneIds":["scene_003","scene_004","scene_005"]},{"id":"cr_005","sourceCharacterId":"char_red","targetCharacterId":"char_wolf","kind":"Object of fear","direction":"directed","description":"","scopeType":"scenes","sceneIds":["scene_006","scene_007"]}],"perScene":{"scene_001":[],"scene_002":[],"scene_003":["cr_003","cr_004"],"scene_004":["cr_004"],"scene_005":["cr_004"],"scene_006":["cr_005"],"scene_007":["cr_005"],"scene_008":[]},"changePoints":["scene_003","scene_004","scene_006"],"global":false},{"key":"char_grandma~char_wolf","a":"char_grandma","b":"char_wolf","facts":[{"id":"cr_006","sourceCharacterId":"char_wolf","targetCharacterId":"char_grandma","kind":"Victim","direction":"directed","description":"","scopeType":"scenes","sceneIds":["scene_004"]}],"perScene":{"scene_001":[],"scene_002":[],"scene_003":[],"scene_004":["cr_006"],"scene_005":[],"scene_006":[],"scene_007":[],"scene_008":[]},"changePoints":["scene_004"],"global":false},{"key":"char_hunter~char_red","a":"char_hunter","b":"char_red","facts":[{"id":"cr_007","sourceCharacterId":"char_hunter","targetCharacterId":"char_red","kind":"Rescuer","direction":"directed","description":"","scopeType":"scenes","sceneIds":["scene_007","scene_008"]}],"perScene":{"scene_001":[],"scene_002":[],"scene_003":[],"scene_004":[],"scene_005":[],"scene_006":[],"scene_007":["cr_007"],"scene_008":["cr_007"]},"changePoints":["scene_007"],"global":false},{"key":"char_grandma~char_hunter","a":"char_grandma","b":"char_hunter","facts":[{"id":"cr_008","sourceCharacterId":"char_hunter","targetCharacterId":"char_grandma","kind":"Rescuer","direction":"directed","description":"","scopeType":"scenes","sceneIds":["scene_008"]}],"perScene":{"scene_001":[],"scene_002":[],"scene_003":[],"scene_004":[],"scene_005":[],"scene_006":[],"scene_007":[],"scene_008":["cr_008"]},"changePoints":["scene_008"],"global":false}],"relationGraph":{"groups":[{"id":"act_1","title":"Act I: Setting Out","index":0,"sceneIds":["scene_001","scene_002","scene_003"],"entityIds":["char_red","char_mother","loc_village","prop_basket","loc_forest_path","char_wolf","loc_forest_deep"]},{"id":"act_2","title":"Act II: The Crisis","index":1,"sceneIds":["scene_004","scene_005","scene_006"],"entityIds":["char_wolf","char_grandma","loc_grandma_house","char_red","prop_basket"]},{"id":"act_3","title":"Act III: The Rescue","index":2,"sceneIds":["scene_007","scene_008"],"entityIds":["char_hunter","char_wolf","loc_grandma_house","prop_axe","char_red","char_grandma","prop_basket"]}],"entities":[{"id":"char_red","name":"Little Red Riding Hood","kind":"character","tags":["protagonist"],"actIds":["act_1","act_2","act_3"],"firstOrder":0},{"id":"char_mother","name":"Mother","kind":"character","tags":["supporting"],"actIds":["act_1"],"firstOrder":0},{"id":"char_wolf","name":"Big Bad Wolf","kind":"character","tags":["antagonist"],"actIds":["act_1","act_2","act_3"],"firstOrder":2},{"id":"char_grandma","name":"Grandmother","kind":"character","tags":["protagonist"],"actIds":["act_2","act_3"],"firstOrder":3},{"id":"char_hunter","name":"Hunter","kind":"character","tags":["supporting"],"actIds":["act_3"],"firstOrder":6},{"id":"loc_village","name":"Village","kind":"location","tags":[],"actIds":["act_1"],"firstOrder":0},{"id":"loc_forest_path","name":"Forest Path","kind":"location","tags":[],"actIds":["act_1"],"firstOrder":1},{"id":"loc_forest_deep","name":"Deep Forest","kind":"location","tags":[],"actIds":["act_1"],"firstOrder":2},{"id":"loc_grandma_house","name":"Grandma's Cottage","kind":"location","tags":[],"actIds":["act_2","act_3"],"firstOrder":3},{"id":"prop_basket","name":"Basket","kind":"prop","tags":[],"actIds":["act_1","act_2","act_3"],"firstOrder":0},{"id":"prop_axe","name":"Axe","kind":"prop","tags":[],"actIds":["act_3"],"firstOrder":6}],"pairEdges":[{"id":"cr_001","a":"char_mother","b":"char_red","aName":"Mother","bName":"Little Red Riding Hood","kinds":["Mother and daughter"],"directed":false,"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"scopeType":"global","description":"","lane":0},{"id":"cr_002","a":"char_red","b":"char_grandma","aName":"Little Red Riding Hood","bName":"Grandmother","kinds":["Grandmother and grandchild"],"directed":false,"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"scopeType":"global","description":"","lane":0},{"id":"cr_003","a":"char_red","b":"char_wolf","aName":"Little Red Riding Hood","bName":"Big Bad Wolf","kinds":["Strangers"],"directed":false,"sceneIds":["scene_003"],"scopeType":"scenes","description":"Little Red Riding Hood does not know the wolf.","lane":0},{"id":"cr_004","a":"char_wolf","b":"char_red","aName":"Big Bad Wolf","bName":"Little Red Riding Hood","kinds":["Prey"],"directed":true,"sceneIds":["scene_003","scene_004","scene_005"],"scopeType":"scenes","description":"","lane":1},{"id":"cr_005","a":"char_red","b":"char_wolf","aName":"Little Red Riding Hood","bName":"Big Bad Wolf","kinds":["Object of fear"],"directed":true,"sceneIds":["scene_006","scene_007"],"scopeType":"scenes","description":"","lane":2},{"id":"cr_006","a":"char_wolf","b":"char_grandma","aName":"Big Bad Wolf","bName":"Grandmother","kinds":["Victim"],"directed":true,"sceneIds":["scene_004"],"scopeType":"scenes","description":"","lane":0},{"id":"cr_007","a":"char_hunter","b":"char_red","aName":"Hunter","bName":"Little Red Riding Hood","kinds":["Rescuer"],"directed":true,"sceneIds":["scene_007","scene_008"],"scopeType":"scenes","description":"","lane":0},{"id":"cr_008","a":"char_hunter","b":"char_grandma","aName":"Hunter","bName":"Grandmother","kinds":["Rescuer"],"directed":true,"sceneIds":["scene_008"],"scopeType":"scenes","description":"","lane":0}]},"entityScenes":{"char_red":["scene_001","scene_002","scene_003","scene_006","scene_008"],"char_mother":["scene_001"],"loc_village":["scene_001"],"prop_basket":["scene_001","scene_002","scene_003","scene_006","scene_008"],"loc_forest_path":["scene_002"],"char_wolf":["scene_003","scene_004","scene_005","scene_006","scene_007"],"loc_forest_deep":["scene_003"],"char_grandma":["scene_004","scene_008"],"loc_grandma_house":["scene_004","scene_005","scene_006","scene_007","scene_008"],"char_hunter":["scene_007","scene_008"],"prop_axe":["scene_007","scene_008"]},"entitiesByKind":{"character":[{"id":"char_red","name":"Little Red Riding Hood","kind":"character","tags":["protagonist"],"scenes":["scene_001","scene_002","scene_003","scene_006","scene_008"]},{"id":"char_mother","name":"Mother","kind":"character","tags":["supporting"],"scenes":["scene_001"]},{"id":"char_wolf","name":"Big Bad Wolf","kind":"character","tags":["antagonist"],"scenes":["scene_003","scene_004","scene_005","scene_006","scene_007"]},{"id":"char_grandma","name":"Grandmother","kind":"character","tags":["protagonist"],"scenes":["scene_004","scene_008"]},{"id":"char_hunter","name":"Hunter","kind":"character","tags":["supporting"],"scenes":["scene_007","scene_008"]}],"location":[{"id":"loc_village","name":"Village","kind":"location","tags":[],"scenes":["scene_001"]},{"id":"loc_forest_path","name":"Forest Path","kind":"location","tags":[],"scenes":["scene_002"]},{"id":"loc_forest_deep","name":"Deep Forest","kind":"location","tags":[],"scenes":["scene_003"]},{"id":"loc_grandma_house","name":"Grandma's Cottage","kind":"location","tags":[],"scenes":["scene_004","scene_005","scene_006","scene_007","scene_008"]}],"prop":[{"id":"prop_basket","name":"Basket","kind":"prop","tags":[],"scenes":["scene_001","scene_002","scene_003","scene_006","scene_008"]},{"id":"prop_axe","name":"Axe","kind":"prop","tags":[],"scenes":["scene_007","scene_008"]}]},"stats":{"scenes":8,"beats":40,"entities":11,"logicRelations":10,"characterRelations":8,"acts":3,"threads":1},"__locale":"en","scenes":{"scene_001":{"id":"scene_001","title":"Mother's Warning","summary":"At home in the village, Little Red Riding Hood receives the basket her mother prepared and is told to take the main road and not talk to strangers.","locationId":"loc_village","time":{"timeOfDay":"morning"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"setup","mood":"warm and bright","participants":{"char_red":{"emotion":"happy, expectant","goal":"set off to Grandma's","appearance":null},"char_mother":{"emotion":"gently advising","goal":"warn her daughter to stay safe","appearance":null}},"locationState":null,"props":{"prop_basket":{"holderId":"char_red"}},"beats":[{"id":"beat_0001","kind":"action","text":"Little Red Riding Hood stands at the door, sunlight on her red cloak. Her mother comes out and hands her a wicker basket."},{"id":"beat_0002","kind":"dialogue","speakerId":"char_red","tone":"curious, excited","text":"Mother, what's in the basket? It smells so good!"},{"id":"beat_0003","kind":"action","text":"Her mother kneels to straighten the cloak and gently pats her cheek."},{"id":"beat_0004","kind":"narration","text":"Her mother tells her: take the main road, do not linger in the woods, and do not talk to strangers."},{"id":"beat_0005","kind":"action","text":"Little Red Riding Hood nods hard, lifts the basket, and skips down the cobblestones toward the village gate."}]},"scene_002":{"id":"scene_002","title":"A Walk in the Woods","summary":"Little Red Riding Hood walks the sunny forest path, delighting in flowers and butterflies.","locationId":"loc_forest_path","time":{"timeOfDay":"morning"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"setup","mood":"light and cheerful","participants":{"char_red":{"emotion":"happy, innocent","appearance":null}},"locationState":null,"props":{"prop_basket":{"holderId":"char_red"}},"beats":[{"id":"beat_0006","kind":"action","text":"Little Red Riding Hood walks the leaf-strewn trail, her red cloak flickering between shadows. She carries the basket in one hand and parts the bushes with the other."},{"id":"beat_0007","kind":"action","text":"A blue butterfly lands on the tip of her nose. She giggles and reaches for it, twirling among the flowers."},{"id":"beat_0008","kind":"dialogue","speakerId":"char_red","tone":"murmuring happily","text":"Grandma will love these flowers!"},{"id":"beat_0009","kind":"action","text":"She bends to pick a few wildflowers and tucks them carefully into the basket. In the distant thicket, a pair of yellow eyes watches her."}]},"scene_003":{"id":"scene_003","title":"The Wolf Appears","summary":"In the deep forest the Big Bad Wolf stops Little Red Riding Hood, pretending to be friendly and coaxing out that she is going to Grandma's.","locationId":"loc_forest_deep","time":{"timeOfDay":"midday"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"friendly on the surface, dangerous underneath","participants":{"char_red":{"emotion":"from curious to trusting","knowledge":"thinks he is just a big dog","appearance":null},"char_wolf":{"emotion":"false friendliness, greedy inside","goal":"to learn Grandma's address","appearance":null}},"locationState":{"lighting":"sunlight blocked, only stray beams through the canopy","condition":"tall dense trees, moss-covered ground"},"props":{"prop_basket":{"holderId":"char_red"}},"beats":[{"id":"beat_0010","kind":"action","text":"Little Red Riding Hood enters the deep forest and everything goes quiet. A tall figure steps slowly from behind the oak — a grey-brown Big Bad Wolf."},{"id":"beat_0011","kind":"dialogue","speakerId":"char_wolf","tone":"mild and friendly, faintly false","text":"Hello there, little girl. Where are you going?"},{"id":"beat_0012","kind":"action","text":"Little Red Riding Hood is not afraid. She does not know the wolf and thinks he looks like a big dog."},{"id":"beat_0013","kind":"dialogue","speakerId":"char_red","tone":"innocent and open","text":"I'm going to Grandma's to bring her cake and wine. She's sick, and lives in the cottage on the other side of the woods."},{"id":"beat_0014","kind":"action","text":"The wolf's ears prick up and his tail gives a twitch. In his mind he is already scheming."},{"id":"beat_0015","kind":"dialogue","speakerId":"char_wolf","tone":"coaxing, calculating","text":"There are so many lovely flowers in these woods. Why not pick some to bring to Grandma?"},{"id":"beat_0016","kind":"action","text":"Little Red Riding Hood looks at the flowers by the path, eyes brightening. As she turns to pick them, the wolf slips silently away into the thicket."}]},"scene_004":{"id":"scene_004","title":"The Wolf's Trick","summary":"The Big Bad Wolf races a shortcut to Grandma's, knocks and deceives her, then swallows her whole.","locationId":"loc_grandma_house","areaId":"area_doorway","time":{"timeOfDay":"midday"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"tense and menacing","participants":{"char_wolf":{"emotion":"ferocious and eager","appearance":null},"char_grandma":{"emotion":"weak, terrified","appearance":null}},"locationState":null,"props":{},"beats":[{"id":"beat_0017","kind":"action","text":"The wolf runs panting to Grandma's door. He smooths his fur and lowers his voice."},{"id":"beat_0018","kind":"dialogue","speakerId":"char_wolf","tone":"mimicking a little girl","text":"Grandma, it's me, Little Red Riding Hood. I've brought you cake."},{"id":"beat_0019","kind":"dialogue","speakerId":"char_grandma","tone":"weak and kind","text":"Just lift the latch, child. Grandma is too tired to get up today."},{"id":"beat_0020","kind":"action","text":"The wolf pushes the door open and bares his white teeth. Grandma's eyes widen in terror, but she cannot call for help."}]},"scene_005":{"id":"scene_005","title":"The Disguise","summary":"The Big Bad Wolf puts on Grandma's nightgown and cap, and lies in bed waiting for Little Red Riding Hood.","locationId":"loc_grandma_house","areaId":"area_bedroom","time":{"timeOfDay":"afternoon"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"transition","mood":"eerie and uneasy","participants":{"char_wolf":{"emotion":"smug and sly","appearance":"wearing Grandma's white nightgown and lace cap, bundled under the covers"}},"locationState":{"lighting":"firelight throws shadows on the wall, dim","condition":"bedding rumpled, signs of a struggle on the floor"},"props":{},"beats":[{"id":"beat_0021","kind":"action","text":"The wolf clumsily pulls on Grandma's white nightgown and jams the lace cap onto his head, pointed ears poking out at the edges."},{"id":"beat_0022","kind":"action","text":"He climbs into bed and pulls the covers to his chin, leaving only the capped head showing. The firelight makes it look almost seamless."},{"id":"beat_0023","kind":"action","text":"Light footsteps and a little girl's humming drift in from outside. The wolf grins."}]},"scene_006":{"id":"scene_006","title":"The Classic Questions","summary":"Little Red Riding Hood arrives and questions the wolf's eyes, ears and mouth, until he reveals his true face.","locationId":"loc_grandma_house","areaId":"area_bedroom","time":{"timeOfDay":"afternoon"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"climax","mood":"suspense rising from doubt to terror","participants":{"char_red":{"emotion":"from doubt to fear","appearance":null},"char_wolf":{"emotion":"from disguised to exposed","appearance":"sheds the Grandma disguise, throwing off the covers to reveal grey-brown fur and sharp teeth"}},"locationState":null,"props":{"prop_basket":{"appearance":"set on the table, checkered cloth folded back","holderId":null}},"beats":[{"id":"beat_0024","kind":"action","text":"Little Red Riding Hood pushes the door open and sets the basket on the table. She walks to the bed and thinks Grandma looks different today."},{"id":"beat_0025","kind":"dialogue","speakerId":"char_red","tone":"puzzled","text":"Grandma, what big ears you have!"},{"id":"beat_0026","kind":"dialogue","speakerId":"char_wolf","tone":"muffling his voice to mimic Grandma","text":"The better to hear you with, my child."},{"id":"beat_0027","kind":"dialogue","speakerId":"char_red","tone":"increasingly uneasy","text":"Grandma, what big eyes you have!"},{"id":"beat_0028","kind":"dialogue","speakerId":"char_wolf","tone":"voice growing coarser","text":"The better to see you with, my child."},{"id":"beat_0029","kind":"dialogue","speakerId":"char_red","tone":"trembling with fear","text":"Grandma, what a big mouth you have!"},{"id":"beat_0030","kind":"dialogue","speakerId":"char_wolf","tone":"fierce, mask off","text":"The better to EAT you with!"},{"id":"beat_0031","kind":"action","text":"The wolf throws off the covers and lunges at Little Red Riding Hood. She screams."}]},"scene_007":{"id":"scene_007","title":"The Hunter Arrives","summary":"A passing hunter hears strange snoring inside, breaks in and finds the wolf.","locationId":"loc_grandma_house","areaId":"area_bedroom","time":{"timeOfDay":"afternoon"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"tense and decisive","participants":{"char_hunter":{"emotion":"alert and decisive","appearance":null},"char_wolf":{"emotion":"fast asleep","appearance":"belly swollen, still in Grandma's nightgown, snoring in bed"}},"locationState":{"lighting":"afternoon sun slanting through the window","condition":"room in disarray, bedding askew, Grandma's slippers scattered on the floor"},"props":{"prop_axe":{"holderId":"char_hunter"}},"beats":[{"id":"beat_0032","kind":"action","text":"The hunter passes the cottage on his rounds and hears thunderous snoring. He frowns — the old woman could never snore like that."},{"id":"beat_0033","kind":"dialogue","speakerId":"char_hunter","tone":"muttering, alert","text":"Something's wrong..."},{"id":"beat_0034","kind":"action","text":"The hunter eases the door open and sees a big-bellied wolf in Grandma's nightgown, snoring on the bed."},{"id":"beat_0035","kind":"action","text":"The hunter swings the axe off his back and steps toward the bed. He notices the wolf's swollen belly is still moving."}]},"scene_008":{"id":"scene_008","title":"Reunion","summary":"The hunter frees Grandma and Little Red Riding Hood with his axe; the three are reunited and she learns her lesson.","locationId":"loc_grandma_house","areaId":"area_dining","time":{"timeOfDay":"afternoon"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"transition","mood":"warm and grateful","participants":{"char_red":{"emotion":"grateful to have survived","appearance":null},"char_grandma":{"emotion":"weak but relieved","appearance":null},"char_hunter":{"emotion":"relieved","appearance":null}},"locationState":{"lighting":"sunlight through the window, warm and bright","condition":"the cottage tidy and cozy again, fire dancing in the hearth"},"props":{"prop_basket":{"appearance":"opened, cake and wine set on the table","holderId":null},"prop_axe":{"appearance":"resting against the wall in a corner","holderId":"char_hunter"}},"beats":[{"id":"beat_0036","kind":"action","text":"The hunter carefully cuts open the wolf's belly with his axe. Little Red Riding Hood jumps out first, then Grandma is freed."},{"id":"beat_0037","kind":"dialogue","speakerId":"char_red","tone":"crying as she rushes over","text":"Grandma!"},{"id":"beat_0038","kind":"action","text":"Little Red Riding Hood hugs Grandma tightly as she weakly strokes her hair. The hunter stands aside with a relieved smile."},{"id":"beat_0039","kind":"action","text":"The three sit around the table eating cake from the basket. Sunlight pours through the window; all is calm again."},{"id":"beat_0040","kind":"narration","tone":"warm resolution","text":"From that day on, Little Red Riding Hood never disobeyed her mother again. She had learned the most important lesson: do not trust a stranger's sweet words."}]}},"title":"Little Red Riding Hood","locale":"en","warnings":[],"geoms":{"telling":{"w":1164,"h":930,"rects":{"scene_001":{"x":36,"y":72,"w":300,"h":194},"scene_002":{"x":400,"y":72,"w":300,"h":194},"scene_003":{"x":764,"y":72,"w":300,"h":194},"scene_004":{"x":36,"y":374,"w":300,"h":194},"scene_005":{"x":400,"y":374,"w":300,"h":194},"scene_006":{"x":764,"y":374,"w":300,"h":194},"scene_007":{"x":36,"y":676,"w":300,"h":194},"scene_008":{"x":400,"y":676,"w":300,"h":194}},"nodes":[{"x":36,"y":72,"w":300,"h":194},{"x":400,"y":72,"w":300,"h":194},{"x":764,"y":72,"w":300,"h":194},{"x":36,"y":374,"w":300,"h":194},{"x":400,"y":374,"w":300,"h":194},{"x":764,"y":374,"w":300,"h":194},{"x":36,"y":676,"w":300,"h":194},{"x":400,"y":676,"w":300,"h":194}]},"time":{"w":436,"h":2272,"rects":{"scene_001":{"x":36,"y":72,"w":300,"h":194},"scene_002":{"x":36,"y":350,"w":300,"h":194},"scene_003":{"x":36,"y":628,"w":300,"h":194},"scene_004":{"x":36,"y":906,"w":300,"h":194},"scene_005":{"x":36,"y":1184,"w":300,"h":194},"scene_006":{"x":36,"y":1462,"w":300,"h":194},"scene_007":{"x":36,"y":1740,"w":300,"h":194},"scene_008":{"x":36,"y":2018,"w":300,"h":194}},"nodes":[{"x":36,"y":72,"w":300,"h":194},{"x":36,"y":350,"w":300,"h":194},{"x":36,"y":628,"w":300,"h":194},{"x":36,"y":906,"w":300,"h":194},{"x":36,"y":1184,"w":300,"h":194},{"x":36,"y":1462,"w":300,"h":194},{"x":36,"y":1740,"w":300,"h":194},{"x":36,"y":2018,"w":300,"h":194}]},"charmap":{"w":1380,"h":910,"rects":{"scene_001":{"x":36,"y":70,"w":240,"h":60},"scene_002":{"x":36,"y":150,"w":240,"h":60},"scene_003":{"x":36,"y":230,"w":240,"h":60},"scene_004":{"x":36,"y":368,"w":240,"h":60},"scene_005":{"x":36,"y":448,"w":240,"h":60},"scene_006":{"x":36,"y":528,"w":240,"h":60},"scene_007":{"x":36,"y":666,"w":240,"h":60},"scene_008":{"x":36,"y":746,"w":240,"h":60},"char_red":{"x":430,"y":78,"w":216,"h":70},"char_mother":{"x":430,"y":184,"w":216,"h":70},"char_wolf":{"x":430,"y":290,"w":216,"h":70},"char_grandma":{"x":430,"y":396,"w":216,"h":70},"char_hunter":{"x":430,"y":502,"w":216,"h":70},"loc_village":{"x":740,"y":78,"w":216,"h":70},"loc_forest_path":{"x":740,"y":184,"w":216,"h":70},"loc_forest_deep":{"x":740,"y":290,"w":216,"h":70},"loc_grandma_house":{"x":740,"y":396,"w":216,"h":70},"prop_basket":{"x":1050,"y":78,"w":216,"h":70},"prop_axe":{"x":1050,"y":184,"w":216,"h":70}},"nodes":[{"x":36,"y":70,"w":240,"h":60},{"x":36,"y":150,"w":240,"h":60},{"x":36,"y":230,"w":240,"h":60},{"x":36,"y":368,"w":240,"h":60},{"x":36,"y":448,"w":240,"h":60},{"x":36,"y":528,"w":240,"h":60},{"x":36,"y":666,"w":240,"h":60},{"x":36,"y":746,"w":240,"h":60},{"x":430,"y":78,"w":216,"h":70},{"x":430,"y":184,"w":216,"h":70},{"x":430,"y":290,"w":216,"h":70},{"x":430,"y":396,"w":216,"h":70},{"x":430,"y":502,"w":216,"h":70},{"x":740,"y":78,"w":216,"h":70},{"x":740,"y":184,"w":216,"h":70},{"x":740,"y":290,"w":216,"h":70},{"x":740,"y":396,"w":216,"h":70},{"x":1050,"y":78,"w":216,"h":70},{"x":1050,"y":184,"w":216,"h":70}]}}};</script>
+<script>(function () {
+  const data = window.__STORYGRAPH__;
+  const svgs = [...document.querySelectorAll('.story-svg')];
+  const body = document.body;
+  const state = {
+    mode: '', lastLogicMode: 'telling', selected: null, relationScene: 'all', fitted: false, history: [], restoring: false,
+    relationKinds: { telling: new Set(), time: new Set() },
+    entityKinds: new Set(['character', 'location', 'prop']),
+  };
+  const view = new Map();
+  const S = (window.__I18N__ && window.__I18N__.strings) || {};
+  const isEn = (window.__I18N__ && window.__I18N__.locale) === 'en';
+  const t = (key, params) => {
+    let out = S[key] != null ? S[key] : key;
+    if (params) for (const [k, v] of Object.entries(params)) out = out.replaceAll(`{${k}}`, String(v));
+    return out;
+  };
+  const TYPES = { character: 'kind_character', location: 'kind_location', prop: 'kind_prop' };
+  const BEATS = { action: 'beat_action', dialogue: 'beat_dialogue', narration: 'beat_narration' };
+  const RELS = { before: 'rel_before', overlaps: 'rel_overlaps', causes: 'rel_causes', setsUp: 'rel_setsUp' };
+  const traitLabel = (key) => (isEn ? key.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()) : TRAIT_LABELS[key]);
+  const TRAIT_LABELS = {
+    age: '年龄', hair: '发型', signatureLook: '标志外观', look: '外观', appearance: '外观',
+    body: '体型', build: '体型', size: '体形', features: '面容特征', face: '面容', personality: '性格',
+    temperament: '性情', condition: '状态', wardrobe: '着装', costume: '服装', traits: '特征',
+    gender: '性别', role: '角色定位', species: '物种', speed: '速度', color: '颜色', colour: '颜色',
+    habitat: '栖息地', ability: '能力', voice: '嗓音', occupation: '职业', age_range: '年龄段',
+  };
+  const HELP = { telling: 'help_telling', time: 'help_time', charmap: 'help_charmap' };
+  const MINI = { w: 144, h: 96, pad: 5 };
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const icon = (name) => `<svg class="icon"><use href="#icon-${name}"/></svg>`;
+  const activeSvg = () => svgs.find((svg) => svg.dataset.mode === state.mode);
+  const entity = (id) => data.entities[id] || {};
+  const nameOf = (id) => entity(id).name || id;
+  const typeName = (kind) => t(TYPES[kind] || kind);
+  const beatName = (kind) => t(BEATS[kind] || kind);
+  const relName = (kind) => t(RELS[kind] || kind);
+  const sceneTitle = (id) => data.scenes[id]?.title || id;
+  const sceneLabel = (id) => { const n = data.tellingIndex[id]; return n == null ? sceneTitle(id) : `${String(n + 1).padStart(2, '0')} ${sceneTitle(id)}`; };
+  const beatOf = (id) => data.beats.find((beat) => beat.id === id);
+
+  for (const svg of svgs) {
+    const full = (svg.getAttribute('viewBox') || '0 0 100 100').split(/\s+/).map(Number);
+    view.set(svg, { x: full[0], y: full[1], w: full[2], h: full[3], full: { x: full[0], y: full[1], w: full[2], h: full[3] } });
+  }
+
+  function status(message) { document.getElementById('status').textContent = message; }
+  function applyStaticI18n() {
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+    document.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+    document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+    document.title = `${data.title} · SparkRealm StoryGraph`;
+  }
+
+  // ---- 编辑：提交 ChangeSet 并保留视角 ----
+  function saveSession() {
+    try {
+      const views = {};
+      for (const svg of svgs) { const v = view.get(svg); views[svg.dataset.mode] = { x: v.x, y: v.y, w: v.w, h: v.h }; }
+      sessionStorage.setItem('sparkrealm-view', JSON.stringify({ mode: state.mode, selected: state.selected, relationScene: state.relationScene, views }));
+    } catch (_) { /* ignore */ }
+  }
+  function restoreSession() {
+    let saved = null;
+    try { saved = JSON.parse(sessionStorage.getItem('sparkrealm-view') || 'null'); } catch (_) { saved = null; }
+    if (!saved) return;
+    try { sessionStorage.removeItem('sparkrealm-view'); } catch (_) { /* ignore */ }
+    if (saved.relationScene) state.relationScene = saved.relationScene;
+    if (saved.mode) setMode(saved.mode);
+    for (const svg of svgs) { const s = saved.views && saved.views[svg.dataset.mode]; if (s) Object.assign(view.get(svg), { x: s.x, y: s.y, w: s.w, h: s.h }); }
+    if (saved.selected) select(saved.selected.type, saved.selected.id);
+    applyView(activeSvg());
+  }
+  async function sendChange(operations) {
+    if (!window.__SERVED__) return;
+    saveSession();
+    const changeSet = { changeId: `ui_${Date.now()}`, storyId: data.storyId, baseRevision: data.revision, actor: { kind: 'user', id: 'local' }, operations };
+    try {
+      const response = await fetch('/apply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ changeSet }) });
+      const out = await response.json();
+      if (out.ok) location.reload();
+      else alert(`${t('reject_prefix')}${out.error || ''}${out.message ? ' - ' + out.message : ''}`);
+    } catch (error) { alert(`${t('submit_failed')}${error.message}`); }
+  }
+  function updateBack() { const button = document.getElementById('detail-back'); if (button) button.disabled = state.history.length === 0; }
+  function pushHistory() {
+    state.history.push({ mode: state.mode, selected: state.selected ? { ...state.selected } : null });
+    updateBack();
+  }
+  function goBack() {
+    const prev = state.history.pop();
+    updateBack();
+    if (!prev) return;
+    state.restoring = true;
+    if (prev.mode && prev.mode !== state.mode) setMode(prev.mode);
+    state.restoring = false;
+    if (prev.selected) select(prev.selected.type, prev.selected.id, true);
+    else clearSelection();
+  }
+  function navigateTo(mode, type, id, focus = false) {
+    const same = state.selected && state.selected.type === type && state.selected.id === id && (!mode || mode === state.mode);
+    if (!same && !state.restoring) pushHistory();
+    if (mode && mode !== state.mode) setMode(mode);
+    select(type, id, focus);
+  }
+  function canvasSize() {
+    const rect = document.getElementById('canvas').getBoundingClientRect();
+    const width = Math.max(320, rect.width), height = Math.max(240, rect.height);
+    return { width, height, ratio: width / height };
+  }
+  function applyView(svg) {
+    const current = view.get(svg);
+    svg.setAttribute('viewBox', `${current.x} ${current.y} ${current.w} ${current.h}`);
+    if (svg === activeSvg()) {
+      document.getElementById('zoom-reset').textContent = `${Math.round((canvasSize().width / current.w) * 100)}%`;
+      renderMinimap();
+    }
+  }
+  function readableView() {
+    const svg = activeSvg(), current = view.get(svg), canvas = canvasSize();
+    const width = Math.max(canvas.width, Math.min(current.full.w, canvas.width / 0.88)); // 图比画布窄时按 100% 显示
+    current.w = width; current.h = width / canvas.ratio;
+    current.x = current.full.x;
+    current.y = current.full.y;
+    applyView(svg);
+  }
+  function fitAll() {
+    const svg = activeSvg(), current = view.get(svg), canvas = canvasSize();
+    const graphRatio = current.full.w / current.full.h;
+    if (graphRatio > canvas.ratio) {
+      current.w = current.full.w; current.h = current.w / canvas.ratio;
+      current.x = current.full.x; current.y = current.full.y - (current.h - current.full.h) / 2;
+    } else {
+      current.h = current.full.h; current.w = current.h * canvas.ratio;
+      current.y = current.full.y; current.x = current.full.x - (current.w - current.full.w) / 2;
+    }
+    applyView(svg);
+  }
+  function zoom(factor, center) {
+    const svg = activeSvg(), current = view.get(svg);
+    const nextWidth = Math.min(Math.max(current.full.w * 2.4, 280), Math.max(280, current.w * factor));
+    const actual = nextWidth / current.w;
+    const point = center || { x: current.x + current.w / 2, y: current.y + current.h / 2 };
+    current.x = point.x - (point.x - current.x) * actual;
+    current.y = point.y - (point.y - current.y) * actual;
+    current.w = nextWidth; current.h *= actual; applyView(svg);
+  }
+  function focusNode(id, force = false) {
+    const rect = data.geoms[state.mode]?.rects?.[id];
+    if (!rect) return;
+    const svg = activeSvg(), current = view.get(svg), canvas = canvasSize();
+    const pad = 40;
+    const inside = rect.x >= current.x + pad && rect.y >= current.y + pad
+      && rect.x + rect.w <= current.x + current.w - pad && rect.y + rect.h <= current.y + current.h - pad;
+    if (inside && !force) return; // 已在视野内则不调整
+    if (force) { // 仅主动“定位”时才改变缩放：放大到可读比例
+      current.w = Math.min(current.full.w, Math.max(520, canvas.width / 0.92));
+      current.h = current.w / canvas.ratio;
+    }
+    // 其余情况保持当前缩放，只平移到可见
+    current.x = rect.x + rect.w / 2 - current.w / 2;
+    current.y = rect.y + rect.h / 2 - current.h / 2;
+    applyView(svg);
+  }
+
+  function renderOutline() {
+    const acts = data.actsFlat.length ? data.actsFlat : [{ id: 'all', title: t('all_scenes'), sceneIds: data.order }];
+    document.getElementById('scene-count').textContent = t('scenes_count', { n: data.stats.scenes });
+    document.getElementById('outline').innerHTML = acts.map((act) => `<details class="act" open><summary>${esc(act.title || act.id)}</summary>${(act.sceneIds || []).map((id) => {
+      if (!data.scenes[id]) return '';
+      const number = data.tellingIndex[id] == null ? '—' : String(data.tellingIndex[id] + 1).padStart(2, '0');
+      return `<button class="scene-item" data-scene="${esc(id)}"><span class="item-number">${number}</span><span>${esc(sceneTitle(id))}</span></button>`;
+    }).join('')}</details>`).join('');
+    document.querySelectorAll('.scene-item').forEach((button) => button.addEventListener('click', () => navigateTo(null, 'scene', button.dataset.scene, true)));
+  }
+  function renderEntities() {
+    document.getElementById('entities').innerHTML = Object.entries(TYPES).map(([kind, label]) => {
+      const list = data.entitiesByKind[kind] || [];
+      return list.length ? `<details class="entity-group" open><summary>${esc(t(label))} · ${list.length}</summary>${list.map((item) => `<button class="entity-item" data-entity="${esc(item.id)}"><span>${esc(item.name)}</span><span class="count">${esc(t('scenes_count', { n: item.scenes.length }))}</span></button>`).join('')}</details>` : '';
+    }).join('');
+    document.querySelectorAll('.entity-item').forEach((button) => button.addEventListener('click', () => navigateTo('charmap', 'entity', button.dataset.entity, true)));
+  }
+  function renderFilters() {
+    const target = document.getElementById('legend');
+    target.innerHTML = state.mode === 'charmap'
+      ? Object.entries(TYPES).map(([kind, label]) => `<label class="filter-label"><input type="checkbox" data-entity-kind="${kind}" ${state.entityKinds.has(kind) ? 'checked' : ''}>${esc(t(label))}</label>`).join('')
+        + `<label class="filter-label"><input type="checkbox" data-showedges>${esc(t('show_edges'))}</label>`
+      : Object.entries(RELS).map(([kind, label]) => `<label class="filter-label"><input type="checkbox" data-relation-kind="${kind}" ${state.relationKinds[state.mode].has(kind) ? 'checked' : ''}><span class="line-swatch ${kind}"></span>${esc(t(label))}</label>`).join('');
+    target.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => {
+      if (input.hasAttribute('data-showedges')) { svgs.forEach((svg) => svg.classList.toggle('show-edges', input.checked)); return; }
+      const set = input.dataset.entityKind ? state.entityKinds : state.relationKinds[state.mode];
+      const value = input.dataset.entityKind || input.dataset.relationKind;
+      input.checked ? set.add(value) : set.delete(value); applyFilters();
+    }));
+  }
+  function renderRelationScope() {
+    const select = document.getElementById('relation-scope');
+    select.innerHTML = `<option value="all">${esc(t('scope_all'))}</option>${data.order.map((id) => `<option value="${esc(id)}">${data.tellingIndex[id] + 1}. ${esc(sceneTitle(id))}</option>`).join('')}`;
+    select.value = state.relationScene;
+  }
+  function applyFilters() {
+    for (const svg of svgs) {
+      svg.querySelectorAll('.logic-edge').forEach((edge) => {
+        const visible = state.mode === svg.dataset.mode && state.relationKinds[state.mode]?.has(edge.dataset.kind);
+        edge.classList.toggle('filter-off', !visible); edge.classList.toggle('visible', visible);
+      });
+      svg.querySelectorAll('.entity').forEach((node) => node.classList.toggle('type-off', !state.entityKinds.has(node.dataset.kind)));
+      svg.querySelectorAll('.part-edge').forEach((edge) => edge.classList.toggle('type-off', !state.entityKinds.has(edge.dataset.kind)));
+      svg.querySelectorAll('.pair-edge').forEach((edge) => {
+        const relation = data.characterRelations.find((item) => item.id === edge.dataset.relationId);
+        edge.classList.toggle('scope-off', state.relationScene !== 'all' && !relation?.sceneIds.includes(state.relationScene));
+      });
+    }
+    renderMinimap();
+  }
+
+  function clearMarks() {
+    svgs.forEach((svg) => svg.querySelectorAll('.selected,.neighbor,.hot,.dim,.hover-show').forEach((node) => node.classList.remove('selected', 'neighbor', 'hot', 'dim', 'hover-show')));
+    document.querySelectorAll('.scene-item,.entity-item').forEach((item) => item.classList.remove('active'));
+  }
+  function openDetail() {
+    body.classList.add('right-open'); document.getElementById('right-panel').inert = false;
+    document.getElementById('toggle-right').setAttribute('aria-expanded', 'true');
+  }
+  function closeDetail() {
+    body.classList.remove('right-open'); document.getElementById('right-panel').inert = true;
+    document.getElementById('toggle-right').setAttribute('aria-expanded', 'false');
+  }
+  function clearSelection() {
+    state.selected = null; clearMarks();
+    document.getElementById('focus').disabled = true; document.getElementById('clear-selection').hidden = true;
+    document.getElementById('detail').innerHTML = `<p>${esc(t('hint'))}</p>`; closeDetail();
+  }
+  function select(type, id, shouldFocus = false) {
+    state.selected = { type, id }; clearMarks();
+    const svg = activeSvg();
+    svg.querySelector(`[data-node-id="${CSS.escape(id)}"]`)?.classList.add('selected');
+    if (type === 'scene') {
+      document.querySelectorAll(`.scene-item[data-scene="${CSS.escape(id)}"]`).forEach((item) => item.classList.add('active'));
+      if (state.mode === 'charmap') {
+        svg.querySelectorAll('.part-edge').forEach((edge) => {
+          if (edge.dataset.source === id) { edge.classList.add('hot'); svg.querySelector(`[data-node-id="${CSS.escape(edge.dataset.target)}"]`)?.classList.add('neighbor'); }
+        });
+        state.relationScene = id; document.getElementById('relation-scope').value = id; applyFilters();
+      } else {
+        svg.querySelectorAll('.logic-edge').forEach((edge) => {
+          if (edge.dataset.source === id || edge.dataset.target === id) {
+            edge.classList.add('visible', 'hot');
+            svg.querySelector(`[data-node-id="${CSS.escape(edge.dataset.source === id ? edge.dataset.target : edge.dataset.source)}"]`)?.classList.add('neighbor');
+          }
+        });
+      }
+      renderSceneDetail(id);
+    } else if (type === 'entity') {
+      document.querySelectorAll(`.entity-item[data-entity="${CSS.escape(id)}"]`).forEach((item) => item.classList.add('active'));
+      svg.querySelectorAll('.part-edge').forEach((edge) => {
+        if (edge.dataset.target === id) { edge.classList.add('hot'); svg.querySelector(`[data-node-id="${CSS.escape(edge.dataset.source)}"]`)?.classList.add('neighbor'); }
+      });
+      svg.querySelectorAll('.pair-edge').forEach((edge) => { if (edge.dataset.source === id || edge.dataset.target === id) edge.classList.add('hot'); });
+      renderEntityDetail(id);
+    } else if (type === 'beat') {
+      const beat = beatOf(id);
+      if (beat) { svg.querySelector(`[data-node-id="${CSS.escape(beat.sceneId)}"]`)?.classList.add('selected'); renderBeatDetail(id); }
+    }
+    openDetail();
+    document.getElementById('focus').disabled = !['scene', 'entity'].includes(type);
+    document.getElementById('clear-selection').hidden = false;
+    if (shouldFocus) focusNode(type === 'beat' ? beatOf(id)?.sceneId : id);
+    status(t('selected', { x: type === 'entity' ? nameOf(id) : type === 'beat' ? t('beat_label') : sceneLabel(id) }));
+  }
+
+  function changeOf(pair, sid) {
+    const scenes = data.order;
+    const factsById = new Map(pair.facts.map((fact) => [fact.id, fact]));
+    const activeAt = (s) => (pair.perScene[s] || []).map((fid) => factsById.get(fid)).filter(Boolean);
+    const idx = scenes.indexOf(sid);
+    const prevSid = idx > 0 ? scenes[idx - 1] : null;
+    const current = [...new Set(activeAt(sid).map((fact) => fact.kind))];
+    const previous = prevSid ? [...new Set(activeAt(prevSid).map((fact) => fact.kind))] : [];
+    const reasons = [...new Set(activeAt(sid).filter((fact) => !previous.includes(fact.kind)).map((fact) => fact.description).filter(Boolean))];
+    const reason = reasons.length ? reasons.join('；') : (data.scenes[sid]?.summary || '');
+    return { from: previous.join('、'), to: current.join('、'), reason };
+  }
+
+  function relationChain(pair) {
+    const factsById = new Map(pair.facts.map((fact) => [fact.id, fact]));
+    const seq = [];
+    let prev = null;
+    for (const sid of data.order) {
+      const kinds = [...new Set((pair.perScene[sid] || []).map((fid) => factsById.get(fid)).filter(Boolean).map((fact) => fact.kind))];
+      if (!kinds.length) continue; // 未声明关系的场次不参与
+      const joined = kinds.join('、');
+      if (joined !== prev) { seq.push(joined); prev = joined; }
+    }
+    return seq.join(' → ');
+  }
+
+  function relationEvents(pair) {
+    if (!pair) return '';
+    return pair.changePoints.map((sid) => {
+      const { from, to, reason } = changeOf(pair, sid);
+      const label = from ? `${from} → ${to}` : to;
+      return `<button type="button" class="evo-event" data-jump-scene="${esc(sid)}" data-pair="${esc(pair.key)}"><b>${esc(sceneLabel(sid))}</b><span class="evo-transition">${esc(label)}</span>${reason ? `<span class="evo-reason">${esc(t('reason_prefix'))}${esc(reason)}</span>` : ''}</button><div class="evo-preview" hidden></div>`;
+    }).join('');
+  }
+
+  function scenePreviewHtml(sid) {
+    const s = data.scenes[sid];
+    if (!s) return '';
+    const loc = s.locationId ? entity(s.locationId) : null;
+    const people = Object.entries(s.participants || {}).map(([cid, st]) => `${nameOf(cid)}${st.emotion ? `（${st.emotion}）` : ''}`).join('、') || t('unspecified');
+    const beats = (s.beats || []).map((b) => `<div class="preview-beat"><b>${esc(beatName(b.kind))}</b>${esc(b.text)}</div>`).join('');
+    return `<div class="row">${esc(s.summary || '')}</div>
+      <div class="row"><b>${esc(t('sec_location'))}</b>　${esc(loc ? loc.name : t('unspecified'))}</div>
+      <div class="row"><b>${esc(t('sec_characters'))}</b>　${esc(people)}</div>${beats}`;
+  }
+  function toggleEvoPreview(button, sid) {
+    let box = button.nextElementSibling;
+    if (!box || !box.classList.contains('evo-preview')) { box = document.createElement('div'); box.className = 'evo-preview'; button.after(box); }
+    if (!box.hidden) { box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML = scenePreviewHtml(sid);
+  }
+  function highlightSceneInCharmap(sid) {
+    svgs.forEach((svg) => svg.querySelectorAll('.selected,.neighbor,.hot,.dim,.hover-show').forEach((n) => n.classList.remove('selected', 'neighbor', 'hot', 'dim', 'hover-show')));
+    const svg = activeSvg();
+    const ents = new Set(Object.entries(data.entityScenes).filter(([, sids]) => sids.includes(sid)).map(([e]) => e));
+    svg.querySelectorAll('.rscene').forEach((n) => n.classList.toggle('selected', n.dataset.nodeId === sid));
+    svg.querySelectorAll('.char-node').forEach((n) => { if (ents.has(n.dataset.nodeId)) n.classList.add('selected'); else n.classList.add('dim'); });
+    svg.querySelectorAll('.part-edge').forEach((e) => { if (e.dataset.scene === sid) e.classList.add('hot'); else e.classList.add('dim'); });
+    document.querySelectorAll('.scene-item').forEach((el) => el.classList.toggle('active', el.dataset.scene === sid));
+  }
+
+  function relationText(relation) {
+    const arrow = relation.direction === 'directed' ? '→' : '↔';
+    const scope = relation.scopeType === 'global' ? t('scope_global') : t('scope_scenes', { n: relation.sceneIds.length });
+    return `<div class="relation-item"><b>${esc(relation.sourceName)}</b> ${arrow} <b>${esc(relation.targetName)}</b>：${esc(relation.kind)}<span class="scope-label">${scope}${relation.description ? ` · ${esc(relation.description)}` : ''}</span></div>`;
+  }
+  function edgeText(edge) {
+    const endpoint = (part) => part.type === 'scene' ? sceneLabel(part.id) : (beatOf(part.id)?.text || part.id);
+    return `<div class="relation-item"><b>${esc(relName(edge.kind))}</b>：${esc(endpoint(edge.source))} → ${esc(endpoint(edge.target))}${edge.description ? `<span class="scope-label">${esc(edge.description)}</span>` : ''}</div>`;
+  }
+  function bindDetailActions() {
+    const panel = document.getElementById('detail');
+    panel.querySelectorAll('[data-jump-scene]:not([data-pair])').forEach((button) => button.addEventListener('click', () => navigateTo('telling', 'scene', button.dataset.jumpScene, true)));
+    panel.querySelectorAll('[data-pair][data-jump-scene]').forEach((button) => button.addEventListener('click', () => {
+      const sid = button.dataset.jumpScene;
+      if (state.mode === 'charmap') { highlightSceneInCharmap(sid); toggleEvoPreview(button, sid); }
+      else { navigateTo('telling', 'scene', sid, true); }
+    }));
+    panel.querySelectorAll('[data-jump-entity]').forEach((button) => button.addEventListener('click', () => navigateTo('charmap', 'entity', button.dataset.jumpEntity, true)));
+    panel.querySelectorAll('[data-beat]').forEach((button) => button.addEventListener('click', () => navigateTo(null, 'beat', button.dataset.beat)));
+    panel.querySelectorAll('[data-nav]').forEach((button) => button.addEventListener('click', () => navigateScene(Number(button.dataset.nav))));
+    panel.querySelectorAll('[data-edit-scene-title]').forEach((button) => button.addEventListener('click', () => {
+      const sid = button.dataset.editSceneTitle;
+      const current = (data.scenes[sid] && data.scenes[sid].title) || sid;
+      const title = prompt(t('prompt_scene_title'), current);
+      if (title && title !== current) sendChange([{ op: 'scene.update', id: sid, changes: { title } }]);
+    }));
+    panel.querySelectorAll('[data-edit-entity-name]').forEach((button) => button.addEventListener('click', () => {
+      const eid = button.dataset.editEntityName;
+      const current = nameOf(eid);
+      const name = prompt(t('prompt_entity_name'), current);
+      if (name && name !== current) sendChange([{ op: 'entity.replace', entityId: eid, newName: name, aliases: [current] }]);
+    }));
+  }
+  function refRow(id, state) {
+    return `<div class="ref-row"><button class="jump" data-jump-entity="${esc(id)}">${esc(nameOf(id))}</button>${state ? `<span class="ref-state">：${esc(state)}</span>` : ''}</div>`;
+  }
+
+  function renderSceneDetail(id) {
+    const scene = data.scenes[id], index = data.order.indexOf(id);
+    const location = scene.locationId ? entity(scene.locationId) : null;
+    const area = location && scene.areaId ? (location.areas || []).find((item) => item.id === scene.areaId) : null;
+    const locRow = location ? refRow(scene.locationId, area ? area.name : '') : `<div class="row">${esc(t('unspecified'))}</div>`;
+    const people = Object.entries(scene.participants || {}).map(([personId, value]) => {
+      const detail = [value.emotion, value.goal, value.knowledge, value.appearance].filter(Boolean).join('；');
+      return refRow(personId, detail);
+    }).join('') || `<div class="row">${esc(t('unspecified'))}</div>`;
+    const props = Object.entries(scene.props || {}).map(([propId, value]) => {
+      const holder = value && Object.hasOwn(value, 'holderId') ? (value.holderId == null ? t('holder_none') : t('holder_by', { x: nameOf(value.holderId) })) : '';
+      const detail = [value?.condition, value?.appearance, holder].filter(Boolean).join('；');
+      return refRow(propId, detail);
+    }).join('') || `<div class="row">${esc(t('unspecified'))}</div>`;
+    const beats = (scene.beats || []).map((beat) => `<button class="beat-item" data-beat="${esc(beat.id)}"><b>${esc(beatName(beat.kind))}${beat.kind === 'dialogue' && beat.speakerId ? ` · ${esc(nameOf(beat.speakerId))}` : ''}</b>${esc(beat.text)}</button>`).join('') || `<div class="row">${esc(t('no_beats'))}</div>`;
+    const logic = data.edges.filter((edge) => edge.sourceScene === id || edge.targetScene === id).map(edgeText).join('') || `<div class="row">${esc(t('no_logic'))}</div>`;
+    const relations = data.characterRelations.filter((relation) => relation.sceneIds.includes(id)).map(relationText).join('') || `<div class="row">${esc(t('no_relations'))}</div>`;
+    const changesHere = data.relationsByPair.filter((pair) => pair.changePoints.includes(id));
+    const changeHtml = changesHere.map((pair) => {
+      const { from, to, reason } = changeOf(pair, id);
+      const label = from ? `${from} → ${to}` : to;
+      return `<div class="evo-event"><b>${esc(nameOf(pair.a))} ⇄ ${esc(nameOf(pair.b))}</b><span class="evo-transition">${esc(label)}</span>${reason ? `<span class="evo-reason">${esc(t('reason_prefix'))}${esc(reason)}</span>` : ''}</div>`;
+    }).join('') || `<div class="row">${esc(t('no_rel_change'))}</div>`;
+    const sceneTime = data.sceneTime && data.sceneTime[id];
+    const timeLabel = data.timeKnown.includes(id) ? `${t('time_point', { n: (data.layer[id] || 0) + 1 })}${sceneTime ? `（${sceneTime}）` : ''}` : (sceneTime ? `${t('time_unknown_detail')}（${sceneTime}）` : t('time_unknown_detail'));
+    document.getElementById('detail').innerHTML = `<div class="scene-nav"><button data-nav="-1" ${index <= 0 ? 'disabled' : ''}>${icon('chevron-left')}${esc(t('prev'))}</button><button data-nav="1" ${index < 0 || index >= data.order.length - 1 ? 'disabled' : ''}>${esc(t('next'))}${icon('chevron-right')}</button></div>
+      <h3>${esc(scene.title || id)}${window.__SERVED__ ? ` <button class="edit-btn" data-edit-scene-title="${esc(id)}">${esc(t('rename'))}</button>` : ''}</h3><div class="sub">${esc(t('scene_index', { n: index + 1 }))} · ${timeLabel}${data.inverted.includes(id) ? ' · ' + esc(t('nonlinear')) : ''}</div><p>${esc(scene.summary || t('summary_detail_tbd'))}</p>
+      <h4>${esc(t('sec_location'))}</h4>${locRow}
+      <h4>${esc(t('sec_mood'))}</h4><div class="row">${esc(scene.mood || t('unspecified'))}</div>
+      <h4>${esc(t('sec_thread'))}</h4><div class="row">${(scene.threadIds || []).map((threadId) => `<span class="tag">${esc(data.threads[threadId]?.name || threadId)}</span>`).join('') || esc(t('unspecified'))}</div>
+      <h4>${esc(t('sec_characters'))}</h4>${people}<h4>${esc(t('sec_props'))}</h4>${props}
+      <details open><summary>${esc(t('sec_beats'))} · ${(scene.beats || []).length}</summary>${beats}</details>
+      <details><summary>${esc(t('sec_logic'))}</summary>${logic}</details>
+      <details><summary>${esc(t('sec_relations'))}</summary>${relations}</details>
+      <details ${changesHere.length ? 'open' : ''}><summary>${esc(t('sec_rel_change'))} · ${changesHere.length}</summary>${changeHtml}</details>`;
+    bindDetailActions();
+  }
+  function renderBeatDetail(id) {
+    const beat = beatOf(id); if (!beat) return;
+    const logic = data.edges.filter((edge) => edge.source.id === id || edge.target.id === id).map(edgeText).join('') || `<div class="row">${esc(t('no_logic'))}</div>`;
+    document.getElementById('detail').innerHTML = `<button class="jump" data-jump-scene="${esc(beat.sceneId)}">${icon('chevron-left')} ${esc(t('back'))} ${esc(sceneLabel(beat.sceneId))}</button>
+      <h3>${esc(beatName(beat.kind))}</h3><div class="sub">${esc(t('sec_beats'))}</div>
+      ${beat.kind === 'dialogue' ? `<div class="row"><b>${esc(t('speaker'))}</b>　<button class="jump" data-jump-entity="${esc(beat.speakerId)}">${esc(nameOf(beat.speakerId))}</button>${beat.tone ? ` · ${esc(beat.tone)}` : ''}</div>` : ''}
+      <p>${esc(beat.text)}</p><h4>${esc(t('related_logic'))}</h4>${logic}`;
+    bindDetailActions();
+  }
+  function renderEntityDetail(id) {
+    const item = entity(id), appearances = data.entityScenes[id] || [];
+    const traits = Object.entries(item.fixedTraits || {}).map(([key, value]) => `<div class="row"><b>${esc(traitLabel(key) || key)}</b>　${esc(value)}</div>`).join('');
+    const pairs = data.relationsByPair.filter((pair) => pair.a === id || pair.b === id);
+    document.getElementById('detail').innerHTML = `<h3>${item.referenceImage ? `<img class="ref-thumb" src="${esc(item.referenceImage)}" alt="">` : ''}${esc(item.name || id)}${window.__SERVED__ ? ` <button class="edit-btn" data-edit-entity-name="${esc(id)}">${esc(t('rename'))}</button>` : ''}</h3>
+      <div class="sub">${esc(typeName(item.kind))} · ${esc(t('appears_count', { n: appearances.length }))}</div>${item.description ? `<p>${esc(item.description)}</p>` : ''}
+      ${(item.tags || []).map((tag) => `<span class="tag">${esc(tag)}</span>`).join('')}${traits ? `<h4>${esc(t('traits'))}</h4>${traits}` : ''}${item.motivation ? `<div class="row"><b>${esc(t('motive'))}</b>　${esc(item.motivation)}</div>` : ''}
+      ${pairs.length ? `<details open><summary>${esc(t('relations_title'))} · ${pairs.length}</summary>${pairs.map((pair) => {
+        const other = pair.a === id ? pair.b : pair.a;
+        const chain = relationChain(pair);
+        const events = relationEvents(pair);
+        const head = `${esc(t('pair_with'))} <button class="jump" data-jump-entity="${esc(other)}">${esc(nameOf(other))}</button>${chain ? `<span class="pair-chain">${esc(chain)}</span>` : ''}`;
+        return events ? `<details class="pair-block"><summary>${head}</summary>${events}</details>` : `<div class="pair-block static">${head}</div>`;
+      }).join('')}</details>` : ''}
+      <details open><summary>${esc(t('appears_in'))} · ${appearances.length}</summary>${appearances.map((sceneId) => {
+        const number = data.tellingIndex[sceneId] == null ? '—' : String(data.tellingIndex[sceneId] + 1).padStart(2, '0');
+        return `<div class="scene-appearance"><button class="jump" data-jump-scene="${esc(sceneId)}"><span class="item-number">${number}</span><b>${esc(sceneTitle(sceneId))}</b></button><p>${esc(data.scenes[sceneId].summary || '')}</p></div>`;
+      }).join('') || `<div class="row">${esc(t('not_appeared'))}</div>`}</details>`;
+    bindDetailActions();
+  }
+  function navigateScene(delta) {
+    const currentId = state.selected?.type === 'scene' ? state.selected.id : beatOf(state.selected?.id)?.sceneId;
+    const next = data.order[data.order.indexOf(currentId) + delta]; if (next) navigateTo(null, 'scene', next, true);
+  }
+  function setMode(mode) {
+    const changed = state.mode !== mode;
+    state.mode = mode;
+    if (mode === 'telling' || mode === 'time') state.lastLogicMode = mode;
+    svgs.forEach((svg) => svg.classList.toggle('active', svg.dataset.mode === mode));
+    const logicView = mode !== 'charmap';
+    document.querySelectorAll('[data-view]').forEach((tab) => {
+      const active = (tab.dataset.view === 'logic') === logicView; tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1;
+    });
+    const layoutToggle = document.getElementById('layout-toggle');
+    layoutToggle.hidden = !logicView;
+    layoutToggle.textContent = mode === 'time' ? t('to_telling') : t('to_time');
+    document.getElementById('mode-context').textContent = t(HELP[mode]);
+    document.getElementById('relation-scope-wrap').hidden = mode !== 'charmap';
+    document.getElementById('story-count').textContent = t('story_count', { n: data.stats.scenes, m: data.stats.entities });
+    renderFilters(); applyFilters();
+    if (state.selected) {
+      const valid = mode === 'charmap' ? ['scene', 'entity'] : ['scene', 'beat'];
+      valid.includes(state.selected.type) ? select(state.selected.type, state.selected.id) : clearSelection();
+    }
+    if (changed) readableView(); // 切换视图时按画布比例重新适配（选择/跳转不改缩放）
+  }
+  function setView(view) { const mode = view === 'charmap' ? 'charmap' : state.lastLogicMode || 'telling'; if (mode !== state.mode) pushHistory(); setMode(mode); }
+
+  function bindCanvas() {
+    for (const svg of svgs) {
+      svg.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const rect = svg.getBoundingClientRect();
+        const current = view.get(svg);
+        if (event.ctrlKey || event.metaKey) {
+          // 缩放：Ctrl/⌘ + 滚轮（或触控板双指缩放）
+          zoom(event.deltaY > 0 ? 1.12 : 1 / 1.12, { x: current.x + ((event.clientX - rect.left) / rect.width) * current.w, y: current.y + ((event.clientY - rect.top) / rect.height) * current.h });
+        } else {
+          // 平移：滚轮上下、Shift+滚轮或横向滚动左右
+          const unitX = current.w / rect.width;
+          const unitY = current.h / rect.height;
+          current.x += (event.shiftKey ? event.deltaY : event.deltaX) * unitX;
+          current.y += (event.shiftKey ? 0 : event.deltaY) * unitY;
+          applyView(svg);
+        }
+      }, { passive: false });
+      let drag = null;
+      svg.addEventListener('pointerdown', (event) => {
+        if (event.target.closest('[data-node-id],.logic-edge,.pair-edge')) return;
+        drag = { x: event.clientX, y: event.clientY, view: { ...view.get(svg) } };
+        svg.setPointerCapture(event.pointerId); svg.classList.add('panning');
+      });
+      svg.addEventListener('pointermove', (event) => {
+        if (!drag) return; const rect = svg.getBoundingClientRect(), current = view.get(svg);
+        current.x = drag.view.x - (event.clientX - drag.x) * (drag.view.w / rect.width);
+        current.y = drag.view.y - (event.clientY - drag.y) * (drag.view.h / rect.height); applyView(svg);
+      });
+      const stop = () => { drag = null; svg.classList.remove('panning'); };
+      svg.addEventListener('pointerup', stop); svg.addEventListener('pointercancel', stop);
+      svg.addEventListener('click', (event) => {
+        const node = event.target.closest('[data-node-id]'); if (node) return navigateTo(null, node.dataset.nodeType, node.dataset.nodeId);
+        const logic = event.target.closest('.logic-edge'); if (logic) { pushHistory(); return renderLogicDetail(logic.dataset.edgeId); }
+        const relation = event.target.closest('.pair-edge'); if (relation) { pushHistory(); return renderCharacterRelationDetail(relation.dataset.relationId); }
+      });
+      svg.addEventListener('keydown', (event) => {
+        if (!['Enter', ' '].includes(event.key)) return; event.preventDefault();
+        const node = event.target.closest('[data-node-id]'); if (node) navigateTo(null, node.dataset.nodeType, node.dataset.nodeId);
+      });
+      svg.addEventListener('mouseover', (event) => {
+        const node = event.target.closest('[data-node-id]'); if (!node) return;
+        const id = node.dataset.nodeId;
+        svg.querySelectorAll('.logic-edge, .part-edge, .pair-edge').forEach((edge) => {
+          if (edge.dataset.source === id || edge.dataset.target === id) edge.classList.add('hover-show');
+        });
+      });
+      svg.addEventListener('mouseout', (event) => {
+        if (event.relatedTarget && event.relatedTarget.closest && event.relatedTarget.closest('[data-node-id]')) return;
+        svg.querySelectorAll('.hover-show').forEach((edge) => edge.classList.remove('hover-show'));
+      });
+    }
+  }
+  function renderLogicDetail(id) {
+    const edge = data.edges.find((item) => item.id === id); if (!edge) return;
+    state.selected = { type: 'relation', id }; openDetail();
+    document.getElementById('detail').innerHTML = `<h3>${esc(relName(edge.kind))}</h3><div class="sub">${esc(t('edge_detail_title'))}</div>${edgeText(edge)}`;
+  }
+  function renderCharacterRelationDetail(id) {
+    const relation = data.characterRelations.find((item) => item.id === id); if (!relation) return;
+    state.selected = { type: 'characterRelation', id }; openDetail();
+    document.getElementById('detail').innerHTML = `<h3>${esc(relation.kind)}</h3><div class="sub">${esc(t('charrel_detail_title'))}</div>${relationText(relation)}<h4>${esc(t('scope'))}</h4>${relation.sceneIds.map((sceneId) => `<div class="row"><button class="jump" data-jump-scene="${esc(sceneId)}">${esc(sceneLabel(sceneId))}</button></div>`).join('')}`;
+    bindDetailActions();
+  }
+  function renderMinimap() {
+    const container = document.getElementById('minimap'), geom = data.geoms[state.mode], svg = activeSvg(); if (!geom || !svg) return;
+    const scale = Math.min((MINI.w - MINI.pad * 2) / geom.w, (MINI.h - MINI.pad * 2) / geom.h);
+    const ox = MINI.pad + (MINI.w - MINI.pad * 2 - geom.w * scale) / 2, oy = MINI.pad + (MINI.h - MINI.pad * 2 - geom.h * scale) / 2, current = view.get(svg);
+    const nodes = geom.nodes.map((rect) => `<rect x="${ox + rect.x * scale}" y="${oy + rect.y * scale}" width="${Math.max(1, rect.w * scale)}" height="${Math.max(1, rect.h * scale)}" rx="1"/>`).join('');
+    container.innerHTML = `<svg viewBox="0 0 ${MINI.w} ${MINI.h}" width="${MINI.w}" height="${MINI.h}">${nodes}<rect class="vp" x="${ox + current.x * scale}" y="${oy + current.y * scale}" width="${current.w * scale}" height="${current.h * scale}"/></svg>`;
+  }
+
+  function searchItems(query) {
+    const q = query.toLocaleLowerCase(), results = [];
+    for (const [id, scene] of Object.entries(data.scenes)) if (`${scene.title || ''} ${scene.summary || ''} ${id}`.toLocaleLowerCase().includes(q)) results.push({ type: 'scene', id, label: sceneLabel(id), detail: scene.summary || t('scene_word') });
+    for (const beat of data.beats) if (`${beat.text} ${beat.id}`.toLocaleLowerCase().includes(q)) results.push({ type: 'beat', id: beat.id, label: beat.text, detail: `${t('beat_label')} · ${sceneLabel(beat.sceneId)}` });
+    for (const [id, item] of Object.entries(data.entities)) if (`${item.name || ''} ${item.description || ''} ${(item.tags || []).join(' ')} ${id}`.toLocaleLowerCase().includes(q)) results.push({ type: 'entity', id, label: item.name || id, detail: typeName(item.kind) });
+    return results.slice(0, 12);
+  }
+  function renderSearch(query) {
+    const panel = document.getElementById('search-results'), input = document.getElementById('search');
+    if (!query.trim()) { panel.hidden = true; input.setAttribute('aria-expanded', 'false'); return; }
+    const results = searchItems(query.trim());
+    panel.innerHTML = results.length ? results.map((result, index) => `<button class="search-result${index === 0 ? ' active' : ''}" data-result-type="${result.type}" data-result-id="${esc(result.id)}"><span class="result-type">${esc(result.detail)}</span><span class="result-text">${esc(result.label)}</span></button>`).join('') : `<div class="search-empty">${esc(t('search_no_match'))}</div>`;
+    panel.hidden = false; input.setAttribute('aria-expanded', 'true');
+    panel.querySelectorAll('.search-result').forEach((button) => button.addEventListener('click', () => chooseSearchResult(button)));
+  }
+  function chooseSearchResult(button) {
+    const type = button.dataset.resultType; navigateTo(type === 'entity' ? 'charmap' : 'telling', type, button.dataset.resultId, true);
+    document.getElementById('search-results').hidden = true; document.getElementById('search').setAttribute('aria-expanded', 'false');
+  }
+  function bindControls() {
+    document.querySelectorAll('[data-view]').forEach((tab) => tab.addEventListener('click', () => setView(tab.dataset.view)));
+    document.getElementById('layout-toggle').addEventListener('click', () => { pushHistory(); setMode(state.mode === 'time' ? 'telling' : 'time'); });
+    document.getElementById('detail-back').addEventListener('click', goBack);
+    document.getElementById('zoom-in').addEventListener('click', () => zoom(1 / 1.18));
+    document.getElementById('zoom-out').addEventListener('click', () => zoom(1.18));
+    document.getElementById('zoom-reset').addEventListener('click', readableView);
+    document.getElementById('fit').addEventListener('click', fitAll);
+    document.getElementById('focus').addEventListener('click', () => focusNode(state.selected?.type === 'beat' ? beatOf(state.selected.id)?.sceneId : state.selected?.id, true));
+    document.getElementById('clear-selection').addEventListener('click', clearSelection);
+    document.getElementById('close-detail').addEventListener('click', closeDetail);
+    document.getElementById('toggle-right').addEventListener('click', () => body.classList.contains('right-open') ? closeDetail() : openDetail());
+    document.getElementById('toggle-left').addEventListener('click', () => {
+      body.classList.toggle('left-closed'); const open = !body.classList.contains('left-closed');
+      document.getElementById('toggle-left').setAttribute('aria-expanded', String(open)); requestAnimationFrame(readableView);
+    });
+    document.getElementById('theme').addEventListener('click', () => {
+      const root = document.documentElement; root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem('sparkrealm-theme', root.dataset.theme); } catch (_) {}
+    });
+    document.getElementById('relation-scope').addEventListener('change', (event) => { state.relationScene = event.target.value; applyFilters(); });
+    const search = document.getElementById('search');
+    search.addEventListener('input', () => renderSearch(search.value));
+    search.addEventListener('keydown', (event) => {
+      const results = [...document.querySelectorAll('.search-result')];
+      if (event.key === 'Enter' && results.length) { event.preventDefault(); chooseSearchResult(results.find((item) => item.classList.contains('active')) || results[0]); }
+    });
+    document.addEventListener('pointerdown', (event) => { if (!event.target.closest('.search-wrap')) document.getElementById('search-results').hidden = true; });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { if (!document.getElementById('search-results').hidden) document.getElementById('search-results').hidden = true; else clearSelection(); }
+      if (event.target.matches('input,select,button')) return;
+      if (event.key === 'ArrowRight') navigateScene(1); if (event.key === 'ArrowLeft') navigateScene(-1);
+    });
+    document.getElementById('minimap').addEventListener('click', (event) => {
+      const geom = data.geoms[state.mode], rect = event.currentTarget.getBoundingClientRect();
+      const scale = Math.min((MINI.w - MINI.pad * 2) / geom.w, (MINI.h - MINI.pad * 2) / geom.h);
+      const ox = MINI.pad + (MINI.w - MINI.pad * 2 - geom.w * scale) / 2, oy = MINI.pad + (MINI.h - MINI.pad * 2 - geom.h * scale) / 2, current = view.get(activeSvg());
+      current.x = (event.clientX - rect.left - ox) / scale - current.w / 2; current.y = (event.clientY - rect.top - oy) / scale - current.h / 2; applyView(activeSvg());
+    });
+    window.addEventListener('resize', () => applyView(activeSvg()));
+  }
+
+  try { const theme = localStorage.getItem('sparkrealm-theme'); if (['dark', 'light'].includes(theme)) document.documentElement.dataset.theme = theme; } catch (_) {}
+  applyStaticI18n(); renderOutline(); renderEntities(); renderRelationScope(); bindCanvas(); bindControls();
+  document.getElementById('empty-state').hidden = data.stats.scenes !== 0;
+  document.getElementById('detail').innerHTML = `<p>${esc(t('hint'))}</p>`;
+  if (window.matchMedia('(max-width: 700px)').matches) {
+    body.classList.add('left-closed');
+    document.getElementById('toggle-left').setAttribute('aria-expanded', 'false');
+  }
+
+  setMode('telling');
+  restoreSession();
+
+  // 服务模式：轮询 revision，外部（Agent 经 CLI）改动后自动刷新并保留视角
+  if (window.__SERVED__) {
+    const last = data.revision;
+    setInterval(async () => {
+      try {
+        const response = await fetch('/state');
+        const state = await response.json();
+        if (state.revision !== last) { saveSession(); location.reload(); }
+      } catch (_) { /* 忽略网络错误 */ }
+    }, 2000);
+  }
+
+  window.__storygraph = {
+    sendChange,
+    getState: () => ({ mode: state.mode, revision: data.revision, selected: state.selected, served: Boolean(window.__SERVED__) }),
+  };
+})();
+</script>
+</body>
+</html>
