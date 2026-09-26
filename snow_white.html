@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>白雪公主 · SparkRealm StoryGraph</title>
+<style>:root {
+  color-scheme: light;
+  --bg: #f5f6f5; --panel: #ffffff; --panel-2: #f0f2f1;
+  --ink: #202823; --muted: #5b665f; --dim: #69756e; --border: #dce2de;
+  --accent: #177b63; --accent-soft: #e7f2ed;
+  --before: #687b91; --causes: #ba5063; --setsUp: #987017; --overlaps: #7564b5;
+  --left-width: 240px; --right-width: 344px;
+  --shadow: 0 6px 24px #18261d12;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #101a2e; --panel: #17233b; --panel-2: #1d2c47;
+  --ink: #e8eefb; --muted: #9fb0cc; --dim: #7385a3; --border: #2b3b5a;
+  --accent: #4cc2f5; --accent-soft: #16324c;
+  --before: #6ba4f7; --causes: #f2798a; --setsUp: #f2c14e; --overlaps: #a894f5;
+  --shadow: 0 6px 24px #00000055;
+}
+* { box-sizing: border-box; letter-spacing: 0; }
+html, body { margin: 0; height: 100%; }
+body { font: 14px/1.5 ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--ink); background: var(--bg); display: grid; grid-template: 60px 48px minmax(0, 1fr) / var(--left-width) minmax(0, 1fr) 0; grid-template-areas: "top top top" "bar bar bar" "left canvas right"; height: 100dvh; overflow: hidden; }
+body.left-closed { --left-width: 0px; }
+body.right-open { grid-template-columns: var(--left-width) minmax(0, 1fr) 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .38; }
+button, select, input { border: 1px solid var(--border); border-radius: 6px; background: var(--panel); }
+button:hover:not(:disabled) { background: var(--panel-2); }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+button { -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+.icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.icon-defs { width: 0; height: 0; position: absolute; }
+.icon-button { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; flex: none; padding: 0; border-color: transparent; background: transparent; }
+.divider { height: 20px; width: 1px; background: var(--border); flex: none; }
+.topbar { grid-area: top; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 0 20px; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 25; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand strong { font-size: 16px; white-space: nowrap; }
+.brand-icon { color: var(--accent); width: 24px; height: 24px; }
+.brand-logo { width: 26px; height: 26px; object-fit: contain; flex: none; }
+.story-title { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-actions { display: flex; align-items: center; gap: 12px; flex: none; }
+.search-wrap { width: 244px; position: relative; display: flex; align-items: center; }
+.search-wrap > .icon { position: absolute; left: 10px; color: var(--dim); pointer-events: none; }
+#search { padding: 7px 10px 7px 34px; width: 100%; background: var(--panel-2); font-size: 13px; }
+.search-results { position: absolute; right: 0; top: 42px; width: 360px; max-width: calc(100vw - 24px); max-height: 380px; overflow: auto; padding: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); }
+.search-result { display: block; text-align: left; width: 100%; border: 0; padding: 10px; }
+.search-result.active { background: var(--accent-soft); }
+.search-result .result-type { font-size: 11px; color: var(--dim); display: block; }
+.search-result .result-text { display: block; overflow-wrap: anywhere; }
+mark { color: var(--ink); background: var(--accent-soft); font-weight: 650; }
+.search-empty { padding: 16px; color: var(--muted); }
+.workspace-bar { grid-area: bar; display: flex; align-items: center; gap: 12px; padding: 0 14px; border-bottom: 1px solid var(--border); background: var(--panel); z-index: 10; }
+.seg { display: flex; height: 100%; gap: 20px; }
+.seg button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 0 4px; background: transparent; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.seg button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 650; }
+.subseg { margin-left: 8px; gap: 14px; }
+.subseg button { font-size: 12px; }
+.workspace-count { margin-left: auto; font-size: 12px; color: var(--dim); }
+#toggle-right { margin-left: auto; }
+.workspace-count + #toggle-right { margin-left: 0; }
+.left { grid-area: left; min-width: 0; overflow: auto; border-right: 1px solid var(--border); background: var(--panel); z-index: 12; }
+.left-closed .left { visibility: hidden; }
+.panel { padding: 18px 14px; border-bottom: 1px solid var(--border); }
+.section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.section-heading h2, .panel > summary { font-size: 12px; font-weight: 650; margin: 0; }
+.section-heading > span { color: var(--dim); font-size: 12px; }
+.panel > summary { cursor: pointer; }
+.panel[open] > summary { margin-bottom: 14px; }
+.act { margin-top: 10px; }
+.act > summary { cursor: pointer; font-size: 12px; color: var(--dim); padding: 6px 0; overflow-wrap: anywhere; }
+.scene-item, .entity-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; border: 0; padding: 8px; font-size: 13px; }
+.scene-item > span:last-child, .entity-item > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-number { color: var(--dim); font: 11px ui-monospace, monospace; width: 20px; flex: none; }
+.scene-item.active, .entity-item.active { background: var(--accent-soft); color: var(--accent); }
+.group-title { color: var(--dim); font-size: 11px; margin: 14px 0 6px; }
+.entity-group { margin: 8px 0; }
+.entity-group > summary { cursor: pointer; color: var(--dim); font-size: 11px; padding: 5px 0; }
+.entity-group[open] > summary { margin-bottom: 4px; }
+.entity-item .count { color: var(--dim); margin-left: auto; flex: none; font-size: 11px; }
+.filter-label { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 5px 0; }
+input[type="checkbox"] { accent-color: var(--accent); }
+.line-swatch { width: 20px; height: 0; border-top: 2px solid var(--before); }
+.line-swatch.causes { border-color: var(--causes); }
+.line-swatch.setsUp { border-color: var(--setsUp); border-top-style: dashed; }
+.line-swatch.overlaps { border-color: var(--overlaps); border-top-style: dotted; }
+.canvas { grid-area: canvas; position: relative; min-width: 0; min-height: 0; overflow: hidden; background: radial-gradient(circle at 1px 1px, var(--border) .7px, transparent 1px) 0 0 / 24px 24px, var(--bg); }
+.story-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: none; cursor: grab; touch-action: none; }
+.story-svg.active { display: block; }
+.story-svg.panning { cursor: grabbing; }
+.context-bar { position: absolute; left: 18px; right: 18px; top: 14px; z-index: 4; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; pointer-events: none; }
+#mode-context { background: var(--bg); padding: 2px 5px; font-size: 11px; color: var(--dim); }
+.layout-toggle { pointer-events: auto; font-size: 11px; padding: 3px 10px; border-radius: 6px; background: var(--panel); color: var(--muted); white-space: nowrap; }
+.layout-toggle:hover { color: var(--ink); border-color: var(--dim); }
+#relation-scope-wrap { font-size: 12px; color: var(--muted); pointer-events: auto; display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; }
+#relation-scope { max-width: 180px; width: 150px; font-size: 12px; padding: 4px; border: 0; }
+.column-label { fill: var(--muted); font-size: 13px; font-weight: 600; }
+.graph-node { cursor: pointer; outline: none; }
+.node-box { fill: var(--panel); stroke: var(--border); stroke-width: 1.2; }
+.graph-node:hover .node-box { stroke: var(--dim); }
+.graph-node.selected .node-box, .graph-node:focus-visible .node-box { stroke: var(--accent); stroke-width: 2.5; }
+.graph-node.neighbor .node-box { stroke: var(--accent); stroke-opacity: .55; }
+.graph-node.dim { opacity: .42; }
+.node-content { width: 100%; height: 100%; padding: 15px; overflow: hidden; color: var(--ink); font-size: 13px; line-height: 1.5; }
+.node-heading { display: flex; align-items: flex-start; gap: 9px; height: 43px; }
+.node-number { flex: none; font: 11px/22px ui-monospace, monospace; color: var(--dim); }
+.node-title { font-size: 14px; font-weight: 650; line-height: 21px; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.node-summary { margin: 6px 0 10px; height: 40px; color: var(--muted); font-size: 13px; line-height: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.node-people, .node-location { color: var(--muted); font-size: 11px; line-height: 19px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.node-location { color: var(--dim); }
+.node-footer { display: flex; justify-content: space-between; gap: 6px; align-items: center; border-top: 1px solid var(--border); padding-top: 7px; margin-top: 8px; color: var(--dim); font-size: 10px; }
+.node-badges { display: flex; gap: 8px; color: var(--accent); }
+.role-climax .node-badges { color: var(--causes); }
+.role-turningPoint .node-badges { color: var(--setsUp); }
+.compact .node-content { padding: 10px 12px; }
+.compact .node-heading { height: auto; }
+.compact .node-title { font-size: 13px; line-height: 19px; }
+.entity .node-content { padding: 10px 12px; }
+.entity-heading { display: flex; align-items: center; gap: 8px; }
+.entity-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.entity-kind { color: var(--accent); font-size: 10px; flex: none; }
+.entity-kind.kind-location { color: var(--before); }
+.entity-kind.kind-prop { color: var(--setsUp); }
+.entity-count { color: var(--dim); font-size: 11px; margin-top: 7px; }
+.sequence-edge { fill: none; stroke: var(--dim); stroke-width: 1.2; opacity: .45; }
+.marker-sequence { fill: var(--dim); }
+.logic-edge, .pair-edge { outline: none; cursor: pointer; }
+.edge-line, .part-edge { fill: none; stroke-width: 1.7; }
+.edge-hit { fill: none; stroke: transparent; stroke-width: 16; pointer-events: stroke; }
+.logic-edge { opacity: 0; pointer-events: none; }
+.logic-edge .edge-hit { pointer-events: none; }
+.logic-edge.visible, .logic-edge.hot, .logic-edge.hover-show { opacity: .8; pointer-events: auto; }
+.logic-edge.visible .edge-hit, .logic-edge.hot .edge-hit, .logic-edge.hover-show .edge-hit { pointer-events: stroke; }
+.edge-line { stroke: var(--before); }
+.rel-causes .edge-line { stroke: var(--causes); }
+.rel-setsUp .edge-line { stroke: var(--setsUp); stroke-dasharray: 5 4; }
+.rel-overlaps .edge-line { stroke: var(--overlaps); stroke-dasharray: 2 4; }
+.marker-before { fill: var(--before); }
+.marker-causes { fill: var(--causes); }
+.marker-setsUp { fill: var(--setsUp); }
+.marker-person { fill: var(--accent); }
+.pair-edge .edge-line { stroke: var(--accent); }
+/* 要素关系：连线默认隐藏，选中/悬停或勾选“显示连线”才出现 */
+.pair-edge, .part-edge { opacity: 0; pointer-events: none; }
+.part-edge { stroke: var(--dim); }
+.edge-line, .sequence-edge, .part-edge { vector-effect: non-scaling-stroke; }
+.hot .edge-line, .logic-edge:focus-visible .edge-line, .pair-edge:focus-visible .edge-line { stroke-width: 3; }
+.part-edge.hot, .part-edge.hover-show, .charm-svg.show-edges .part-edge { opacity: .5; stroke: var(--dim); }
+.part-edge.hot { stroke: var(--accent); opacity: .8; stroke-width: 2; pointer-events: auto; }
+.pair-edge.hot, .pair-edge.hover-show, .charm-svg.show-edges .pair-edge { opacity: .78; pointer-events: auto; }
+.pair-edge.dim { opacity: .12; }
+.scope-off, .type-off, .filter-off { display: none !important; }
+.canvas-toolbar { position: absolute; left: 18px; bottom: 18px; display: flex; gap: 3px; align-items: center; padding: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); z-index: 5; }
+.zoom-value { width: 54px; border: 0; font-size: 12px; padding: 7px 0; background: transparent; font-variant-numeric: tabular-nums; }
+.clear-selection { position: absolute; top: 52px; left: 22px; display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 7px; z-index: 5; }
+.clear-selection .icon { width: 13px; height: 13px; }
+.minimap { position: absolute; right: 18px; bottom: 18px; width: 144px; height: 96px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); z-index: 5; cursor: crosshair; }
+.minimap rect { fill: var(--dim); opacity: .4; }
+.minimap rect.vp { fill: var(--accent); fill-opacity: .12; stroke: var(--accent); opacity: 1; }
+.right { position: fixed; right: 0; top: 108px; bottom: 0; width: var(--right-width); min-width: 0; overflow: auto; background: var(--panel); border-left: 1px solid var(--border); box-shadow: var(--shadow); visibility: hidden; z-index: 15; }
+.right-open .right { visibility: visible; }
+.detail-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 2; color: var(--dim); font-size: 12px; }
+.detail-toolbar-left { display: flex; align-items: center; gap: 8px; }
+.detail { padding: 20px; font-size: 13px; overflow-wrap: anywhere; }
+.detail h3 { margin: 0 0 10px; font-size: 19px; line-height: 1.5; }
+.detail h4, .detail details > summary { margin: 24px 0 10px; font-size: 12px; font-weight: 650; }
+.detail details > summary { cursor: pointer; }
+.detail p { color: var(--muted); line-height: 1.8; }
+.detail .sub { color: var(--dim); font-size: 11px; margin-bottom: 10px; }
+.detail .row { margin: 7px 0; color: var(--muted); }
+.detail .row b { color: var(--ink); font-weight: 550; }
+.detail .ref-row { margin: 7px 0; }
+.ref-kind { display: inline-block; min-width: 28px; color: var(--dim); font-size: 11px; margin-right: 6px; }
+.ref-row .jump { color: var(--accent); }
+.ref-row .jump:hover { text-decoration: underline; }
+.ref-state { color: var(--muted); }
+.detail .tag { display: inline-block; background: var(--panel-2); border-radius: 3px; padding: 2px 6px; font-size: 11px; margin: 0 4px 4px 0; }
+.detail .jump { color: var(--accent); border: 0; background: transparent; padding: 0; text-align: left; cursor: pointer; }
+.detail .jump:hover { text-decoration: underline; }
+.edit-btn { font-size: 11px; padding: 2px 8px; margin-left: 6px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--accent); cursor: pointer; vertical-align: middle; }
+.edit-btn:hover { border-color: var(--accent); }
+.scene-nav { display: flex; justify-content: space-between; margin: 18px 0; }
+.scene-nav button { display: flex; align-items: center; gap: 4px; padding: 6px 8px; font-size: 12px; }
+.beat-item { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-left: 2px solid var(--border); border-radius: 0; padding: 8px 10px; margin: 4px 0; line-height: 1.8; font-size: 13px; overflow-wrap: anywhere; }
+.beat-item b { display: block; color: var(--dim); font-size: 11px; }
+.beat-item.selected { border-left-color: var(--accent); background: var(--accent-soft); }
+.relation-item { border-top: 1px solid var(--border); padding: 10px 0; line-height: 1.8; }
+.relation-item .scope-label { display: block; color: var(--dim); font-size: 11px; }
+.pair-block { margin: 10px 0; }
+.pair-block > summary { cursor: pointer; font-size: 13px; font-weight: 550; padding: 6px 0; }
+.pair-block.static { font-size: 13px; font-weight: 550; }
+.pair-chain { display: block; color: var(--muted); font-size: 12px; font-weight: 400; margin-top: 3px; }
+.pair-block > summary .jump { border: 0; background: transparent; padding: 0; color: var(--accent); }
+.detail .evo-event { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: 9px 4px; line-height: 1.7; color: var(--ink); cursor: pointer; }
+.detail .evo-event:hover { background: var(--panel-2); }
+.rel-kinds { color: var(--ink); font-size: 12px; margin: 4px 0 6px; }
+.evo-event b { display: block; }
+.evo-transition { color: var(--accent); }
+.evo-reason { display: block; color: var(--muted); font-size: 12px; }
+.evo-preview { padding: 8px 4px 12px; border-top: 1px dashed var(--border); background: var(--panel-2); border-radius: 6px; }
+.evo-preview .row { margin: 5px 0; }
+.preview-beat { margin: 5px 0; color: var(--muted); line-height: 1.7; }
+.preview-beat b { display: inline-block; min-width: 30px; color: var(--dim); font-weight: 500; margin-right: 6px; }
+.detail .scene-appearance { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.detail .scene-appearance button { display: inline-flex; align-items: baseline; gap: 8px; }
+.detail .scene-appearance p { margin: 6px 0; }
+.detail code { font-size: 11px; }
+.ref-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 8px; vertical-align: middle; }
+#empty-state { position: absolute; inset: 40% 0 auto; text-align: center; color: var(--muted); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 1100px) {
+  :root { --left-width: 210px; --right-width: 320px; }
+  body.right-open { grid-template-columns: var(--left-width) minmax(0, 1fr) 0; }
+  .minimap { display: none; }
+}
+@media (max-width: 700px) {
+  body, body.right-open { grid-template-columns: 0 minmax(0, 1fr) 0; }
+  .topbar { padding: 0 12px; gap: 12px; }
+  .brand { gap: 7px; }
+  .brand strong { font-size: 14px; }
+  .brand .divider, .story-title { display: none; }
+  .header-actions { gap: 3px; min-width: 0; }
+  .search-wrap { width: 132px; }
+  .workspace-bar { gap: 5px; padding: 0 8px; }
+  .seg { gap: 14px; }
+  .seg button { font-size: 12px; }
+  .workspace-count { display: none; }
+  #toggle-right { margin-left: auto; }
+  .left { position: fixed; left: 0; top: 108px; bottom: 0; width: 260px; box-shadow: var(--shadow); }
+  .right { width: min(344px, 100vw); }
+  .context-bar { left: 12px; right: 12px; flex-wrap: wrap; }
+  #relation-scope-wrap { margin-left: auto; }
+  .canvas-toolbar { left: 12px; bottom: 12px; }
+  .clear-selection { top: 84px; left: 12px; }
+}
+</style>
+</head>
+<body>
+<!-- Lucide icons, lucide-static v1.47.0, ISC license. -->
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="icon-panel-left" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></symbol>
+  <symbol id="icon-panel-right" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+  <symbol id="icon-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol>
+  <symbol id="icon-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol>
+  <symbol id="icon-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2"/><path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715"/><path d="M16 12a4 4 0 0 0-4-4"/><path d="m19 5-1.256 1.256"/><path d="M20 12h2"/></symbol>
+  <symbol id="icon-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="icon-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="icon-network" viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></symbol>
+  <symbol id="icon-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+</defs></svg>
+
+<header class="topbar">
+  <div class="brand"><img class="brand-logo" src="data:image/png;base64,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" alt="SparkRealm"><strong>SparkRealm</strong><span class="divider"></span><span class="story-title" title="白雪公主">白雪公主</span></div>
+  <div class="header-actions">
+    <div class="search-wrap"><svg class="icon"><use href="#icon-search"/></svg><input id="search" type="search" autocomplete="off" placeholder="搜索故事" aria-label="搜索场景、节拍或要素" aria-controls="search-results" aria-expanded="false"><div id="search-results" class="search-results" hidden></div></div>
+    <button class="icon-button" id="theme" type="button" title="切换主题" aria-label="切换主题"><svg class="icon"><use href="#icon-sun-moon"/></svg></button>
+  </div>
+</header>
+<nav class="workspace-bar" aria-label="图谱视图">
+  <button class="icon-button" id="toggle-left" title="显示或收起目录" aria-label="显示或收起目录" aria-expanded="true" aria-controls="left-panel"><svg class="icon"><use href="#icon-panel-left"/></svg></button>
+  <div class="seg" role="tablist" aria-label="故事视图">
+    <button role="tab" data-view="logic" aria-selected="true" class="active">故事逻辑</button>
+    <button role="tab" data-view="charmap" aria-selected="false" tabindex="-1">要素关系</button>
+  </div>
+
+  <span id="story-count" class="workspace-count"></span>
+  <button class="icon-button" id="toggle-right" title="显示或收起详情" aria-label="显示或收起详情" aria-expanded="false" aria-controls="right-panel"><svg class="icon"><use href="#icon-panel-right"/></svg></button>
+</nav>
+<aside class="left" id="left-panel" aria-label="故事目录">
+  <section class="panel"><div class="section-heading"><h2>故事大纲</h2><span id="scene-count"></span></div><div id="outline"></div></section>
+  <details class="panel" open><summary>故事要素</summary><div id="entities"></div></details>
+  <details class="panel"><summary>故事情节</summary><div id="legend"></div></details>
+</aside>
+<main class="canvas" id="canvas" aria-label="故事图谱画布">
+  <div class="context-bar"><span id="mode-context"></span><button type="button" id="layout-toggle" class="layout-toggle" hidden></button><label id="relation-scope-wrap" hidden>关系时点 <select id="relation-scope" aria-label="关系生效场景"></select></label></div>
+  <svg class="story-svg" data-mode="telling" viewBox="0 0 1164 1656" aria-label="讲述顺序图"><defs><marker id="telling-before" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-before"/></marker><marker id="telling-causes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-causes"/></marker><marker id="telling-setsUp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-setsUp"/></marker><marker id="telling-sequence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-sequence"/></marker><marker id="telling-person" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-person"/></marker></defs><g class="edges"><path class="sequence-edge" d="M 336 169 C 362 169 374 169 400 169" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 700 169 C 726 169 738 169 764 169" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 764 169 C 592.8 169 507.20000000000005 411 336 411" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 186 508 C 186 551.2 186 572.8 186 616" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 336 713 C 362 713 374 713 400 713" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 700 713 C 726 713 738 713 764 713" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 764 713 C 592.8 713 507.20000000000005 955 336 955" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 336 955 C 362 955 374 955 400 955" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 700 955 C 726 955 738 955 764 955" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 764 955 C 592.8 955 507.20000000000005 1197 336 1197" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 186 1294 C 186 1337.2 186 1358.8 186 1402" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 336 1499 C 362 1499 374 1499 400 1499" marker-end="url(#telling-sequence)"/><g class="logic-edge rel-before" data-edge-id="lr_1" data-source="scene_001" data-target="scene_002" data-kind="before" tabindex="0" role="button" aria-label="先后：白雪公主长成后，王后才在魔镜前得知她更美。"><path class="edge-hit" d="M 336 151 C 362 151 374 151 400 151"/><path class="edge-line" d="M 336 151 C 362 151 374 151 400 151" marker-end="url(#telling-before)"/><title>先后：白雪公主长成后，王后才在魔镜前得知她更美。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_2" data-source="scene_002" data-target="scene_003" data-kind="causes" tabindex="0" role="button" aria-label="因果：嫉妒使王后下令除掉白雪公主。"><path class="edge-hit" d="M 700 151 C 726 151 738 151 764 151"/><path class="edge-line" d="M 700 151 C 726 151 738 151 764 151" marker-end="url(#telling-causes)"/><title>因果：嫉妒使王后下令除掉白雪公主。</title></g><g class="logic-edge rel-setsUp" data-edge-id="lr_3" data-source="scene_003" data-target="scene_004" data-kind="setsUp" tabindex="0" role="button" aria-label="伏笔：猎人的怜悯为后续隐藏真相埋下伏笔。"><path class="edge-hit" d="M 764 151 C 592.8 151 507.20000000000005 393 336 393"/><path class="edge-line" d="M 764 151 C 592.8 151 507.20000000000005 393 336 393" marker-end="url(#telling-setsUp)"/><title>伏笔：猎人的怜悯为后续隐藏真相埋下伏笔。</title></g><g class="logic-edge rel-before" data-edge-id="lr_4" data-source="scene_004" data-target="scene_005" data-kind="before" tabindex="0" role="button" aria-label="先后：白雪公主逃入森林后遇见小矮人。"><path class="edge-hit" d="M 168 508 C 168 551.2 168 572.8 168 616"/><path class="edge-line" d="M 168 508 C 168 551.2 168 572.8 168 616" marker-end="url(#telling-before)"/><title>先后：白雪公主逃入森林后遇见小矮人。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_5" data-source="scene_006" data-target="scene_007" data-kind="causes" tabindex="0" role="button" aria-label="因果：魔镜揭穿真相，王后亲自乔装下手。"><path class="edge-hit" d="M 764 695 C 592.8 695 507.20000000000005 937 336 937"/><path class="edge-line" d="M 764 695 C 592.8 695 507.20000000000005 937 336 937" marker-end="url(#telling-causes)"/><title>因果：魔镜揭穿真相，王后亲自乔装下手。</title></g><g class="logic-edge rel-before" data-edge-id="lr_6" data-source="scene_007" data-target="scene_008" data-kind="before" tabindex="0" role="button" aria-label="先后：丝带之计失败后，王后改用毒梳。"><path class="edge-hit" d="M 336 937 C 362 937 374 937 400 937"/><path class="edge-line" d="M 336 937 C 362 937 374 937 400 937" marker-end="url(#telling-before)"/><title>先后：丝带之计失败后，王后改用毒梳。</title></g><g class="logic-edge rel-before" data-edge-id="lr_7" data-source="scene_008" data-target="scene_009" data-kind="before" tabindex="0" role="button" aria-label="先后：毒梳失败后，王后祭出毒苹果。"><path class="edge-hit" d="M 700 937 C 726 937 738 937 764 937"/><path class="edge-line" d="M 700 937 C 726 937 738 937 764 937" marker-end="url(#telling-before)"/><title>先后：毒梳失败后，王后祭出毒苹果。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_8" data-source="scene_009" data-target="scene_010" data-kind="causes" tabindex="0" role="button" aria-label="因果：白雪公主中毒长眠，小矮人置办水晶棺。"><path class="edge-hit" d="M 764 937 C 592.8 937 507.20000000000005 1179 336 1179"/><path class="edge-line" d="M 764 937 C 592.8 937 507.20000000000005 1179 336 1179" marker-end="url(#telling-causes)"/><title>因果：白雪公主中毒长眠，小矮人置办水晶棺。</title></g><g class="logic-edge rel-before" data-edge-id="lr_11" data-source="scene_012" data-target="scene_013" data-kind="before" tabindex="0" role="button" aria-label="先后：苏醒之后，二人回城堡举行婚礼并审判王后。"><path class="edge-hit" d="M 336 1481 C 362 1481 374 1481 400 1481"/><path class="edge-line" d="M 336 1481 C 362 1481 374 1481 400 1481" marker-end="url(#telling-before)"/><title>先后：苏醒之后，二人回城堡举行婚礼并审判王后。</title></g><g class="logic-edge rel-before" data-edge-id="lr_12" data-source="scene_005" data-target="scene_014" data-kind="before" tabindex="0" role="button" aria-label="先后：收留之后，小矮人白日下矿劳作。"><path class="edge-hit" d="M 336 695 C 362 695 374 695 400 695"/><path class="edge-line" d="M 336 695 C 362 695 374 695 400 695" marker-end="url(#telling-before)"/><title>先后：收留之后，小矮人白日下矿劳作。</title></g><g class="logic-edge rel-before" data-edge-id="lr_13" data-source="scene_014" data-target="scene_006" data-kind="before" tabindex="0" role="button" aria-label="先后：矿山的日常之后，城堡里魔镜再吐真言。"><path class="edge-hit" d="M 700 695 C 726 695 738 695 764 695"/><path class="edge-line" d="M 700 695 C 726 695 738 695 764 695" marker-end="url(#telling-before)"/><title>先后：矿山的日常之后，城堡里魔镜再吐真言。</title></g><g class="logic-edge rel-before" data-edge-id="lr_14" data-source="scene_010" data-target="scene_012" data-kind="before" tabindex="0" role="button" aria-label="先后：小矮人抬棺出殡，途中意外震出毒苹果。"><path class="edge-hit" d="M 168 1294 C 168 1337.2 168 1358.8 168 1402"/><path class="edge-line" d="M 168 1294 C 168 1337.2 168 1358.8 168 1402" marker-end="url(#telling-before)"/><title>先后：小矮人抬棺出殡，途中意外震出毒苹果。</title></g></g><g class="nodes"><g class="graph-node scene role-setup" data-node-id="scene_001" data-node-type="scene" transform="translate(36 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">01</span><span class="node-title" title="雪夜的许愿">雪夜的许愿</span></div>
+    <p class="node-summary" title="王后在雪夜许愿生下白雪公主后离世，国王续弦新王后。">王后在雪夜许愿生下白雪公主后离世，国王续弦新王后。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="白雪公主、国王">白雪公主、国王</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_002" data-node-type="scene" transform="translate(400 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">02</span><span class="node-title" title="魔镜的回答">魔镜的回答</span></div>
+    <p class="node-summary" title="新王后问魔镜谁最美，魔镜答白雪公主更美，王后由此生恨。">新王后问魔镜谁最美，魔镜答白雪公主更美，王后由此生恨。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="新王后">新王后</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-setup" data-node-id="scene_003" data-node-type="scene" transform="translate(764 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">03</span><span class="node-title" title="猎人的命令">猎人的命令</span></div>
+    <p class="node-summary" title="王后命猎人把白雪公主带进森林杀死，并带回肝肺为证。">王后命猎人把白雪公主带进森林杀死，并带回肝肺为证。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="新王后、猎人">新王后、猎人</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_004" data-node-type="scene" transform="translate(36 314)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">04</span><span class="node-title" title="林中的怜悯">林中的怜悯</span></div>
+    <p class="node-summary" title="猎人不忍下手，放走白雪公主，以野猪肝肺为证复命。">猎人不忍下手，放走白雪公主，以野猪肝肺为证复命。</p>
+    <div class="node-location" title="森林">森林</div>
+    <div class="node-people" title="猎人、白雪公主">猎人、白雪公主</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_005" data-node-type="scene" transform="translate(36 616)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">05</span><span class="node-title" title="七个小矮人的小屋">七个小矮人的小屋</span></div>
+    <p class="node-summary" title="白雪公主逃入森林，遇见七个小矮人并被收留。">白雪公主逃入森林，遇见七个小矮人并被收留。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋">白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋</div>
+    <div class="node-footer"><span>8 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_006" data-node-type="scene" transform="translate(764 616)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">07</span><span class="node-title" title="魔镜再说真话">魔镜再说真话</span></div>
+    <p class="node-summary" title="魔镜告诉王后白雪公主还活着，王后决定亲自下手。">魔镜告诉王后白雪公主还活着，王后决定亲自下手。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="新王后">新王后</div>
+    <div class="node-footer"><span>4 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-setup" data-node-id="scene_007" data-node-type="scene" transform="translate(36 858)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">08</span><span class="node-title" title="勒紧的丝带">勒紧的丝带</span></div>
+    <p class="node-summary" title="王后乔装老妇，用丝带勒昏白雪公主，被小矮人救回。">王后乔装老妇，用丝带勒昏白雪公主，被小矮人救回。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、新王后">白雪公主、新王后</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-setup" data-node-id="scene_008" data-node-type="scene" transform="translate(400 858)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">09</span><span class="node-title" title="有毒的梳子">有毒的梳子</span></div>
+    <p class="node-summary" title="王后送来毒梳，白雪公主再度昏倒，小矮人及时拔梳相救。">王后送来毒梳，白雪公主再度昏倒，小矮人及时拔梳相救。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、新王后、万事通">白雪公主、新王后、万事通</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_009" data-node-type="scene" transform="translate(764 858)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">10</span><span class="node-title" title="半个毒苹果">半个毒苹果</span></div>
+    <p class="node-summary" title="王后以毒苹果诱骗白雪公主咬下，白雪公主倒地气绝。">王后以毒苹果诱骗白雪公主咬下，白雪公主倒地气绝。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、新王后">白雪公主、新王后</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_010" data-node-type="scene" transform="translate(36 1100)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">11</span><span class="node-title" title="水晶棺">水晶棺</span></div>
+    <p class="node-summary" title="七个小矮人悲痛不已，将白雪公主安放于水晶棺中日夜守护。">七个小矮人悲痛不已，将白雪公主安放于水晶棺中日夜守护。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋">白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>过渡</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_012" data-node-type="scene" transform="translate(36 1402)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">12</span><span class="node-title" title="咳出的毒苹果">咳出的毒苹果</span></div>
+    <p class="node-summary" title="小矮人抬棺前往山中安葬，途中意外震出毒苹果，白雪公主终于苏醒。">小矮人抬棺前往山中安葬，途中意外震出毒苹果，白雪公主终于苏醒。</p>
+    <div class="node-location" title="森林">森林</div>
+    <div class="node-people" title="白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋">白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_013" data-node-type="scene" transform="translate(400 1402)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">13</span><span class="node-title" title="红鞋的审判">红鞋的审判</span></div>
+    <p class="node-summary" title="白雪公主归来，恶王后的罪行败露，被迫穿上烧红的铁鞋跳舞至死。">白雪公主归来，恶王后的罪行败露，被迫穿上烧红的铁鞋跳舞至死。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="白雪公主、新王后">白雪公主、新王后</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_014" data-node-type="scene" transform="translate(400 616)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">06</span><span class="node-title" title="矿山上的牵挂">矿山上的牵挂</span></div>
+    <p class="node-summary" title="小矮人们在矿山采掘，心里惦记着独自看家的白雪公主。">小矮人们在矿山采掘，心里惦记着独自看家的白雪公主。</p>
+    <div class="node-location" title="矿山">矿山</div>
+    <div class="node-people" title="万事通、爱生气、开心果、喷嚏精、糊涂蛋">万事通、爱生气、开心果、喷嚏精、糊涂蛋</div>
+    <div class="node-footer"><span>7 个节拍</span><span class="node-badges"><span>过渡</span></span></div></div></foreignObject>
+  </g></g><text class="column-label" x="36" y="53">第一幕·嫉妒之始</text><text class="column-label" x="36" y="597">第二幕·森林庇护与三次毒计</text><text class="column-label" x="36" y="1383">第三幕·苏醒与审判</text></svg><svg class="story-svg" data-mode="time" viewBox="0 0 1528 1438" aria-label="故事时间图"><defs><marker id="time-before" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-before"/></marker><marker id="time-causes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-causes"/></marker><marker id="time-setsUp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-setsUp"/></marker><marker id="time-sequence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-sequence"/></marker><marker id="time-person" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-person"/></marker></defs><g class="edges"><g class="logic-edge rel-before" data-edge-id="lr_1" data-source="scene_001" data-target="scene_002" data-kind="before" tabindex="0" role="button" aria-label="先后：白雪公主长成后，王后才在魔镜前得知她更美。"><path class="edge-hit" d="M 168 266 C 168 299.6 168 316.4 168 350"/><path class="edge-line" d="M 168 266 C 168 299.6 168 316.4 168 350" marker-end="url(#time-before)"/><title>先后：白雪公主长成后，王后才在魔镜前得知她更美。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_2" data-source="scene_002" data-target="scene_003" data-kind="causes" tabindex="0" role="button" aria-label="因果：嫉妒使王后下令除掉白雪公主。"><path class="edge-hit" d="M 168 544 C 168 800 168 928 168 1184"/><path class="edge-line" d="M 168 544 C 168 800 168 928 168 1184" marker-end="url(#time-causes)"/><title>因果：嫉妒使王后下令除掉白雪公主。</title></g><g class="logic-edge rel-setsUp" data-edge-id="lr_3" data-source="scene_003" data-target="scene_004" data-kind="setsUp" tabindex="0" role="button" aria-label="伏笔：猎人的怜悯为后续隐藏真相埋下伏笔。"><path class="edge-hit" d="M 168 1184 C 168 816.8 532 633.2 532 266"/><path class="edge-line" d="M 168 1184 C 168 816.8 532 633.2 532 266" marker-end="url(#time-setsUp)"/><title>伏笔：猎人的怜悯为后续隐藏真相埋下伏笔。</title></g><g class="logic-edge rel-before" data-edge-id="lr_4" data-source="scene_004" data-target="scene_005" data-kind="before" tabindex="0" role="button" aria-label="先后：白雪公主逃入森林后遇见小矮人。"><path class="edge-hit" d="M 532 266 C 532 299.6 532 316.4 532 350"/><path class="edge-line" d="M 532 266 C 532 299.6 532 316.4 532 350" marker-end="url(#time-before)"/><title>先后：白雪公主逃入森林后遇见小矮人。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_5" data-source="scene_006" data-target="scene_007" data-kind="causes" tabindex="0" role="button" aria-label="因果：魔镜揭穿真相，王后亲自乔装下手。"><path class="edge-hit" d="M 168 906 C 168 650 896 522 896 266"/><path class="edge-line" d="M 168 906 C 168 650 896 522 896 266" marker-end="url(#time-causes)"/><title>因果：魔镜揭穿真相，王后亲自乔装下手。</title></g><g class="logic-edge rel-before" data-edge-id="lr_6" data-source="scene_007" data-target="scene_008" data-kind="before" tabindex="0" role="button" aria-label="先后：丝带之计失败后，王后改用毒梳。"><path class="edge-hit" d="M 896 266 C 896 299.6 896 316.4 896 350"/><path class="edge-line" d="M 896 266 C 896 299.6 896 316.4 896 350" marker-end="url(#time-before)"/><title>先后：丝带之计失败后，王后改用毒梳。</title></g><g class="logic-edge rel-before" data-edge-id="lr_7" data-source="scene_008" data-target="scene_009" data-kind="before" tabindex="0" role="button" aria-label="先后：毒梳失败后，王后祭出毒苹果。"><path class="edge-hit" d="M 764 429 C 592.8 429 507.20000000000005 707 336 707"/><path class="edge-line" d="M 764 429 C 592.8 429 507.20000000000005 707 336 707" marker-end="url(#time-before)"/><title>先后：毒梳失败后，王后祭出毒苹果。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_8" data-source="scene_009" data-target="scene_010" data-kind="causes" tabindex="0" role="button" aria-label="因果：白雪公主中毒长眠，小矮人置办水晶棺。"><path class="edge-hit" d="M 336 707 C 652.8 707 811.2 151 1128 151"/><path class="edge-line" d="M 336 707 C 652.8 707 811.2 151 1128 151" marker-end="url(#time-causes)"/><title>因果：白雪公主中毒长眠，小矮人置办水晶棺。</title></g><g class="logic-edge rel-before" data-edge-id="lr_11" data-source="scene_012" data-target="scene_013" data-kind="before" tabindex="0" role="button" aria-label="先后：苏醒之后，二人回城堡举行婚礼并审判王后。"><path class="edge-hit" d="M 1128 429 C 956.8 429 871.2 707 700 707"/><path class="edge-line" d="M 1128 429 C 956.8 429 871.2 707 700 707" marker-end="url(#time-before)"/><title>先后：苏醒之后，二人回城堡举行婚礼并审判王后。</title></g><g class="logic-edge rel-before" data-edge-id="lr_12" data-source="scene_005" data-target="scene_014" data-kind="before" tabindex="0" role="button" aria-label="先后：收留之后，小矮人白日下矿劳作。"><path class="edge-hit" d="M 700 429 C 726 429 738 707 764 707"/><path class="edge-line" d="M 700 429 C 726 429 738 707 764 707" marker-end="url(#time-before)"/><title>先后：收留之后，小矮人白日下矿劳作。</title></g><g class="logic-edge rel-before" data-edge-id="lr_13" data-source="scene_014" data-target="scene_006" data-kind="before" tabindex="0" role="button" aria-label="先后：矿山的日常之后，城堡里魔镜再吐真言。"><path class="edge-hit" d="M 764 707 C 592.8 707 507.20000000000005 985 336 985"/><path class="edge-line" d="M 764 707 C 592.8 707 507.20000000000005 985 336 985" marker-end="url(#time-before)"/><title>先后：矿山的日常之后，城堡里魔镜再吐真言。</title></g><g class="logic-edge rel-before" data-edge-id="lr_14" data-source="scene_010" data-target="scene_012" data-kind="before" tabindex="0" role="button" aria-label="先后：小矮人抬棺出殡，途中意外震出毒苹果。"><path class="edge-hit" d="M 1260 266 C 1260 299.6 1260 316.4 1260 350"/><path class="edge-line" d="M 1260 266 C 1260 299.6 1260 316.4 1260 350" marker-end="url(#time-before)"/><title>先后：小矮人抬棺出殡，途中意外震出毒苹果。</title></g></g><g class="nodes"><g class="graph-node scene role-setup" data-node-id="scene_001" data-node-type="scene" transform="translate(36 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">01</span><span class="node-title" title="雪夜的许愿">雪夜的许愿</span></div>
+    <p class="node-summary" title="王后在雪夜许愿生下白雪公主后离世，国王续弦新王后。">王后在雪夜许愿生下白雪公主后离世，国王续弦新王后。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="白雪公主、国王">白雪公主、国王</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_002" data-node-type="scene" transform="translate(36 350)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">02</span><span class="node-title" title="魔镜的回答">魔镜的回答</span></div>
+    <p class="node-summary" title="新王后问魔镜谁最美，魔镜答白雪公主更美，王后由此生恨。">新王后问魔镜谁最美，魔镜答白雪公主更美，王后由此生恨。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="新王后">新王后</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-setup" data-node-id="scene_003" data-node-type="scene" transform="translate(36 1184)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">03</span><span class="node-title" title="猎人的命令">猎人的命令</span></div>
+    <p class="node-summary" title="王后命猎人把白雪公主带进森林杀死，并带回肝肺为证。">王后命猎人把白雪公主带进森林杀死，并带回肝肺为证。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="新王后、猎人">新王后、猎人</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_004" data-node-type="scene" transform="translate(400 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">04</span><span class="node-title" title="林中的怜悯">林中的怜悯</span></div>
+    <p class="node-summary" title="猎人不忍下手，放走白雪公主，以野猪肝肺为证复命。">猎人不忍下手，放走白雪公主，以野猪肝肺为证复命。</p>
+    <div class="node-location" title="森林">森林</div>
+    <div class="node-people" title="猎人、白雪公主">猎人、白雪公主</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_005" data-node-type="scene" transform="translate(400 350)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">05</span><span class="node-title" title="七个小矮人的小屋">七个小矮人的小屋</span></div>
+    <p class="node-summary" title="白雪公主逃入森林，遇见七个小矮人并被收留。">白雪公主逃入森林，遇见七个小矮人并被收留。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋">白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋</div>
+    <div class="node-footer"><span>8 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_006" data-node-type="scene" transform="translate(36 906)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">07</span><span class="node-title" title="魔镜再说真话">魔镜再说真话</span></div>
+    <p class="node-summary" title="魔镜告诉王后白雪公主还活着，王后决定亲自下手。">魔镜告诉王后白雪公主还活着，王后决定亲自下手。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="新王后">新王后</div>
+    <div class="node-footer"><span>4 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-setup" data-node-id="scene_007" data-node-type="scene" transform="translate(764 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">08</span><span class="node-title" title="勒紧的丝带">勒紧的丝带</span></div>
+    <p class="node-summary" title="王后乔装老妇，用丝带勒昏白雪公主，被小矮人救回。">王后乔装老妇，用丝带勒昏白雪公主，被小矮人救回。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、新王后">白雪公主、新王后</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-setup" data-node-id="scene_008" data-node-type="scene" transform="translate(764 350)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">09</span><span class="node-title" title="有毒的梳子">有毒的梳子</span></div>
+    <p class="node-summary" title="王后送来毒梳，白雪公主再度昏倒，小矮人及时拔梳相救。">王后送来毒梳，白雪公主再度昏倒，小矮人及时拔梳相救。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、新王后、万事通">白雪公主、新王后、万事通</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_009" data-node-type="scene" transform="translate(36 628)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">10</span><span class="node-title" title="半个毒苹果">半个毒苹果</span></div>
+    <p class="node-summary" title="王后以毒苹果诱骗白雪公主咬下，白雪公主倒地气绝。">王后以毒苹果诱骗白雪公主咬下，白雪公主倒地气绝。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、新王后">白雪公主、新王后</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_010" data-node-type="scene" transform="translate(1128 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">11</span><span class="node-title" title="水晶棺">水晶棺</span></div>
+    <p class="node-summary" title="七个小矮人悲痛不已，将白雪公主安放于水晶棺中日夜守护。">七个小矮人悲痛不已，将白雪公主安放于水晶棺中日夜守护。</p>
+    <div class="node-location" title="小矮人小屋">小矮人小屋</div>
+    <div class="node-people" title="白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋">白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>过渡</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_012" data-node-type="scene" transform="translate(1128 350)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">12</span><span class="node-title" title="咳出的毒苹果">咳出的毒苹果</span></div>
+    <p class="node-summary" title="小矮人抬棺前往山中安葬，途中意外震出毒苹果，白雪公主终于苏醒。">小矮人抬棺前往山中安葬，途中意外震出毒苹果，白雪公主终于苏醒。</p>
+    <div class="node-location" title="森林">森林</div>
+    <div class="node-people" title="白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋">白雪公主、万事通、爱生气、开心果、瞌睡虫、害羞鬼、喷嚏精、糊涂蛋</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_013" data-node-type="scene" transform="translate(400 628)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">13</span><span class="node-title" title="红鞋的审判">红鞋的审判</span></div>
+    <p class="node-summary" title="白雪公主归来，恶王后的罪行败露，被迫穿上烧红的铁鞋跳舞至死。">白雪公主归来，恶王后的罪行败露，被迫穿上烧红的铁鞋跳舞至死。</p>
+    <div class="node-location" title="城堡">城堡</div>
+    <div class="node-people" title="白雪公主、新王后">白雪公主、新王后</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_014" data-node-type="scene" transform="translate(764 628)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">06</span><span class="node-title" title="矿山上的牵挂">矿山上的牵挂</span></div>
+    <p class="node-summary" title="小矮人们在矿山采掘，心里惦记着独自看家的白雪公主。">小矮人们在矿山采掘，心里惦记着独自看家的白雪公主。</p>
+    <div class="node-location" title="矿山">矿山</div>
+    <div class="node-people" title="万事通、爱生气、开心果、喷嚏精、糊涂蛋">万事通、爱生气、开心果、喷嚏精、糊涂蛋</div>
+    <div class="node-footer"><span>7 个节拍</span><span class="node-badges"><span>过渡</span></span></div></div></foreignObject>
+  </g></g><text class="column-label" x="36" y="53">时间点 1：夜晚、傍晚、正午</text><text class="column-label" x="36" y="331">时间点 2：早晨、夜晚、下午</text><text class="column-label" x="36" y="609">时间点 3：傍晚、正午</text><text class="column-label" x="36" y="887">时间点 4：早晨</text><text class="column-label" x="36" y="1165">先后未定</text></svg><svg class="story-svg charm-svg" data-mode="charmap" viewBox="0 0 1380 1310" aria-label="要素关系图"><defs><marker id="charmap-before" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-before"/></marker><marker id="charmap-causes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-causes"/></marker><marker id="charmap-setsUp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-setsUp"/></marker><marker id="charmap-sequence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-sequence"/></marker><marker id="charmap-person" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-person"/></marker></defs><g class="edges"><path class="part-edge" d="M 276 100 C 337.6 100 368.4 113 430 113" data-source="scene_001" data-target="char_snow" data-kind="character"/><path class="part-edge" d="M 276 340 C 337.6 340 368.4 113 430 113" data-source="scene_004" data-target="char_snow" data-kind="character"/><path class="part-edge" d="M 276 478 C 337.6 478 368.4 113 430 113" data-source="scene_005" data-target="char_snow" data-kind="character"/><path class="part-edge" d="M 156 688 C 156 472 538 364 538 148" data-source="scene_007" data-target="char_snow" data-kind="character"/><path class="part-edge" d="M 156 768 C 156 520 538 396 538 148" data-source="scene_008" data-target="char_snow" data-kind="character"/><path class="part-edge" d="M 156 848 C 156 568 538 428 538 148" data-source="scene_009" data-target="char_snow" data-kind="character"/><path class="part-edge" d="M 156 928 C 156 616 538 460 538 148" data-source="scene_010" data-target="char_snow" data-kind="character"/><path class="part-edge" d="M 156 1066 C 156 698.8 538 515.2 538 148" data-source="scene_012" data-target="char_snow" data-kind="character"/><path class="part-edge" d="M 156 1146 C 156 746.8 538 547.2 538 148" data-source="scene_013" data-target="char_snow" data-kind="character"/><path class="part-edge" d="M 276 100 C 337.6 100 368.4 219 430 219" data-source="scene_001" data-target="char_king" data-kind="character"/><path class="part-edge" d="M 276 100 C 461.6 100 554.4 113 740 113" data-source="scene_001" data-target="loc_castle" data-kind="location"/><path class="part-edge" d="M 276 180 C 461.6 180 554.4 113 740 113" data-source="scene_002" data-target="loc_castle" data-kind="location"/><path class="part-edge" d="M 276 260 C 461.6 260 554.4 113 740 113" data-source="scene_003" data-target="loc_castle" data-kind="location"/><path class="part-edge" d="M 276 638 C 461.6 638 554.4 113 740 113" data-source="scene_006" data-target="loc_castle" data-kind="location"/><path class="part-edge" d="M 156 1146 C 156 746.8 848 547.2 848 148" data-source="scene_013" data-target="loc_castle" data-kind="location"/><path class="part-edge" d="M 276 180 C 337.6 180 368.4 325 430 325" data-source="scene_002" data-target="char_queen" data-kind="character"/><path class="part-edge" d="M 276 260 C 337.6 260 368.4 325 430 325" data-source="scene_003" data-target="char_queen" data-kind="character"/><path class="part-edge" d="M 276 638 C 337.6 638 368.4 325 430 325" data-source="scene_006" data-target="char_queen" data-kind="character"/><path class="part-edge" d="M 156 688 C 156 556.8 538 491.20000000000005 538 360" data-source="scene_007" data-target="char_queen" data-kind="character"/><path class="part-edge" d="M 156 768 C 156 604.8 538 523.2 538 360" data-source="scene_008" data-target="char_queen" data-kind="character"/><path class="part-edge" d="M 156 848 C 156 652.8 538 555.2 538 360" data-source="scene_009" data-target="char_queen" data-kind="character"/><path class="part-edge" d="M 156 1146 C 156 831.5999999999999 538 674.4000000000001 538 360" data-source="scene_013" data-target="char_queen" data-kind="character"/><path class="part-edge" d="M 276 180 C 585.6 180 740.4 113 1050 113" data-source="scene_002" data-target="prop_mirror" data-kind="prop"/><path class="part-edge" d="M 276 638 C 585.6 638 740.4 113 1050 113" data-source="scene_006" data-target="prop_mirror" data-kind="prop"/><path class="part-edge" d="M 276 260 C 337.6 260 368.4 431 430 431" data-source="scene_003" data-target="char_hunter" data-kind="character"/><path class="part-edge" d="M 276 340 C 337.6 340 368.4 431 430 431" data-source="scene_004" data-target="char_hunter" data-kind="character"/><path class="part-edge" d="M 276 340 C 461.6 340 554.4 219 740 219" data-source="scene_004" data-target="loc_forest" data-kind="location"/><path class="part-edge" d="M 156 1066 C 156 741.2 848 578.8 848 254" data-source="scene_012" data-target="loc_forest" data-kind="location"/><path class="part-edge" d="M 276 340 C 585.6 340 740.4 219 1050 219" data-source="scene_004" data-target="prop_boar" data-kind="prop"/><path class="part-edge" d="M 276 478 C 337.6 478 368.4 537 430 537" data-source="scene_005" data-target="char_doc" data-kind="character"/><path class="part-edge" d="M 276 558 C 337.6 558 368.4 537 430 537" data-source="scene_014" data-target="char_doc" data-kind="character"/><path class="part-edge" d="M 276 798 C 337.6 798 368.4 537 430 537" data-source="scene_008" data-target="char_doc" data-kind="character"/><path class="part-edge" d="M 156 928 C 156 785.6 538 714.4 538 572" data-source="scene_010" data-target="char_doc" data-kind="character"/><path class="part-edge" d="M 156 1066 C 156 868.4 538 769.6 538 572" data-source="scene_012" data-target="char_doc" data-kind="character"/><path class="part-edge" d="M 276 478 C 337.6 478 368.4 643 430 643" data-source="scene_005" data-target="char_grumpy" data-kind="character"/><path class="part-edge" d="M 276 558 C 337.6 558 368.4 643 430 643" data-source="scene_014" data-target="char_grumpy" data-kind="character"/><path class="part-edge" d="M 276 958 C 337.6 958 368.4 643 430 643" data-source="scene_010" data-target="char_grumpy" data-kind="character"/><path class="part-edge" d="M 156 1066 C 156 910.8 538 833.2 538 678" data-source="scene_012" data-target="char_grumpy" data-kind="character"/><path class="part-edge" d="M 276 478 C 337.6 478 368.4 749 430 749" data-source="scene_005" data-target="char_happy" data-kind="character"/><path class="part-edge" d="M 276 558 C 337.6 558 368.4 749 430 749" data-source="scene_014" data-target="char_happy" data-kind="character"/><path class="part-edge" d="M 276 958 C 337.6 958 368.4 749 430 749" data-source="scene_010" data-target="char_happy" data-kind="character"/><path class="part-edge" d="M 276 1096 C 337.6 1096 368.4 749 430 749" data-source="scene_012" data-target="char_happy" data-kind="character"/><path class="part-edge" d="M 276 478 C 337.6 478 368.4 855 430 855" data-source="scene_005" data-target="char_sleepy" data-kind="character"/><path class="part-edge" d="M 276 958 C 337.6 958 368.4 855 430 855" data-source="scene_010" data-target="char_sleepy" data-kind="character"/><path class="part-edge" d="M 276 1096 C 337.6 1096 368.4 855 430 855" data-source="scene_012" data-target="char_sleepy" data-kind="character"/><path class="part-edge" d="M 156 508 C 156 675.2 538 758.8 538 926" data-source="scene_005" data-target="char_bashful" data-kind="character"/><path class="part-edge" d="M 276 958 C 337.6 958 368.4 961 430 961" data-source="scene_010" data-target="char_bashful" data-kind="character"/><path class="part-edge" d="M 276 1096 C 337.6 1096 368.4 961 430 961" data-source="scene_012" data-target="char_bashful" data-kind="character"/><path class="part-edge" d="M 156 508 C 156 717.6 538 822.4 538 1032" data-source="scene_005" data-target="char_sneezy" data-kind="character"/><path class="part-edge" d="M 156 588 C 156 765.6 538 854.4 538 1032" data-source="scene_014" data-target="char_sneezy" data-kind="character"/><path class="part-edge" d="M 276 958 C 337.6 958 368.4 1067 430 1067" data-source="scene_010" data-target="char_sneezy" data-kind="character"/><path class="part-edge" d="M 276 1096 C 337.6 1096 368.4 1067 430 1067" data-source="scene_012" data-target="char_sneezy" data-kind="character"/><path class="part-edge" d="M 156 508 C 156 760 538 886 538 1138" data-source="scene_005" data-target="char_dopey" data-kind="character"/><path class="part-edge" d="M 156 588 C 156 808 538 918 538 1138" data-source="scene_014" data-target="char_dopey" data-kind="character"/><path class="part-edge" d="M 276 958 C 337.6 958 368.4 1173 430 1173" data-source="scene_010" data-target="char_dopey" data-kind="character"/><path class="part-edge" d="M 276 1096 C 337.6 1096 368.4 1173 430 1173" data-source="scene_012" data-target="char_dopey" data-kind="character"/><path class="part-edge" d="M 276 478 C 461.6 478 554.4 325 740 325" data-source="scene_005" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 718 C 461.6 718 554.4 325 740 325" data-source="scene_007" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 798 C 461.6 798 554.4 325 740 325" data-source="scene_008" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 878 C 461.6 878 554.4 325 740 325" data-source="scene_009" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 958 C 461.6 958 554.4 325 740 325" data-source="scene_010" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 558 C 461.6 558 554.4 431 740 431" data-source="scene_014" data-target="loc_mine" data-kind="location"/><path class="part-edge" d="M 276 718 C 585.6 718 740.4 325 1050 325" data-source="scene_007" data-target="prop_lace" data-kind="prop"/><path class="part-edge" d="M 276 798 C 585.6 798 740.4 431 1050 431" data-source="scene_008" data-target="prop_comb" data-kind="prop"/><path class="part-edge" d="M 276 878 C 585.6 878 740.4 537 1050 537" data-source="scene_009" data-target="prop_apple" data-kind="prop"/><path class="part-edge" d="M 276 958 C 585.6 958 740.4 643 1050 643" data-source="scene_010" data-target="prop_coffin" data-kind="prop"/><path class="part-edge" d="M 276 1096 C 585.6 1096 740.4 643 1050 643" data-source="scene_012" data-target="prop_coffin" data-kind="prop"/><path class="part-edge" d="M 276 1176 C 585.6 1176 740.4 749 1050 749" data-source="scene_013" data-target="prop_iron_shoes" data-kind="prop"/><g class="pair-edge" data-relation-id="cr_1" data-source="char_queen" data-target="char_snow" tabindex="0" role="button" aria-label="新王后 → 白雪公主：继母，嫉妒敌视"><path class="edge-hit" d="M 646 325 C 686 325 686 113 646 113"/><path class="edge-line" d="M 646 325 C 686 325 686 113 646 113" marker-end="url(#charmap-person)"/><title>新王后 → 白雪公主：继母，嫉妒敌视</title></g><g class="pair-edge" data-relation-id="cr_2" data-source="char_hunter" data-target="char_snow" tabindex="0" role="button" aria-label="猎人 → 白雪公主：奉命行刺却动情相救"><path class="edge-hit" d="M 646 431 C 694 431 694 113 646 113"/><path class="edge-line" d="M 646 431 C 694 431 694 113 646 113" marker-end="url(#charmap-person)"/><title>猎人 → 白雪公主：奉命行刺却动情相救</title></g><g class="pair-edge" data-relation-id="cr_3" data-source="char_doc" data-target="char_snow" tabindex="0" role="button" aria-label="万事通 → 白雪公主：收留庇护"><path class="edge-hit" d="M 646 537 C 702 537 702 113 646 113"/><path class="edge-line" d="M 646 537 C 702 537 702 113 646 113" marker-end="url(#charmap-person)"/><title>万事通 → 白雪公主：收留庇护</title></g><g class="pair-edge" data-relation-id="cr_4" data-source="char_grumpy" data-target="char_snow" tabindex="0" role="button" aria-label="爱生气 → 白雪公主：嘴硬心软"><path class="edge-hit" d="M 646 643 C 710 643 710 113 646 113"/><path class="edge-line" d="M 646 643 C 710 643 710 113 646 113" marker-end="url(#charmap-person)"/><title>爱生气 → 白雪公主：嘴硬心软</title></g></g><g class="nodes"><g class="graph-node scene compact" data-node-id="scene_001" data-node-type="scene" transform="translate(36 70)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">01</span><span class="node-title" title="雪夜的许愿">雪夜的许愿</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_002" data-node-type="scene" transform="translate(36 150)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">02</span><span class="node-title" title="魔镜的回答">魔镜的回答</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_003" data-node-type="scene" transform="translate(36 230)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">03</span><span class="node-title" title="猎人的命令">猎人的命令</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_004" data-node-type="scene" transform="translate(36 310)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">04</span><span class="node-title" title="林中的怜悯">林中的怜悯</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_005" data-node-type="scene" transform="translate(36 448)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">05</span><span class="node-title" title="七个小矮人的小屋">七个小矮人的小屋</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_014" data-node-type="scene" transform="translate(36 528)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">06</span><span class="node-title" title="矿山上的牵挂">矿山上的牵挂</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_006" data-node-type="scene" transform="translate(36 608)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">07</span><span class="node-title" title="魔镜再说真话">魔镜再说真话</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_007" data-node-type="scene" transform="translate(36 688)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">08</span><span class="node-title" title="勒紧的丝带">勒紧的丝带</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_008" data-node-type="scene" transform="translate(36 768)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">09</span><span class="node-title" title="有毒的梳子">有毒的梳子</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_009" data-node-type="scene" transform="translate(36 848)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">10</span><span class="node-title" title="半个毒苹果">半个毒苹果</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_010" data-node-type="scene" transform="translate(36 928)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">11</span><span class="node-title" title="水晶棺">水晶棺</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_012" data-node-type="scene" transform="translate(36 1066)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">12</span><span class="node-title" title="咳出的毒苹果">咳出的毒苹果</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_013" data-node-type="scene" transform="translate(36 1146)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">13</span><span class="node-title" title="红鞋的审判">红鞋的审判</span></div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_snow" data-node-type="entity" data-kind="character" transform="translate(430 78)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="白雪公主">白雪公主</span></div><div class="entity-count">9 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_king" data-node-type="entity" data-kind="character" transform="translate(430 184)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="国王">国王</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_queen" data-node-type="entity" data-kind="character" transform="translate(430 290)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="新王后">新王后</span></div><div class="entity-count">7 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_hunter" data-node-type="entity" data-kind="character" transform="translate(430 396)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="猎人">猎人</span></div><div class="entity-count">2 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_doc" data-node-type="entity" data-kind="character" transform="translate(430 502)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="万事通">万事通</span></div><div class="entity-count">5 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_grumpy" data-node-type="entity" data-kind="character" transform="translate(430 608)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="爱生气">爱生气</span></div><div class="entity-count">4 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_happy" data-node-type="entity" data-kind="character" transform="translate(430 714)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="开心果">开心果</span></div><div class="entity-count">4 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_sleepy" data-node-type="entity" data-kind="character" transform="translate(430 820)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="瞌睡虫">瞌睡虫</span></div><div class="entity-count">3 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_bashful" data-node-type="entity" data-kind="character" transform="translate(430 926)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="害羞鬼">害羞鬼</span></div><div class="entity-count">3 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_sneezy" data-node-type="entity" data-kind="character" transform="translate(430 1032)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="喷嚏精">喷嚏精</span></div><div class="entity-count">4 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_dopey" data-node-type="entity" data-kind="character" transform="translate(430 1138)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="糊涂蛋">糊涂蛋</span></div><div class="entity-count">4 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_castle" data-node-type="entity" data-kind="location" transform="translate(740 78)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">地点</span><span class="entity-name" title="城堡">城堡</span></div><div class="entity-count">5 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_forest" data-node-type="entity" data-kind="location" transform="translate(740 184)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">地点</span><span class="entity-name" title="森林">森林</span></div><div class="entity-count">2 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_cottage" data-node-type="entity" data-kind="location" transform="translate(740 290)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">地点</span><span class="entity-name" title="小矮人小屋">小矮人小屋</span></div><div class="entity-count">5 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_mine" data-node-type="entity" data-kind="location" transform="translate(740 396)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">地点</span><span class="entity-name" title="矿山">矿山</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_mirror" data-node-type="entity" data-kind="prop" transform="translate(1050 78)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="魔镜">魔镜</span></div><div class="entity-count">2 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_boar" data-node-type="entity" data-kind="prop" transform="translate(1050 184)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="野猪肝肺">野猪肝肺</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_lace" data-node-type="entity" data-kind="prop" transform="translate(1050 290)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="丝带">丝带</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_comb" data-node-type="entity" data-kind="prop" transform="translate(1050 396)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="毒梳">毒梳</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_apple" data-node-type="entity" data-kind="prop" transform="translate(1050 502)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="毒苹果">毒苹果</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_coffin" data-node-type="entity" data-kind="prop" transform="translate(1050 608)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="水晶棺">水晶棺</span></div><div class="entity-count">2 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_iron_shoes" data-node-type="entity" data-kind="prop" transform="translate(1050 714)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="烧红的铁鞋">烧红的铁鞋</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g></g><text class="column-label" x="430" y="53">人物</text><text class="column-label" x="740" y="53">地点</text><text class="column-label" x="1050" y="53">道具</text><text class="column-label" x="36" y="53">第一幕·嫉妒之始</text><text class="column-label" x="36" y="431">第二幕·森林庇护与三次毒计</text><text class="column-label" x="36" y="1049">第三幕·苏醒与审判</text></svg>
+  <div id="empty-state" hidden>故事尚无场景</div>
+  <div class="canvas-toolbar" role="toolbar" aria-label="画布缩放">
+    <button class="icon-button" id="zoom-out" aria-label="缩小" title="缩小"><svg class="icon"><use href="#icon-minus"/></svg></button>
+    <button id="zoom-reset" class="zoom-value" aria-label="恢复可读缩放" title="恢复可读缩放">100%</button>
+    <button class="icon-button" id="zoom-in" aria-label="放大" title="放大"><svg class="icon"><use href="#icon-plus"/></svg></button>
+    <span class="divider"></span>
+    <button class="icon-button" id="fit" aria-label="查看全图" title="查看全图"><svg class="icon"><use href="#icon-scan"/></svg></button>
+    <button class="icon-button" id="focus" aria-label="定位所选节点" title="定位所选节点" disabled><svg class="icon"><use href="#icon-focus"/></svg></button>
+  </div>
+  <button id="clear-selection" class="clear-selection" hidden><svg class="icon"><use href="#icon-x"/></svg>清除选择</button>
+  <div id="minimap" class="minimap" aria-label="图谱缩略图"></div>
+</main>
+<aside class="right" id="right-panel" aria-label="故事详情" inert>
+  <div class="detail-toolbar"><div class="detail-toolbar-left"><button class="icon-button" id="detail-back" aria-label="返回上一处" title="返回上一处" disabled><svg class="icon"><use href="#icon-chevron-left"/></svg></button><span>故事详情</span></div><button class="icon-button" id="close-detail" aria-label="关闭详情" title="关闭详情"><svg class="icon"><use href="#icon-x"/></svg></button></div>
+  <div id="detail" class="detail"></div>
+</aside>
+<div id="status" role="status" aria-live="polite" class="sr-only"></div>
+<script>window.__STORYGRAPH__ = {"meta":{"title":"白雪公主","logline":"肌肤如雪的小公主因继母的嫉妒被逐入森林，七个小矮人的庇护与三次毒计之后，她终于在同伴的守护中苏醒归来，恶王后自食其果。","theme":"嫉妒之恶终自毁，善良之心得庇护","language":"zh-CN"},"storyId":"story_snow_white","revision":3,"entities":{"char_snow":{"kind":"character","name":"白雪公主","tags":["主角","公主"],"fixedTraits":{"外貌":"肌肤白如雪、唇红如血、发黑如乌木","性情":"善良纯洁、轻信他人"},"motivation":"渴望被爱与安全，以善意对待每个人","voiceDescription":"清亮柔和，语调天真"},"char_queen":{"kind":"character","name":"新王后","tags":["反派","继母"],"fixedTraits":{"外貌":"艳丽而冷峻","性情":"虚荣、嫉妒、狠毒"},"motivation":"要做世上最美的人，铲除一切威胁","voiceDescription":"尖厉傲慢，暗藏怨毒"},"char_king":{"kind":"character","name":"国王","tags":["配角"],"fixedTraits":{"性情":"软弱、疏于照看女儿"},"motivation":"维持王宫的安稳体面","voiceDescription":"低沉疲惫"},"char_hunter":{"kind":"character","name":"猎人","tags":["配角"],"fixedTraits":{"性情":"忠厚、良心未泯"},"motivation":"既服从王命，又不忍杀害无辜","voiceDescription":"粗哑而迟疑"},"char_doc":{"kind":"character","name":"万事通","tags":["小矮人"],"fixedTraits":{"性情":"爱出主意、有担当"},"motivation":"照料好小屋与同伴","voiceDescription":"自信而絮叨"},"char_grumpy":{"kind":"character","name":"爱生气","tags":["小矮人"],"fixedTraits":{"性情":"暴躁、嘴硬心软"},"motivation":"保护大家不受外人打扰","voiceDescription":"粗声粗气"},"char_happy":{"kind":"character","name":"开心果","tags":["小矮人"],"fixedTraits":{"性情":"乐天爱笑"},"motivation":"让身边的人都开心","voiceDescription":"欢快明亮"},"char_sleepy":{"kind":"character","name":"瞌睡虫","tags":["小矮人"],"fixedTraits":{"性情":"嗜睡、慢性子"},"motivation":"只想安安稳稳睡一觉","voiceDescription":"含糊慵懒"},"char_bashful":{"kind":"character","name":"害羞鬼","tags":["小矮人"],"fixedTraits":{"性情":"腼腆怕羞"},"motivation":"默默守护，不敢多言","voiceDescription":"轻声细语"},"char_sneezy":{"kind":"character","name":"喷嚏精","tags":["小矮人"],"fixedTraits":{"性情":"总爱打喷嚏"},"motivation":"忍着喷嚏帮大家干活","voiceDescription":"断断续续带鼻音"},"char_dopey":{"kind":"character","name":"糊涂蛋","tags":["小矮人"],"fixedTraits":{"性情":"憨傻天真、不爱说话"},"motivation":"跟着哥哥们，做个好帮手","voiceDescription":"憨憨的，很少开口"},"loc_castle":{"kind":"location","name":"城堡","description":"国王居住的石头城堡，高塔与长廊幽深清冷。","areas":[{"id":"area_throne","name":"王后寝宫","description":"陈设华贵却冷清的寝殿。"},{"id":"area_mirror","name":"魔镜厅","description":"摆放魔镜的幽暗内厅。"},{"id":"area_hall","name":"大殿","description":"举行婚礼与盛宴的宽阔厅堂。"}]},"loc_forest":{"kind":"location","name":"森林","description":"绵延七座山的幽深密林，野兽出没。","areas":[{"id":"area_edge","name":"林边","description":"通向城堡的林间小径。"},{"id":"area_deep","name":"森林深处","description":"古木参天、湿雾弥漫的密林。"}]},"loc_cottage":{"kind":"location","name":"小矮人小屋","description":"森林深处一座小小的木屋，屋里有七张小床和一张长桌。"},"loc_mine":{"kind":"location","name":"矿山","description":"小矮人们白日采掘宝石的矿洞。"},"prop_mirror":{"kind":"prop","name":"魔镜","description":"乌木镶金的椭圆镜，能开口说话，且从不说谎。","initialOwnerId":"char_queen"},"prop_lace":{"kind":"prop","name":"丝带","description":"乔装老妇兜售的彩色丝带，专用来束腰。","initialOwnerId":null},"prop_comb":{"kind":"prop","name":"毒梳","description":"镶珠的梳子，梳齿浸过剧毒。","initialOwnerId":null},"prop_apple":{"kind":"prop","name":"毒苹果","description":"红艳诱人的苹果，红的一半浸满剧毒。","initialOwnerId":null},"prop_coffin":{"kind":"prop","name":"水晶棺","description":"透明的水晶棺，白雪公主面容如生地长眠其中。","initialOwnerId":null},"prop_iron_shoes":{"kind":"prop","name":"烧红的铁鞋","description":"行刑用的铁鞋，烧得通红。","initialOwnerId":null},"prop_boar":{"kind":"prop","name":"野猪肝肺","description":"猎人取来充作白雪公主已死凭证的野猪内脏。","initialOwnerId":null}},"threads":{"thread_main":{"id":"thread_main","name":"主线","description":"白雪公主因嫉妒被逐、受庇护、中毒、苏醒并迎来报应的完整历程。"}},"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"],"order":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_014","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013"],"unarranged":[],"tellingIndex":{"scene_001":0,"scene_002":1,"scene_003":2,"scene_004":3,"scene_005":4,"scene_014":5,"scene_006":6,"scene_007":7,"scene_008":8,"scene_009":9,"scene_010":10,"scene_012":11,"scene_013":12},"layer":{"scene_001":0,"scene_002":1,"scene_003":0,"scene_004":0,"scene_005":1,"scene_014":2,"scene_006":3,"scene_007":0,"scene_008":1,"scene_009":2,"scene_010":0,"scene_012":1,"scene_013":2},"sceneTime":{"scene_001":"夜晚","scene_002":"早晨","scene_003":"下午","scene_004":"傍晚","scene_005":"夜晚","scene_006":"早晨","scene_007":"正午","scene_008":"下午","scene_009":"傍晚","scene_010":"夜晚","scene_012":"下午","scene_013":"傍晚","scene_014":"正午"},"timeKnown":["scene_002","scene_001","scene_005","scene_004","scene_008","scene_007","scene_009","scene_013","scene_012","scene_014","scene_006","scene_010"],"inverted":[],"actsFlat":[{"id":"act_1","title":"第一幕·嫉妒之始","summary":"白雪公主降生与继母的嫉妒，引出森林中的第一次生死抉择。","sceneIds":["scene_001","scene_002","scene_003","scene_004"]},{"id":"act_2","title":"第二幕·森林庇护与三次毒计","summary":"小矮人收留白雪公主，王后三次乔装加害，终以毒苹果得逞。","sceneIds":["scene_005","scene_014","scene_006","scene_007","scene_008","scene_009","scene_010"]},{"id":"act_3","title":"第三幕·苏醒与审判","summary":"王子唤醒白雪公主，恶王后在婚礼上受到惩罚。","sceneIds":["scene_012","scene_013"]}],"beats":[{"id":"beat_0001","kind":"narration","text":"冬夜，王后坐在乌木窗前缝衣，针尖刺破手指，三滴血落在雪上。","sceneId":"scene_001","index":0},{"id":"beat_0002","kind":"narration","text":"她许愿：愿女儿肌肤白如雪、唇红如血、发黑如乌木。","sceneId":"scene_001","index":1},{"id":"beat_0003","kind":"narration","text":"不久王后生下女儿便撒手人寰，国王为她取名白雪公主。","sceneId":"scene_001","index":2},{"id":"beat_0004","kind":"action","text":"国王抱着襁褓中的女儿，在空荡的寝宫里久久不语。","sceneId":"scene_001","index":3},{"id":"beat_0005","kind":"narration","text":"几年后国王续弦，新王后美貌而骄傲，还带来一面会说真话的魔镜。","sceneId":"scene_001","index":4},{"id":"beat_0006","kind":"narration","text":"新王后最得意的便是那面魔镜，它从不说谎。","sceneId":"scene_002","index":0},{"id":"beat_0007","kind":"dialogue","text":"魔镜魔镜，谁是这世上最美的女人？","speakerId":"char_queen","tone":"傲慢","sceneId":"scene_002","index":1},{"id":"beat_0008","kind":"narration","text":"镜面泛起涟漪，一个低沉的声音如实作答。","sceneId":"scene_002","index":2},{"id":"beat_0009","kind":"narration","text":"镜中声音道：\"王后，您很美，可白雪公主比您更美千倍。\"","sceneId":"scene_002","index":3},{"id":"beat_0010","kind":"action","text":"王后的笑意凝在脸上，指甲深深掐进掌心。","sceneId":"scene_002","index":4},{"id":"beat_0011","kind":"dialogue","text":"白雪……她竟敢比我美？","speakerId":"char_queen","tone":"咬牙切齿","sceneId":"scene_002","index":5},{"id":"beat_0012","kind":"dialogue","text":"把白雪公主带进森林，杀了她。带着她的肝和肺回来见我。","speakerId":"char_queen","tone":"阴狠","sceneId":"scene_003","index":0},{"id":"beat_0013","kind":"action","text":"猎人低头，握着剑柄的手微微发抖。","sceneId":"scene_003","index":1},{"id":"beat_0014","kind":"dialogue","text":"陛下……她只是个孩子。","speakerId":"char_hunter","tone":"迟疑","sceneId":"scene_003","index":2},{"id":"beat_0015","kind":"dialogue","text":"你敢违抗我的命令？","speakerId":"char_queen","tone":"不容置疑","sceneId":"scene_003","index":3},{"id":"beat_0016","kind":"narration","text":"猎人只得领命，转身去寻找白雪公主。","sceneId":"scene_003","index":4},{"id":"beat_0017","kind":"action","text":"猎人将白雪公主带到密林深处，缓缓拔出短刀。","sceneId":"scene_004","index":0},{"id":"beat_0018","kind":"dialogue","text":"好心的猎人，求您别杀我，我愿逃进森林，再也不回城堡。","speakerId":"char_snow","tone":"恐惧哀求","sceneId":"scene_004","index":1},{"id":"beat_0019","kind":"action","text":"猎人望着她泪湿的脸，终究心软了。","sceneId":"scene_004","index":2},{"id":"beat_0020","kind":"dialogue","text":"快走，越远越好，永远别回王宫。","speakerId":"char_hunter","tone":"压低而急促","sceneId":"scene_004","index":3},{"id":"beat_0021","kind":"narration","text":"猎人猎杀一头野猪，取出肝肺，作为白雪已死的凭证带回复命。","sceneId":"scene_004","index":4},{"id":"beat_0022","kind":"narration","text":"白雪公主在森林里跑了一整夜，天亮时发现一座小小的屋子。","sceneId":"scene_005","index":0},{"id":"beat_0023","kind":"action","text":"屋内七张小床整齐排列，她太累了，蜷在其中一张床上睡去。","sceneId":"scene_005","index":1},{"id":"beat_0024","kind":"narration","text":"傍晚，七个小矮人扛着镐头从矿山回来，点亮了油灯。","sceneId":"scene_005","index":2},{"id":"beat_0025","kind":"dialogue","text":"有人躺在我们床上！","speakerId":"char_doc","tone":"惊讶","sceneId":"scene_005","index":3},{"id":"beat_0026","kind":"dialogue","text":"谁准外人进屋的？快把她赶出去！","speakerId":"char_grumpy","tone":"不耐烦","sceneId":"scene_005","index":4},{"id":"beat_0027","kind":"action","text":"白雪公主醒来，向他们诉说自己的遭遇，小矮人们听得心都软了。","sceneId":"scene_005","index":5},{"id":"beat_0028","kind":"dialogue","text":"留下吧！你替我们看家做饭，我们保护你。","speakerId":"char_happy","tone":"欢快","sceneId":"scene_005","index":6},{"id":"beat_0029","kind":"narration","text":"小矮人们叮嘱：\"我们不在时，千万别给任何人开门。\"","sceneId":"scene_005","index":7},{"id":"beat_0030","kind":"dialogue","text":"魔镜魔镜，谁是这世上最美的女人？","speakerId":"char_queen","tone":"得意","sceneId":"scene_006","index":0},{"id":"beat_0031","kind":"narration","text":"镜中声音答：\"王后，越过七座山，白雪公主与小矮人同住，她比您更美千倍。\"","sceneId":"scene_006","index":1},{"id":"beat_0032","kind":"action","text":"王后摔碎手边的花瓶，眼中的杀意更盛。","sceneId":"scene_006","index":2},{"id":"beat_0033","kind":"dialogue","text":"既然猎人骗了我，那就由我亲自动手。","speakerId":"char_queen","tone":"阴毒","sceneId":"scene_006","index":3},{"id":"beat_0034","kind":"narration","text":"王后扮作卖杂货的老妇，挎着篮子来到小屋门前。","sceneId":"scene_007","index":0},{"id":"beat_0035","kind":"dialogue","text":"好姑娘，买条新丝带吧，衬你的腰身再合适不过。","speakerId":"char_queen","tone":"甜腻","sceneId":"scene_007","index":1},{"id":"beat_0036","kind":"dialogue","text":"谢谢您，我正缺一条丝带。","speakerId":"char_snow","tone":"天真","sceneId":"scene_007","index":2},{"id":"beat_0037","kind":"action","text":"老妇假意替她系上丝带，猛地一勒。","sceneId":"scene_007","index":3},{"id":"beat_0038","kind":"action","text":"白雪公主顿时喘不过气，倒地不动，老妇狞笑着离去。","sceneId":"scene_007","index":4},{"id":"beat_0039","kind":"narration","text":"夜里小矮人归来，剪断丝带，白雪公主才缓缓苏醒。","sceneId":"scene_007","index":5},{"id":"beat_0040","kind":"narration","text":"王后再次乔装，这回带来一把镶珠的毒梳。","sceneId":"scene_008","index":0},{"id":"beat_0041","kind":"dialogue","text":"让我替你梳梳头发吧，姑娘。","speakerId":"char_queen","tone":"诱哄","sceneId":"scene_008","index":1},{"id":"beat_0042","kind":"action","text":"梳齿刚触到头皮，白雪公主便昏倒在地。","sceneId":"scene_008","index":2},{"id":"beat_0043","kind":"dialogue","text":"这下你那雪白的脸，该安心睡去了。","speakerId":"char_queen","tone":"冷笑","sceneId":"scene_008","index":3},{"id":"beat_0044","kind":"narration","text":"小矮人归来，拔下毒梳，白雪公主又一次醒转。","sceneId":"scene_008","index":4},{"id":"beat_0045","kind":"dialogue","text":"再有人叫门，万万不能开！","speakerId":"char_doc","tone":"严厉","sceneId":"scene_008","index":5},{"id":"beat_0046","kind":"narration","text":"王后第三次而来，化作农妇，手捧一只红艳的苹果。","sceneId":"scene_009","index":0},{"id":"beat_0047","kind":"dialogue","text":"多水灵的姑娘，尝尝这苹果吧，甜得很。","speakerId":"char_queen","tone":"亲热","sceneId":"scene_009","index":1},{"id":"beat_0048","kind":"dialogue","text":"小矮人嘱咐过，不能收陌生人的东西。","speakerId":"char_snow","tone":"犹豫","sceneId":"scene_009","index":2},{"id":"beat_0049","kind":"action","text":"老妇咬下白净的一半自证无毒，把另一半递了过去。","sceneId":"scene_009","index":3},{"id":"beat_0050","kind":"action","text":"白雪公主咬下红的一半，当即倒地气绝。","sceneId":"scene_009","index":4},{"id":"beat_0051","kind":"narration","text":"那半只苹果，恰恰浸满了剧毒。","sceneId":"scene_009","index":5},{"id":"beat_0052","kind":"action","text":"小矮人们围在白雪公主身旁，怎么呼唤都唤不醒。","sceneId":"scene_010","index":0},{"id":"beat_0053","kind":"dialogue","text":"她……没有呼吸了。","speakerId":"char_grumpy","tone":"哽咽","sceneId":"scene_010","index":1},{"id":"beat_0054","kind":"narration","text":"他们不忍将她埋进泥土，便做了一口透明的水晶棺，让她静静躺在里面。","sceneId":"scene_010","index":2},{"id":"beat_0055","kind":"action","text":"小矮人们轮流守在棺旁，日复一日。","sceneId":"scene_010","index":3},{"id":"beat_0056","kind":"narration","text":"白雪公主的面容依旧红润如生，仿佛只是睡着了。","sceneId":"scene_010","index":4},{"id":"beat_0061","kind":"action","text":"小矮人们抬着水晶棺，正要把她安葬到山中，途中一名小矮人绊倒，棺身猛地一震。","sceneId":"scene_012","index":0},{"id":"beat_0062","kind":"narration","text":"卡在白雪公主喉间的毒苹果被震了出来，她轻轻咳了一声。","sceneId":"scene_012","index":1},{"id":"beat_0063","kind":"action","text":"白雪公主缓缓睁开眼，坐起身来。","sceneId":"scene_012","index":2},{"id":"beat_0064","kind":"dialogue","text":"我……这是在哪儿？","speakerId":"char_snow","tone":"茫然","sceneId":"scene_012","index":3},{"id":"beat_0065","kind":"dialogue","text":"你醒了！可把我们吓坏了！","speakerId":"char_doc","tone":"惊喜","sceneId":"scene_012","index":4},{"id":"beat_0066","kind":"narration","text":"小矮人们又惊又喜，簇拥着白雪公主返回城堡。","sceneId":"scene_012","index":5},{"id":"beat_0067","kind":"narration","text":"白雪公主回到城堡，恶王后三番加害的罪行很快传遍全城。","sceneId":"scene_013","index":0},{"id":"beat_0068","kind":"action","text":"侍从认出那位艳丽的妇人，正是作恶多端的新王后，将她押到殿前。","sceneId":"scene_013","index":1},{"id":"beat_0069","kind":"dialogue","text":"你们……要做什么？","speakerId":"char_queen","tone":"惊惶不解","sceneId":"scene_013","index":2},{"id":"beat_0070","kind":"action","text":"侍从取出一双烧得通红的铁鞋，摆在她面前。","sceneId":"scene_013","index":3},{"id":"beat_0071","kind":"narration","text":"王后被迫穿上铁鞋，在众人注视下不停跳舞，直到倒下。","sceneId":"scene_013","index":4},{"id":"beat_0072","kind":"narration","text":"从此，白雪公主重归城堡，与七个小矮人一起过上了安稳幸福的生活。","sceneId":"scene_013","index":5},{"id":"beat_0073","kind":"narration","text":"白日里，小矮人们扛着镐头下到矿山，叮叮当当地敲打岩壁。","sceneId":"scene_014","index":0},{"id":"beat_0074","kind":"dialogue","text":"都仔细些，敲下宝石好换些盐和布。","speakerId":"char_doc","tone":"叮嘱","sceneId":"scene_014","index":1},{"id":"beat_0075","kind":"dialogue","text":"阿嚏——这矿灰，呛得人直打喷嚏！","speakerId":"char_sneezy","tone":"鼻音浓重","sceneId":"scene_014","index":2},{"id":"beat_0076","kind":"dialogue","text":"等回去就能喝上白雪做的热汤啦！","speakerId":"char_happy","tone":"欢喜","sceneId":"scene_014","index":3},{"id":"beat_0077","kind":"dialogue","text":"哼，我可不是想她做的饭……只是别把屋子给烧了。","speakerId":"char_grumpy","tone":"嘴硬","sceneId":"scene_014","index":4},{"id":"beat_0078","kind":"action","text":"糊涂蛋憨憨地跟着挥镐，一下砸偏了石头。","sceneId":"scene_014","index":5},{"id":"beat_0079","kind":"narration","text":"他们心里都惦记着独自看家的小姑娘，不知不觉加快了手上的活。","sceneId":"scene_014","index":6}],"beatsOf":{"scene_001":[{"id":"beat_0001","kind":"narration","text":"冬夜，王后坐在乌木窗前缝衣，针尖刺破手指，三滴血落在雪上。"},{"id":"beat_0002","kind":"narration","text":"她许愿：愿女儿肌肤白如雪、唇红如血、发黑如乌木。"},{"id":"beat_0003","kind":"narration","text":"不久王后生下女儿便撒手人寰，国王为她取名白雪公主。"},{"id":"beat_0004","kind":"action","text":"国王抱着襁褓中的女儿，在空荡的寝宫里久久不语。"},{"id":"beat_0005","kind":"narration","text":"几年后国王续弦，新王后美貌而骄傲，还带来一面会说真话的魔镜。"}],"scene_002":[{"id":"beat_0006","kind":"narration","text":"新王后最得意的便是那面魔镜，它从不说谎。"},{"id":"beat_0007","kind":"dialogue","speakerId":"char_queen","tone":"傲慢","text":"魔镜魔镜，谁是这世上最美的女人？"},{"id":"beat_0008","kind":"narration","text":"镜面泛起涟漪，一个低沉的声音如实作答。"},{"id":"beat_0009","kind":"narration","text":"镜中声音道：\"王后，您很美，可白雪公主比您更美千倍。\""},{"id":"beat_0010","kind":"action","text":"王后的笑意凝在脸上，指甲深深掐进掌心。"},{"id":"beat_0011","kind":"dialogue","speakerId":"char_queen","tone":"咬牙切齿","text":"白雪……她竟敢比我美？"}],"scene_003":[{"id":"beat_0012","kind":"dialogue","speakerId":"char_queen","tone":"阴狠","text":"把白雪公主带进森林，杀了她。带着她的肝和肺回来见我。"},{"id":"beat_0013","kind":"action","text":"猎人低头，握着剑柄的手微微发抖。"},{"id":"beat_0014","kind":"dialogue","speakerId":"char_hunter","tone":"迟疑","text":"陛下……她只是个孩子。"},{"id":"beat_0015","kind":"dialogue","speakerId":"char_queen","tone":"不容置疑","text":"你敢违抗我的命令？"},{"id":"beat_0016","kind":"narration","text":"猎人只得领命，转身去寻找白雪公主。"}],"scene_004":[{"id":"beat_0017","kind":"action","text":"猎人将白雪公主带到密林深处，缓缓拔出短刀。"},{"id":"beat_0018","kind":"dialogue","speakerId":"char_snow","tone":"恐惧哀求","text":"好心的猎人，求您别杀我，我愿逃进森林，再也不回城堡。"},{"id":"beat_0019","kind":"action","text":"猎人望着她泪湿的脸，终究心软了。"},{"id":"beat_0020","kind":"dialogue","speakerId":"char_hunter","tone":"压低而急促","text":"快走，越远越好，永远别回王宫。"},{"id":"beat_0021","kind":"narration","text":"猎人猎杀一头野猪，取出肝肺，作为白雪已死的凭证带回复命。"}],"scene_005":[{"id":"beat_0022","kind":"narration","text":"白雪公主在森林里跑了一整夜，天亮时发现一座小小的屋子。"},{"id":"beat_0023","kind":"action","text":"屋内七张小床整齐排列，她太累了，蜷在其中一张床上睡去。"},{"id":"beat_0024","kind":"narration","text":"傍晚，七个小矮人扛着镐头从矿山回来，点亮了油灯。"},{"id":"beat_0025","kind":"dialogue","speakerId":"char_doc","tone":"惊讶","text":"有人躺在我们床上！"},{"id":"beat_0026","kind":"dialogue","speakerId":"char_grumpy","tone":"不耐烦","text":"谁准外人进屋的？快把她赶出去！"},{"id":"beat_0027","kind":"action","text":"白雪公主醒来，向他们诉说自己的遭遇，小矮人们听得心都软了。"},{"id":"beat_0028","kind":"dialogue","speakerId":"char_happy","tone":"欢快","text":"留下吧！你替我们看家做饭，我们保护你。"},{"id":"beat_0029","kind":"narration","text":"小矮人们叮嘱：\"我们不在时，千万别给任何人开门。\""}],"scene_006":[{"id":"beat_0030","kind":"dialogue","speakerId":"char_queen","tone":"得意","text":"魔镜魔镜，谁是这世上最美的女人？"},{"id":"beat_0031","kind":"narration","text":"镜中声音答：\"王后，越过七座山，白雪公主与小矮人同住，她比您更美千倍。\""},{"id":"beat_0032","kind":"action","text":"王后摔碎手边的花瓶，眼中的杀意更盛。"},{"id":"beat_0033","kind":"dialogue","speakerId":"char_queen","tone":"阴毒","text":"既然猎人骗了我，那就由我亲自动手。"}],"scene_007":[{"id":"beat_0034","kind":"narration","text":"王后扮作卖杂货的老妇，挎着篮子来到小屋门前。"},{"id":"beat_0035","kind":"dialogue","speakerId":"char_queen","tone":"甜腻","text":"好姑娘，买条新丝带吧，衬你的腰身再合适不过。"},{"id":"beat_0036","kind":"dialogue","speakerId":"char_snow","tone":"天真","text":"谢谢您，我正缺一条丝带。"},{"id":"beat_0037","kind":"action","text":"老妇假意替她系上丝带，猛地一勒。"},{"id":"beat_0038","kind":"action","text":"白雪公主顿时喘不过气，倒地不动，老妇狞笑着离去。"},{"id":"beat_0039","kind":"narration","text":"夜里小矮人归来，剪断丝带，白雪公主才缓缓苏醒。"}],"scene_008":[{"id":"beat_0040","kind":"narration","text":"王后再次乔装，这回带来一把镶珠的毒梳。"},{"id":"beat_0041","kind":"dialogue","speakerId":"char_queen","tone":"诱哄","text":"让我替你梳梳头发吧，姑娘。"},{"id":"beat_0042","kind":"action","text":"梳齿刚触到头皮，白雪公主便昏倒在地。"},{"id":"beat_0043","kind":"dialogue","speakerId":"char_queen","tone":"冷笑","text":"这下你那雪白的脸，该安心睡去了。"},{"id":"beat_0044","kind":"narration","text":"小矮人归来，拔下毒梳，白雪公主又一次醒转。"},{"id":"beat_0045","kind":"dialogue","speakerId":"char_doc","tone":"严厉","text":"再有人叫门，万万不能开！"}],"scene_009":[{"id":"beat_0046","kind":"narration","text":"王后第三次而来，化作农妇，手捧一只红艳的苹果。"},{"id":"beat_0047","kind":"dialogue","speakerId":"char_queen","tone":"亲热","text":"多水灵的姑娘，尝尝这苹果吧，甜得很。"},{"id":"beat_0048","kind":"dialogue","speakerId":"char_snow","tone":"犹豫","text":"小矮人嘱咐过，不能收陌生人的东西。"},{"id":"beat_0049","kind":"action","text":"老妇咬下白净的一半自证无毒，把另一半递了过去。"},{"id":"beat_0050","kind":"action","text":"白雪公主咬下红的一半，当即倒地气绝。"},{"id":"beat_0051","kind":"narration","text":"那半只苹果，恰恰浸满了剧毒。"}],"scene_010":[{"id":"beat_0052","kind":"action","text":"小矮人们围在白雪公主身旁，怎么呼唤都唤不醒。"},{"id":"beat_0053","kind":"dialogue","speakerId":"char_grumpy","tone":"哽咽","text":"她……没有呼吸了。"},{"id":"beat_0054","kind":"narration","text":"他们不忍将她埋进泥土，便做了一口透明的水晶棺，让她静静躺在里面。"},{"id":"beat_0055","kind":"action","text":"小矮人们轮流守在棺旁，日复一日。"},{"id":"beat_0056","kind":"narration","text":"白雪公主的面容依旧红润如生，仿佛只是睡着了。"}],"scene_012":[{"id":"beat_0061","kind":"action","text":"小矮人们抬着水晶棺，正要把她安葬到山中，途中一名小矮人绊倒，棺身猛地一震。"},{"id":"beat_0062","kind":"narration","text":"卡在白雪公主喉间的毒苹果被震了出来，她轻轻咳了一声。"},{"id":"beat_0063","kind":"action","text":"白雪公主缓缓睁开眼，坐起身来。"},{"id":"beat_0064","kind":"dialogue","speakerId":"char_snow","tone":"茫然","text":"我……这是在哪儿？"},{"id":"beat_0065","kind":"dialogue","speakerId":"char_doc","tone":"惊喜","text":"你醒了！可把我们吓坏了！"},{"id":"beat_0066","kind":"narration","text":"小矮人们又惊又喜，簇拥着白雪公主返回城堡。"}],"scene_013":[{"id":"beat_0067","kind":"narration","text":"白雪公主回到城堡，恶王后三番加害的罪行很快传遍全城。"},{"id":"beat_0068","kind":"action","text":"侍从认出那位艳丽的妇人，正是作恶多端的新王后，将她押到殿前。"},{"id":"beat_0069","kind":"dialogue","speakerId":"char_queen","tone":"惊惶不解","text":"你们……要做什么？"},{"id":"beat_0070","kind":"action","text":"侍从取出一双烧得通红的铁鞋，摆在她面前。"},{"id":"beat_0071","kind":"narration","text":"王后被迫穿上铁鞋，在众人注视下不停跳舞，直到倒下。"},{"id":"beat_0072","kind":"narration","text":"从此，白雪公主重归城堡，与七个小矮人一起过上了安稳幸福的生活。"}],"scene_014":[{"id":"beat_0073","kind":"narration","text":"白日里，小矮人们扛着镐头下到矿山，叮叮当当地敲打岩壁。"},{"id":"beat_0074","kind":"dialogue","speakerId":"char_doc","tone":"叮嘱","text":"都仔细些，敲下宝石好换些盐和布。"},{"id":"beat_0075","kind":"dialogue","speakerId":"char_sneezy","tone":"鼻音浓重","text":"阿嚏——这矿灰，呛得人直打喷嚏！"},{"id":"beat_0076","kind":"dialogue","speakerId":"char_happy","tone":"欢喜","text":"等回去就能喝上白雪做的热汤啦！"},{"id":"beat_0077","kind":"dialogue","speakerId":"char_grumpy","tone":"嘴硬","text":"哼，我可不是想她做的饭……只是别把屋子给烧了。"},{"id":"beat_0078","kind":"action","text":"糊涂蛋憨憨地跟着挥镐，一下砸偏了石头。"},{"id":"beat_0079","kind":"narration","text":"他们心里都惦记着独自看家的小姑娘，不知不觉加快了手上的活。"}]},"beatOwner":{"beat_0001":"scene_001","beat_0002":"scene_001","beat_0003":"scene_001","beat_0004":"scene_001","beat_0005":"scene_001","beat_0006":"scene_002","beat_0007":"scene_002","beat_0008":"scene_002","beat_0009":"scene_002","beat_0010":"scene_002","beat_0011":"scene_002","beat_0012":"scene_003","beat_0013":"scene_003","beat_0014":"scene_003","beat_0015":"scene_003","beat_0016":"scene_003","beat_0017":"scene_004","beat_0018":"scene_004","beat_0019":"scene_004","beat_0020":"scene_004","beat_0021":"scene_004","beat_0022":"scene_005","beat_0023":"scene_005","beat_0024":"scene_005","beat_0025":"scene_005","beat_0026":"scene_005","beat_0027":"scene_005","beat_0028":"scene_005","beat_0029":"scene_005","beat_0030":"scene_006","beat_0031":"scene_006","beat_0032":"scene_006","beat_0033":"scene_006","beat_0034":"scene_007","beat_0035":"scene_007","beat_0036":"scene_007","beat_0037":"scene_007","beat_0038":"scene_007","beat_0039":"scene_007","beat_0040":"scene_008","beat_0041":"scene_008","beat_0042":"scene_008","beat_0043":"scene_008","beat_0044":"scene_008","beat_0045":"scene_008","beat_0046":"scene_009","beat_0047":"scene_009","beat_0048":"scene_009","beat_0049":"scene_009","beat_0050":"scene_009","beat_0051":"scene_009","beat_0052":"scene_010","beat_0053":"scene_010","beat_0054":"scene_010","beat_0055":"scene_010","beat_0056":"scene_010","beat_0061":"scene_012","beat_0062":"scene_012","beat_0063":"scene_012","beat_0064":"scene_012","beat_0065":"scene_012","beat_0066":"scene_012","beat_0067":"scene_013","beat_0068":"scene_013","beat_0069":"scene_013","beat_0070":"scene_013","beat_0071":"scene_013","beat_0072":"scene_013","beat_0073":"scene_014","beat_0074":"scene_014","beat_0075":"scene_014","beat_0076":"scene_014","beat_0077":"scene_014","beat_0078":"scene_014","beat_0079":"scene_014"},"edges":[{"id":"lr_1","kind":"before","description":"白雪公主长成后，王后才在魔镜前得知她更美。","source":{"type":"scene","id":"scene_001"},"target":{"type":"scene","id":"scene_002"},"sourceScene":"scene_001","targetScene":"scene_002"},{"id":"lr_2","kind":"causes","description":"嫉妒使王后下令除掉白雪公主。","source":{"type":"scene","id":"scene_002"},"target":{"type":"scene","id":"scene_003"},"sourceScene":"scene_002","targetScene":"scene_003"},{"id":"lr_3","kind":"setsUp","description":"猎人的怜悯为后续隐藏真相埋下伏笔。","source":{"type":"scene","id":"scene_003"},"target":{"type":"scene","id":"scene_004"},"sourceScene":"scene_003","targetScene":"scene_004"},{"id":"lr_4","kind":"before","description":"白雪公主逃入森林后遇见小矮人。","source":{"type":"scene","id":"scene_004"},"target":{"type":"scene","id":"scene_005"},"sourceScene":"scene_004","targetScene":"scene_005"},{"id":"lr_5","kind":"causes","description":"魔镜揭穿真相，王后亲自乔装下手。","source":{"type":"scene","id":"scene_006"},"target":{"type":"scene","id":"scene_007"},"sourceScene":"scene_006","targetScene":"scene_007"},{"id":"lr_6","kind":"before","description":"丝带之计失败后，王后改用毒梳。","source":{"type":"scene","id":"scene_007"},"target":{"type":"scene","id":"scene_008"},"sourceScene":"scene_007","targetScene":"scene_008"},{"id":"lr_7","kind":"before","description":"毒梳失败后，王后祭出毒苹果。","source":{"type":"scene","id":"scene_008"},"target":{"type":"scene","id":"scene_009"},"sourceScene":"scene_008","targetScene":"scene_009"},{"id":"lr_8","kind":"causes","description":"白雪公主中毒长眠，小矮人置办水晶棺。","source":{"type":"scene","id":"scene_009"},"target":{"type":"scene","id":"scene_010"},"sourceScene":"scene_009","targetScene":"scene_010"},{"id":"lr_11","kind":"before","description":"苏醒之后，二人回城堡举行婚礼并审判王后。","source":{"type":"scene","id":"scene_012"},"target":{"type":"scene","id":"scene_013"},"sourceScene":"scene_012","targetScene":"scene_013"},{"id":"lr_12","kind":"before","description":"收留之后，小矮人白日下矿劳作。","source":{"type":"scene","id":"scene_005"},"target":{"type":"scene","id":"scene_014"},"sourceScene":"scene_005","targetScene":"scene_014"},{"id":"lr_13","kind":"before","description":"矿山的日常之后，城堡里魔镜再吐真言。","source":{"type":"scene","id":"scene_014"},"target":{"type":"scene","id":"scene_006"},"sourceScene":"scene_014","targetScene":"scene_006"},{"id":"lr_14","kind":"before","description":"小矮人抬棺出殡，途中意外震出毒苹果。","source":{"type":"scene","id":"scene_010"},"target":{"type":"scene","id":"scene_012"},"sourceScene":"scene_010","targetScene":"scene_012"}],"characterRelations":[{"id":"cr_1","kind":"继母，嫉妒敌视","direction":"directed","description":"因白雪公主的美貌而持续加害。","source":"char_queen","target":"char_snow","sourceName":"新王后","targetName":"白雪公主","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"]},{"id":"cr_2","kind":"奉命行刺却动情相救","direction":"directed","description":"良心促使他放走白雪并隐瞒真相。","source":"char_hunter","target":"char_snow","sourceName":"猎人","targetName":"白雪公主","scopeType":"scenes","sceneIds":["scene_003","scene_004"]},{"id":"cr_3","kind":"收留庇护","direction":"directed","description":"他是小矮人中最有主见的照料者。","source":"char_doc","target":"char_snow","sourceName":"万事通","targetName":"白雪公主","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"]},{"id":"cr_4","kind":"嘴硬心软","direction":"directed","description":"表面不满，实则最为白雪之死悲恸。","source":"char_grumpy","target":"char_snow","sourceName":"爱生气","targetName":"白雪公主","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"]}],"relationsByPair":[{"key":"char_queen~char_snow","a":"char_queen","b":"char_snow","facts":[{"id":"cr_1","sourceCharacterId":"char_queen","targetCharacterId":"char_snow","kind":"继母，嫉妒敌视","direction":"directed","description":"因白雪公主的美貌而持续加害。","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"]}],"perScene":{"scene_001":["cr_1"],"scene_002":["cr_1"],"scene_003":["cr_1"],"scene_004":["cr_1"],"scene_005":["cr_1"],"scene_014":["cr_1"],"scene_006":["cr_1"],"scene_007":["cr_1"],"scene_008":["cr_1"],"scene_009":["cr_1"],"scene_010":["cr_1"],"scene_012":["cr_1"],"scene_013":["cr_1"]},"changePoints":[],"global":true},{"key":"char_hunter~char_snow","a":"char_hunter","b":"char_snow","facts":[{"id":"cr_2","sourceCharacterId":"char_hunter","targetCharacterId":"char_snow","kind":"奉命行刺却动情相救","direction":"directed","description":"良心促使他放走白雪并隐瞒真相。","scopeType":"scenes","sceneIds":["scene_003","scene_004"]}],"perScene":{"scene_001":[],"scene_002":[],"scene_003":["cr_2"],"scene_004":["cr_2"],"scene_005":[],"scene_014":[],"scene_006":[],"scene_007":[],"scene_008":[],"scene_009":[],"scene_010":[],"scene_012":[],"scene_013":[]},"changePoints":["scene_003"],"global":false},{"key":"char_doc~char_snow","a":"char_doc","b":"char_snow","facts":[{"id":"cr_3","sourceCharacterId":"char_doc","targetCharacterId":"char_snow","kind":"收留庇护","direction":"directed","description":"他是小矮人中最有主见的照料者。","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"]}],"perScene":{"scene_001":["cr_3"],"scene_002":["cr_3"],"scene_003":["cr_3"],"scene_004":["cr_3"],"scene_005":["cr_3"],"scene_014":["cr_3"],"scene_006":["cr_3"],"scene_007":["cr_3"],"scene_008":["cr_3"],"scene_009":["cr_3"],"scene_010":["cr_3"],"scene_012":["cr_3"],"scene_013":["cr_3"]},"changePoints":[],"global":true},{"key":"char_grumpy~char_snow","a":"char_grumpy","b":"char_snow","facts":[{"id":"cr_4","sourceCharacterId":"char_grumpy","targetCharacterId":"char_snow","kind":"嘴硬心软","direction":"directed","description":"表面不满，实则最为白雪之死悲恸。","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"]}],"perScene":{"scene_001":["cr_4"],"scene_002":["cr_4"],"scene_003":["cr_4"],"scene_004":["cr_4"],"scene_005":["cr_4"],"scene_014":["cr_4"],"scene_006":["cr_4"],"scene_007":["cr_4"],"scene_008":["cr_4"],"scene_009":["cr_4"],"scene_010":["cr_4"],"scene_012":["cr_4"],"scene_013":["cr_4"]},"changePoints":[],"global":true}],"relationGraph":{"groups":[{"id":"act_1","title":"第一幕·嫉妒之始","index":0,"sceneIds":["scene_001","scene_002","scene_003","scene_004"],"entityIds":["char_snow","char_king","loc_castle","char_queen","prop_mirror","char_hunter","loc_forest","prop_boar"]},{"id":"act_2","title":"第二幕·森林庇护与三次毒计","index":1,"sceneIds":["scene_005","scene_014","scene_006","scene_007","scene_008","scene_009","scene_010"],"entityIds":["char_snow","char_doc","char_grumpy","char_happy","char_sleepy","char_bashful","char_sneezy","char_dopey","loc_cottage","loc_mine","char_queen","loc_castle","prop_mirror","prop_lace","prop_comb","prop_apple","prop_coffin"]},{"id":"act_3","title":"第三幕·苏醒与审判","index":2,"sceneIds":["scene_012","scene_013"],"entityIds":["char_snow","char_doc","char_grumpy","char_happy","char_sleepy","char_bashful","char_sneezy","char_dopey","loc_forest","prop_coffin","char_queen","loc_castle","prop_iron_shoes"]}],"entities":[{"id":"char_snow","name":"白雪公主","kind":"character","tags":["主角","公主"],"actIds":["act_1","act_2","act_3"],"firstOrder":0},{"id":"char_king","name":"国王","kind":"character","tags":["配角"],"actIds":["act_1"],"firstOrder":0},{"id":"char_queen","name":"新王后","kind":"character","tags":["反派","继母"],"actIds":["act_1","act_2","act_3"],"firstOrder":1},{"id":"char_hunter","name":"猎人","kind":"character","tags":["配角"],"actIds":["act_1"],"firstOrder":2},{"id":"char_doc","name":"万事通","kind":"character","tags":["小矮人"],"actIds":["act_2","act_3"],"firstOrder":4},{"id":"char_grumpy","name":"爱生气","kind":"character","tags":["小矮人"],"actIds":["act_2","act_3"],"firstOrder":4},{"id":"char_happy","name":"开心果","kind":"character","tags":["小矮人"],"actIds":["act_2","act_3"],"firstOrder":4},{"id":"char_sleepy","name":"瞌睡虫","kind":"character","tags":["小矮人"],"actIds":["act_2","act_3"],"firstOrder":4},{"id":"char_bashful","name":"害羞鬼","kind":"character","tags":["小矮人"],"actIds":["act_2","act_3"],"firstOrder":4},{"id":"char_sneezy","name":"喷嚏精","kind":"character","tags":["小矮人"],"actIds":["act_2","act_3"],"firstOrder":4},{"id":"char_dopey","name":"糊涂蛋","kind":"character","tags":["小矮人"],"actIds":["act_2","act_3"],"firstOrder":4},{"id":"loc_castle","name":"城堡","kind":"location","tags":[],"actIds":["act_1","act_2","act_3"],"firstOrder":0},{"id":"loc_forest","name":"森林","kind":"location","tags":[],"actIds":["act_1","act_3"],"firstOrder":3},{"id":"loc_cottage","name":"小矮人小屋","kind":"location","tags":[],"actIds":["act_2"],"firstOrder":4},{"id":"loc_mine","name":"矿山","kind":"location","tags":[],"actIds":["act_2"],"firstOrder":5},{"id":"prop_mirror","name":"魔镜","kind":"prop","tags":[],"actIds":["act_1","act_2"],"firstOrder":1},{"id":"prop_boar","name":"野猪肝肺","kind":"prop","tags":[],"actIds":["act_1"],"firstOrder":3},{"id":"prop_lace","name":"丝带","kind":"prop","tags":[],"actIds":["act_2"],"firstOrder":7},{"id":"prop_comb","name":"毒梳","kind":"prop","tags":[],"actIds":["act_2"],"firstOrder":8},{"id":"prop_apple","name":"毒苹果","kind":"prop","tags":[],"actIds":["act_2"],"firstOrder":9},{"id":"prop_coffin","name":"水晶棺","kind":"prop","tags":[],"actIds":["act_2","act_3"],"firstOrder":10},{"id":"prop_iron_shoes","name":"烧红的铁鞋","kind":"prop","tags":[],"actIds":["act_3"],"firstOrder":12}],"pairEdges":[{"id":"cr_1","a":"char_queen","b":"char_snow","aName":"新王后","bName":"白雪公主","kinds":["继母，嫉妒敌视"],"directed":true,"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"],"scopeType":"global","description":"因白雪公主的美貌而持续加害。","lane":0},{"id":"cr_2","a":"char_hunter","b":"char_snow","aName":"猎人","bName":"白雪公主","kinds":["奉命行刺却动情相救"],"directed":true,"sceneIds":["scene_003","scene_004"],"scopeType":"scenes","description":"良心促使他放走白雪并隐瞒真相。","lane":0},{"id":"cr_3","a":"char_doc","b":"char_snow","aName":"万事通","bName":"白雪公主","kinds":["收留庇护"],"directed":true,"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"],"scopeType":"global","description":"他是小矮人中最有主见的照料者。","lane":0},{"id":"cr_4","a":"char_grumpy","b":"char_snow","aName":"爱生气","bName":"白雪公主","kinds":["嘴硬心软"],"directed":true,"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013","scene_014"],"scopeType":"global","description":"表面不满，实则最为白雪之死悲恸。","lane":0}]},"entityScenes":{"char_snow":["scene_001","scene_004","scene_005","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013"],"char_king":["scene_001"],"loc_castle":["scene_001","scene_002","scene_003","scene_006","scene_013"],"char_queen":["scene_002","scene_003","scene_006","scene_007","scene_008","scene_009","scene_013"],"prop_mirror":["scene_002","scene_006"],"char_hunter":["scene_003","scene_004"],"loc_forest":["scene_004","scene_012"],"prop_boar":["scene_004"],"char_doc":["scene_005","scene_014","scene_008","scene_010","scene_012"],"char_grumpy":["scene_005","scene_014","scene_010","scene_012"],"char_happy":["scene_005","scene_014","scene_010","scene_012"],"char_sleepy":["scene_005","scene_010","scene_012"],"char_bashful":["scene_005","scene_010","scene_012"],"char_sneezy":["scene_005","scene_014","scene_010","scene_012"],"char_dopey":["scene_005","scene_014","scene_010","scene_012"],"loc_cottage":["scene_005","scene_007","scene_008","scene_009","scene_010"],"loc_mine":["scene_014"],"prop_lace":["scene_007"],"prop_comb":["scene_008"],"prop_apple":["scene_009"],"prop_coffin":["scene_010","scene_012"],"prop_iron_shoes":["scene_013"]},"entitiesByKind":{"character":[{"id":"char_snow","name":"白雪公主","kind":"character","tags":["主角","公主"],"scenes":["scene_001","scene_004","scene_005","scene_007","scene_008","scene_009","scene_010","scene_012","scene_013"]},{"id":"char_king","name":"国王","kind":"character","tags":["配角"],"scenes":["scene_001"]},{"id":"char_queen","name":"新王后","kind":"character","tags":["反派","继母"],"scenes":["scene_002","scene_003","scene_006","scene_007","scene_008","scene_009","scene_013"]},{"id":"char_hunter","name":"猎人","kind":"character","tags":["配角"],"scenes":["scene_003","scene_004"]},{"id":"char_doc","name":"万事通","kind":"character","tags":["小矮人"],"scenes":["scene_005","scene_014","scene_008","scene_010","scene_012"]},{"id":"char_grumpy","name":"爱生气","kind":"character","tags":["小矮人"],"scenes":["scene_005","scene_014","scene_010","scene_012"]},{"id":"char_happy","name":"开心果","kind":"character","tags":["小矮人"],"scenes":["scene_005","scene_014","scene_010","scene_012"]},{"id":"char_sleepy","name":"瞌睡虫","kind":"character","tags":["小矮人"],"scenes":["scene_005","scene_010","scene_012"]},{"id":"char_bashful","name":"害羞鬼","kind":"character","tags":["小矮人"],"scenes":["scene_005","scene_010","scene_012"]},{"id":"char_sneezy","name":"喷嚏精","kind":"character","tags":["小矮人"],"scenes":["scene_005","scene_014","scene_010","scene_012"]},{"id":"char_dopey","name":"糊涂蛋","kind":"character","tags":["小矮人"],"scenes":["scene_005","scene_014","scene_010","scene_012"]}],"location":[{"id":"loc_castle","name":"城堡","kind":"location","tags":[],"scenes":["scene_001","scene_002","scene_003","scene_006","scene_013"]},{"id":"loc_forest","name":"森林","kind":"location","tags":[],"scenes":["scene_004","scene_012"]},{"id":"loc_cottage","name":"小矮人小屋","kind":"location","tags":[],"scenes":["scene_005","scene_007","scene_008","scene_009","scene_010"]},{"id":"loc_mine","name":"矿山","kind":"location","tags":[],"scenes":["scene_014"]}],"prop":[{"id":"prop_mirror","name":"魔镜","kind":"prop","tags":[],"scenes":["scene_002","scene_006"]},{"id":"prop_boar","name":"野猪肝肺","kind":"prop","tags":[],"scenes":["scene_004"]},{"id":"prop_lace","name":"丝带","kind":"prop","tags":[],"scenes":["scene_007"]},{"id":"prop_comb","name":"毒梳","kind":"prop","tags":[],"scenes":["scene_008"]},{"id":"prop_apple","name":"毒苹果","kind":"prop","tags":[],"scenes":["scene_009"]},{"id":"prop_coffin","name":"水晶棺","kind":"prop","tags":[],"scenes":["scene_010","scene_012"]},{"id":"prop_iron_shoes","name":"烧红的铁鞋","kind":"prop","tags":[],"scenes":["scene_013"]}]},"stats":{"scenes":13,"beats":75,"entities":22,"logicRelations":12,"characterRelations":4,"acts":3,"threads":1},"scenes":{"scene_001":{"id":"scene_001","title":"雪夜的许愿","summary":"王后在雪夜许愿生下白雪公主后离世，国王续弦新王后。","locationId":"loc_castle","areaId":"area_throne","time":{"timeOfDay":"night"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"setup","mood":"静谧而忧伤","participants":{"char_snow":{"emotion":"懵懂","goal":"无","knowledge":"尚在襁褓","appearance":"襁褓中的婴孩"},"char_king":{"emotion":"悲痛","goal":"抚养幼女、维持王宫","knowledge":"知晓妻子的遗愿","appearance":null}},"locationState":{"lighting":"烛火昏黄","weather":"窗外大雪","condition":"寝宫空旷清冷"},"props":{},"beats":[{"id":"beat_0001","kind":"narration","text":"冬夜，王后坐在乌木窗前缝衣，针尖刺破手指，三滴血落在雪上。"},{"id":"beat_0002","kind":"narration","text":"她许愿：愿女儿肌肤白如雪、唇红如血、发黑如乌木。"},{"id":"beat_0003","kind":"narration","text":"不久王后生下女儿便撒手人寰，国王为她取名白雪公主。"},{"id":"beat_0004","kind":"action","text":"国王抱着襁褓中的女儿，在空荡的寝宫里久久不语。"},{"id":"beat_0005","kind":"narration","text":"几年后国王续弦，新王后美貌而骄傲，还带来一面会说真话的魔镜。"}]},"scene_002":{"id":"scene_002","title":"魔镜的回答","summary":"新王后问魔镜谁最美，魔镜答白雪公主更美，王后由此生恨。","locationId":"loc_castle","areaId":"area_mirror","time":{"timeOfDay":"morning"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"阴冷自负","participants":{"char_queen":{"emotion":"得意转嫉恨","goal":"确认自己是世上最美之人","knowledge":"不知白雪已长成美人","appearance":"华服浓妆"}},"locationState":{"lighting":"窗帘半掩，光线幽暗","weather":null,"condition":"寂静无声"},"props":{"prop_mirror":{"appearance":"乌木镶金的椭圆镜","condition":"完好光亮","holderId":"char_queen"}},"beats":[{"id":"beat_0006","kind":"narration","text":"新王后最得意的便是那面魔镜，它从不说谎。"},{"id":"beat_0007","kind":"dialogue","speakerId":"char_queen","tone":"傲慢","text":"魔镜魔镜，谁是这世上最美的女人？"},{"id":"beat_0008","kind":"narration","text":"镜面泛起涟漪，一个低沉的声音如实作答。"},{"id":"beat_0009","kind":"narration","text":"镜中声音道：\"王后，您很美，可白雪公主比您更美千倍。\""},{"id":"beat_0010","kind":"action","text":"王后的笑意凝在脸上，指甲深深掐进掌心。"},{"id":"beat_0011","kind":"dialogue","speakerId":"char_queen","tone":"咬牙切齿","text":"白雪……她竟敢比我美？"}]},"scene_003":{"id":"scene_003","title":"猎人的命令","summary":"王后命猎人把白雪公主带进森林杀死，并带回肝肺为证。","locationId":"loc_castle","areaId":"area_throne","time":{"timeOfDay":"afternoon"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"setup","mood":"压抑不安","participants":{"char_queen":{"emotion":"冷酷","goal":"除掉白雪公主","knowledge":"认定白雪是威胁","appearance":"端坐高位"},"char_hunter":{"emotion":"挣扎","goal":"既守王命又保良心","knowledge":"受命行凶","appearance":"披斗篷、佩短刀"}},"locationState":{"lighting":"午后斜光","weather":null,"condition":"殿内肃杀"},"props":{},"beats":[{"id":"beat_0012","kind":"dialogue","speakerId":"char_queen","tone":"阴狠","text":"把白雪公主带进森林，杀了她。带着她的肝和肺回来见我。"},{"id":"beat_0013","kind":"action","text":"猎人低头，握着剑柄的手微微发抖。"},{"id":"beat_0014","kind":"dialogue","speakerId":"char_hunter","tone":"迟疑","text":"陛下……她只是个孩子。"},{"id":"beat_0015","kind":"dialogue","speakerId":"char_queen","tone":"不容置疑","text":"你敢违抗我的命令？"},{"id":"beat_0016","kind":"narration","text":"猎人只得领命，转身去寻找白雪公主。"}]},"scene_004":{"id":"scene_004","title":"林中的怜悯","summary":"猎人不忍下手，放走白雪公主，以野猪肝肺为证复命。","locationId":"loc_forest","areaId":"area_deep","time":{"timeOfDay":"evening"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"悲悯紧张","participants":{"char_hunter":{"emotion":"怜悯","goal":"放她一条生路","knowledge":"深知抗命后果","appearance":"手执短刀"},"char_snow":{"emotion":"惊惧哀求","goal":"活命","knowledge":"不知自己为何遭害","appearance":"衣衫单薄、泪湿面颊"}},"locationState":{"lighting":"暮色四合","weather":"林中雾气渐起","condition":"古木森然"},"props":{"prop_boar":{"appearance":"野猪尸身","condition":"刚被猎杀","holderId":"char_hunter"}},"beats":[{"id":"beat_0017","kind":"action","text":"猎人将白雪公主带到密林深处，缓缓拔出短刀。"},{"id":"beat_0018","kind":"dialogue","speakerId":"char_snow","tone":"恐惧哀求","text":"好心的猎人，求您别杀我，我愿逃进森林，再也不回城堡。"},{"id":"beat_0019","kind":"action","text":"猎人望着她泪湿的脸，终究心软了。"},{"id":"beat_0020","kind":"dialogue","speakerId":"char_hunter","tone":"压低而急促","text":"快走，越远越好，永远别回王宫。"},{"id":"beat_0021","kind":"narration","text":"猎人猎杀一头野猪，取出肝肺，作为白雪已死的凭证带回复命。"}]},"scene_005":{"id":"scene_005","title":"七个小矮人的小屋","summary":"白雪公主逃入森林，遇见七个小矮人并被收留。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"night"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"惊险后转温馨","participants":{"char_snow":{"emotion":"疲惫又不安","goal":"寻找容身之处","knowledge":"隐匿身世","appearance":"风尘仆仆"},"char_doc":{"emotion":"惊讶","goal":"弄清来客身份","knowledge":"发现了不速之客","appearance":"戴小眼镜"},"char_grumpy":{"emotion":"戒备不满","goal":"赶走外人","knowledge":"不满有人闯入","appearance":"皱着眉"},"char_happy":{"emotion":"好奇欢喜","goal":"留下这位姑娘","knowledge":"想帮她","appearance":"笑呵呵"},"char_sleepy":{"emotion":"困倦","goal":"想继续睡","knowledge":"半梦半醒","appearance":"呵欠连天"},"char_bashful":{"emotion":"羞怯","goal":"悄悄打量","knowledge":"不敢靠近","appearance":"躲在同伴身后"},"char_sneezy":{"emotion":"窘迫","goal":"忍住喷嚏","knowledge":"怕吵醒她","appearance":"捂着脸"},"char_dopey":{"emotion":"憨憨好奇","goal":"跟着哥哥们","knowledge":"不太明白","appearance":"咧嘴傻笑"}},"locationState":{"lighting":"油灯昏暖","weather":null,"condition":"屋内整洁温馨"},"props":{},"beats":[{"id":"beat_0022","kind":"narration","text":"白雪公主在森林里跑了一整夜，天亮时发现一座小小的屋子。"},{"id":"beat_0023","kind":"action","text":"屋内七张小床整齐排列，她太累了，蜷在其中一张床上睡去。"},{"id":"beat_0024","kind":"narration","text":"傍晚，七个小矮人扛着镐头从矿山回来，点亮了油灯。"},{"id":"beat_0025","kind":"dialogue","speakerId":"char_doc","tone":"惊讶","text":"有人躺在我们床上！"},{"id":"beat_0026","kind":"dialogue","speakerId":"char_grumpy","tone":"不耐烦","text":"谁准外人进屋的？快把她赶出去！"},{"id":"beat_0027","kind":"action","text":"白雪公主醒来，向他们诉说自己的遭遇，小矮人们听得心都软了。"},{"id":"beat_0028","kind":"dialogue","speakerId":"char_happy","tone":"欢快","text":"留下吧！你替我们看家做饭，我们保护你。"},{"id":"beat_0029","kind":"narration","text":"小矮人们叮嘱：\"我们不在时，千万别给任何人开门。\""}]},"scene_006":{"id":"scene_006","title":"魔镜再说真话","summary":"魔镜告诉王后白雪公主还活着，王后决定亲自下手。","locationId":"loc_castle","areaId":"area_mirror","time":{"timeOfDay":"morning"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"暴怒阴沉","participants":{"char_queen":{"emotion":"狂怒","goal":"亲自动手除掉白雪","knowledge":"得知白雪藏身之处","appearance":"面色狰狞"}},"locationState":{"lighting":"晨光透不进幽厅","weather":null,"condition":"空气凝滞"},"props":{"prop_mirror":{"appearance":"乌木镶金的椭圆镜","condition":"完好","holderId":"char_queen"}},"beats":[{"id":"beat_0030","kind":"dialogue","speakerId":"char_queen","tone":"得意","text":"魔镜魔镜，谁是这世上最美的女人？"},{"id":"beat_0031","kind":"narration","text":"镜中声音答：\"王后，越过七座山，白雪公主与小矮人同住，她比您更美千倍。\""},{"id":"beat_0032","kind":"action","text":"王后摔碎手边的花瓶，眼中的杀意更盛。"},{"id":"beat_0033","kind":"dialogue","speakerId":"char_queen","tone":"阴毒","text":"既然猎人骗了我，那就由我亲自动手。"}]},"scene_007":{"id":"scene_007","title":"勒紧的丝带","summary":"王后乔装老妇，用丝带勒昏白雪公主，被小矮人救回。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"midday"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"setup","mood":"伪装下的凶险","participants":{"char_snow":{"emotion":"天真信任","goal":"打理家务、善待来客","knowledge":"不知来者是王后","appearance":"系着围裙"},"char_queen":{"emotion":"假意和善、暗藏杀机","goal":"勒死白雪公主","knowledge":"清楚白雪独居小屋","appearance":"扮作卖杂货的老妇"}},"locationState":{"lighting":"正午明亮","weather":null,"condition":"屋门虚掩"},"props":{"prop_lace":{"appearance":"篮子里的彩色丝带","condition":"崭新","holderId":"char_queen"}},"beats":[{"id":"beat_0034","kind":"narration","text":"王后扮作卖杂货的老妇，挎着篮子来到小屋门前。"},{"id":"beat_0035","kind":"dialogue","speakerId":"char_queen","tone":"甜腻","text":"好姑娘，买条新丝带吧，衬你的腰身再合适不过。"},{"id":"beat_0036","kind":"dialogue","speakerId":"char_snow","tone":"天真","text":"谢谢您，我正缺一条丝带。"},{"id":"beat_0037","kind":"action","text":"老妇假意替她系上丝带，猛地一勒。"},{"id":"beat_0038","kind":"action","text":"白雪公主顿时喘不过气，倒地不动，老妇狞笑着离去。"},{"id":"beat_0039","kind":"narration","text":"夜里小矮人归来，剪断丝带，白雪公主才缓缓苏醒。"}]},"scene_008":{"id":"scene_008","title":"有毒的梳子","summary":"王后送来毒梳，白雪公主再度昏倒，小矮人及时拔梳相救。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"afternoon"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"setup","mood":"诡异阴森","participants":{"char_snow":{"emotion":"放松警惕","goal":"梳整仪容","knowledge":"忘了叮嘱","appearance":"长发披散"},"char_queen":{"emotion":"阴笑","goal":"毒死白雪公主","knowledge":"上次未得手","appearance":"换一身农妇装束"},"char_doc":{"emotion":"焦急责备","goal":"救醒白雪并严防再犯","knowledge":"识破这是诡计","appearance":"拎着镐头"}},"locationState":{"lighting":"午后斜光","weather":null,"condition":"屋内安静"},"props":{"prop_comb":{"appearance":"镶珠的梳子","condition":"齿尖泛着暗色","holderId":"char_queen"}},"beats":[{"id":"beat_0040","kind":"narration","text":"王后再次乔装，这回带来一把镶珠的毒梳。"},{"id":"beat_0041","kind":"dialogue","speakerId":"char_queen","tone":"诱哄","text":"让我替你梳梳头发吧，姑娘。"},{"id":"beat_0042","kind":"action","text":"梳齿刚触到头皮，白雪公主便昏倒在地。"},{"id":"beat_0043","kind":"dialogue","speakerId":"char_queen","tone":"冷笑","text":"这下你那雪白的脸，该安心睡去了。"},{"id":"beat_0044","kind":"narration","text":"小矮人归来，拔下毒梳，白雪公主又一次醒转。"},{"id":"beat_0045","kind":"dialogue","speakerId":"char_doc","tone":"严厉","text":"再有人叫门，万万不能开！"}]},"scene_009":{"id":"scene_009","title":"半个毒苹果","summary":"王后以毒苹果诱骗白雪公主咬下，白雪公主倒地气绝。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"evening"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"climax","mood":"甜美中的致命陷阱","participants":{"char_snow":{"emotion":"犹豫后动摇","goal":"对来客保持礼貌","knowledge":"心存戒备","appearance":"长发披肩"},"char_queen":{"emotion":"胸有成竹","goal":"彻底毒杀白雪公主","knowledge":"毒在红的一半","appearance":"扮作慈祥农妇"}},"locationState":{"lighting":"暮色昏黄","weather":null,"condition":"屋门微开"},"props":{"prop_apple":{"appearance":"红艳诱人的苹果","condition":"一半白净、一半血红","holderId":"char_queen"}},"beats":[{"id":"beat_0046","kind":"narration","text":"王后第三次而来，化作农妇，手捧一只红艳的苹果。"},{"id":"beat_0047","kind":"dialogue","speakerId":"char_queen","tone":"亲热","text":"多水灵的姑娘，尝尝这苹果吧，甜得很。"},{"id":"beat_0048","kind":"dialogue","speakerId":"char_snow","tone":"犹豫","text":"小矮人嘱咐过，不能收陌生人的东西。"},{"id":"beat_0049","kind":"action","text":"老妇咬下白净的一半自证无毒，把另一半递了过去。"},{"id":"beat_0050","kind":"action","text":"白雪公主咬下红的一半，当即倒地气绝。"},{"id":"beat_0051","kind":"narration","text":"那半只苹果，恰恰浸满了剧毒。"}]},"scene_010":{"id":"scene_010","title":"水晶棺","summary":"七个小矮人悲痛不已，将白雪公主安放于水晶棺中日夜守护。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"night"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"transition","mood":"悲恸","participants":{"char_snow":{"emotion":"无知无觉","goal":"无","knowledge":"长眠不醒","appearance":"面容红润如生"},"char_doc":{"emotion":"哀伤","goal":"好好守护她","knowledge":"确认她已无呼吸","appearance":"垂着头"},"char_grumpy":{"emotion":"哽咽","goal":"不愿相信","knowledge":"内心自责","appearance":"红着眼"},"char_happy":{"emotion":"失落","goal":"守着她","knowledge":"强忍泪水","appearance":"笑容不再"},"char_sleepy":{"emotion":"麻木","goal":"守灵","knowledge":"彻夜未眠","appearance":"神情恍惚"},"char_bashful":{"emotion":"抽泣","goal":"默默悼念","knowledge":"不敢多言","appearance":"掩面"},"char_sneezy":{"emotion":"哀伤","goal":"守在她身旁","knowledge":"忍着不哭","appearance":"鼻头通红"},"char_dopey":{"emotion":"茫然难过","goal":"跟着哥哥们","knowledge":"似懂非懂","appearance":"呆呆站着"}},"locationState":{"lighting":"烛光摇曳","weather":null,"condition":"小屋被哀伤笼罩"},"props":{"prop_coffin":{"appearance":"透明的水晶棺","condition":"崭新锃亮","holderId":null}},"beats":[{"id":"beat_0052","kind":"action","text":"小矮人们围在白雪公主身旁，怎么呼唤都唤不醒。"},{"id":"beat_0053","kind":"dialogue","speakerId":"char_grumpy","tone":"哽咽","text":"她……没有呼吸了。"},{"id":"beat_0054","kind":"narration","text":"他们不忍将她埋进泥土，便做了一口透明的水晶棺，让她静静躺在里面。"},{"id":"beat_0055","kind":"action","text":"小矮人们轮流守在棺旁，日复一日。"},{"id":"beat_0056","kind":"narration","text":"白雪公主的面容依旧红润如生，仿佛只是睡着了。"}]},"scene_012":{"id":"scene_012","title":"咳出的毒苹果","summary":"小矮人抬棺前往山中安葬，途中意外震出毒苹果，白雪公主终于苏醒。","locationId":"loc_forest","areaId":"area_edge","time":{"timeOfDay":"afternoon"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"climax","mood":"由悲转喜","participants":{"char_snow":{"emotion":"茫然转欣喜","goal":"弄清自己的处境","knowledge":"对昏迷期间一无所知","appearance":"面色红润、睁开双眼"},"char_doc":{"emotion":"又惊又喜","goal":"照顾好苏醒的白雪","knowledge":"亲眼见她醒来","appearance":"扶着棺沿"},"char_grumpy":{"emotion":"错愕转激动","goal":"把她安全带回去","knowledge":"不敢相信自己的眼睛","appearance":"瞪大眼睛"},"char_happy":{"emotion":"狂喜","goal":"赶紧回小屋","knowledge":"喜极而泣","appearance":"又蹦又跳"},"char_sleepy":{"emotion":"迷糊","goal":"揉眼确认没看错","knowledge":"半信半疑","appearance":"揉着眼睛"},"char_bashful":{"emotion":"羞怯的欢喜","goal":"远远守着","knowledge":"高兴却不敢上前","appearance":"红着脸"},"char_sneezy":{"emotion":"激动到打喷嚏","goal":"帮她起身","knowledge":"确信她复活","appearance":"边笑边打喷嚏"},"char_dopey":{"emotion":"憨憨的开心","goal":"跟着哥哥们","knowledge":"似懂非懂","appearance":"咧嘴直笑"}},"locationState":{"lighting":"暖阳穿过枝叶","weather":"微风","condition":"林间空地"},"props":{"prop_coffin":{"appearance":"透明的水晶棺","condition":"被抬着行进","holderId":null}},"beats":[{"id":"beat_0061","kind":"action","text":"小矮人们抬着水晶棺，正要把她安葬到山中，途中一名小矮人绊倒，棺身猛地一震。"},{"id":"beat_0062","kind":"narration","text":"卡在白雪公主喉间的毒苹果被震了出来，她轻轻咳了一声。"},{"id":"beat_0063","kind":"action","text":"白雪公主缓缓睁开眼，坐起身来。"},{"id":"beat_0064","kind":"dialogue","speakerId":"char_snow","tone":"茫然","text":"我……这是在哪儿？"},{"id":"beat_0065","kind":"dialogue","speakerId":"char_doc","tone":"惊喜","text":"你醒了！可把我们吓坏了！"},{"id":"beat_0066","kind":"narration","text":"小矮人们又惊又喜，簇拥着白雪公主返回城堡。"}]},"scene_013":{"id":"scene_013","title":"红鞋的审判","summary":"白雪公主归来，恶王后的罪行败露，被迫穿上烧红的铁鞋跳舞至死。","locationId":"loc_castle","areaId":"area_hall","time":{"timeOfDay":"evening"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"climax","mood":"盛大中透着冷峻的报应","participants":{"char_snow":{"emotion":"平和坚定","goal":"重归城堡，开始安稳生活","knowledge":"已知继母的恶行","appearance":"华服加身"},"char_queen":{"emotion":"由惊惶到绝望","goal":"苟全性命","knowledge":"罪行败露","appearance":"艳装却面色惨白"}},"locationState":{"lighting":"灯火通明","weather":null,"condition":"宾客云集的大殿"},"props":{"prop_iron_shoes":{"appearance":"一双烧得通红的铁鞋","condition":"灼热冒烟","holderId":null}},"beats":[{"id":"beat_0067","kind":"narration","text":"白雪公主回到城堡，恶王后三番加害的罪行很快传遍全城。"},{"id":"beat_0068","kind":"action","text":"侍从认出那位艳丽的妇人，正是作恶多端的新王后，将她押到殿前。"},{"id":"beat_0069","kind":"dialogue","speakerId":"char_queen","tone":"惊惶不解","text":"你们……要做什么？"},{"id":"beat_0070","kind":"action","text":"侍从取出一双烧得通红的铁鞋，摆在她面前。"},{"id":"beat_0071","kind":"narration","text":"王后被迫穿上铁鞋，在众人注视下不停跳舞，直到倒下。"},{"id":"beat_0072","kind":"narration","text":"从此，白雪公主重归城堡，与七个小矮人一起过上了安稳幸福的生活。"}]},"scene_014":{"id":"scene_014","title":"矿山上的牵挂","summary":"小矮人们在矿山采掘，心里惦记着独自看家的白雪公主。","locationId":"loc_mine","areaId":null,"time":{"timeOfDay":"midday"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"transition","mood":"劳作中的暖意","participants":{"char_doc":{"emotion":"专注","goal":"带大家好好采掘","knowledge":"惦记着屋里的姑娘","appearance":"矿灯下眯着眼"},"char_grumpy":{"emotion":"嘴硬","goal":"多敲些宝石","knowledge":"不愿承认牵挂","appearance":"抡着镐头"},"char_happy":{"emotion":"欢喜","goal":"早点收工回家","knowledge":"念着热汤","appearance":"笑呵呵"},"char_sneezy":{"emotion":"狼狈","goal":"忍住喷嚏干活","knowledge":"被矿灰呛得难受","appearance":"满脸矿灰"},"char_dopey":{"emotion":"憨憨","goal":"跟着哥哥们","knowledge":"似懂非懂","appearance":"挥镐砸偏了"}},"locationState":{"lighting":"矿灯幽黄","weather":null,"condition":"矿洞内叮当回响"},"props":{},"beats":[{"id":"beat_0073","kind":"narration","text":"白日里，小矮人们扛着镐头下到矿山，叮叮当当地敲打岩壁。"},{"id":"beat_0074","kind":"dialogue","speakerId":"char_doc","tone":"叮嘱","text":"都仔细些，敲下宝石好换些盐和布。"},{"id":"beat_0075","kind":"dialogue","speakerId":"char_sneezy","tone":"鼻音浓重","text":"阿嚏——这矿灰，呛得人直打喷嚏！"},{"id":"beat_0076","kind":"dialogue","speakerId":"char_happy","tone":"欢喜","text":"等回去就能喝上白雪做的热汤啦！"},{"id":"beat_0077","kind":"dialogue","speakerId":"char_grumpy","tone":"嘴硬","text":"哼，我可不是想她做的饭……只是别把屋子给烧了。"},{"id":"beat_0078","kind":"action","text":"糊涂蛋憨憨地跟着挥镐，一下砸偏了石头。"},{"id":"beat_0079","kind":"narration","text":"他们心里都惦记着独自看家的小姑娘，不知不觉加快了手上的活。"}]}},"title":"白雪公主","warnings":[],"geoms":{"telling":{"w":1164,"h":1656,"rects":{"scene_001":{"x":36,"y":72,"w":300,"h":194},"scene_002":{"x":400,"y":72,"w":300,"h":194},"scene_003":{"x":764,"y":72,"w":300,"h":194},"scene_004":{"x":36,"y":314,"w":300,"h":194},"scene_005":{"x":36,"y":616,"w":300,"h":194},"scene_014":{"x":400,"y":616,"w":300,"h":194},"scene_006":{"x":764,"y":616,"w":300,"h":194},"scene_007":{"x":36,"y":858,"w":300,"h":194},"scene_008":{"x":400,"y":858,"w":300,"h":194},"scene_009":{"x":764,"y":858,"w":300,"h":194},"scene_010":{"x":36,"y":1100,"w":300,"h":194},"scene_012":{"x":36,"y":1402,"w":300,"h":194},"scene_013":{"x":400,"y":1402,"w":300,"h":194}},"nodes":[{"x":36,"y":72,"w":300,"h":194},{"x":400,"y":72,"w":300,"h":194},{"x":764,"y":72,"w":300,"h":194},{"x":36,"y":314,"w":300,"h":194},{"x":36,"y":616,"w":300,"h":194},{"x":400,"y":616,"w":300,"h":194},{"x":764,"y":616,"w":300,"h":194},{"x":36,"y":858,"w":300,"h":194},{"x":400,"y":858,"w":300,"h":194},{"x":764,"y":858,"w":300,"h":194},{"x":36,"y":1100,"w":300,"h":194},{"x":36,"y":1402,"w":300,"h":194},{"x":400,"y":1402,"w":300,"h":194}]},"time":{"w":1528,"h":1438,"rects":{"scene_001":{"x":36,"y":72,"w":300,"h":194},"scene_004":{"x":400,"y":72,"w":300,"h":194},"scene_007":{"x":764,"y":72,"w":300,"h":194},"scene_010":{"x":1128,"y":72,"w":300,"h":194},"scene_002":{"x":36,"y":350,"w":300,"h":194},"scene_005":{"x":400,"y":350,"w":300,"h":194},"scene_008":{"x":764,"y":350,"w":300,"h":194},"scene_012":{"x":1128,"y":350,"w":300,"h":194},"scene_009":{"x":36,"y":628,"w":300,"h":194},"scene_013":{"x":400,"y":628,"w":300,"h":194},"scene_014":{"x":764,"y":628,"w":300,"h":194},"scene_006":{"x":36,"y":906,"w":300,"h":194},"scene_003":{"x":36,"y":1184,"w":300,"h":194}},"nodes":[{"x":36,"y":72,"w":300,"h":194},{"x":400,"y":72,"w":300,"h":194},{"x":764,"y":72,"w":300,"h":194},{"x":1128,"y":72,"w":300,"h":194},{"x":36,"y":350,"w":300,"h":194},{"x":400,"y":350,"w":300,"h":194},{"x":764,"y":350,"w":300,"h":194},{"x":1128,"y":350,"w":300,"h":194},{"x":36,"y":628,"w":300,"h":194},{"x":400,"y":628,"w":300,"h":194},{"x":764,"y":628,"w":300,"h":194},{"x":36,"y":906,"w":300,"h":194},{"x":36,"y":1184,"w":300,"h":194}]},"charmap":{"w":1380,"h":1310,"rects":{"scene_001":{"x":36,"y":70,"w":240,"h":60},"scene_002":{"x":36,"y":150,"w":240,"h":60},"scene_003":{"x":36,"y":230,"w":240,"h":60},"scene_004":{"x":36,"y":310,"w":240,"h":60},"scene_005":{"x":36,"y":448,"w":240,"h":60},"scene_014":{"x":36,"y":528,"w":240,"h":60},"scene_006":{"x":36,"y":608,"w":240,"h":60},"scene_007":{"x":36,"y":688,"w":240,"h":60},"scene_008":{"x":36,"y":768,"w":240,"h":60},"scene_009":{"x":36,"y":848,"w":240,"h":60},"scene_010":{"x":36,"y":928,"w":240,"h":60},"scene_012":{"x":36,"y":1066,"w":240,"h":60},"scene_013":{"x":36,"y":1146,"w":240,"h":60},"char_snow":{"x":430,"y":78,"w":216,"h":70},"char_king":{"x":430,"y":184,"w":216,"h":70},"char_queen":{"x":430,"y":290,"w":216,"h":70},"char_hunter":{"x":430,"y":396,"w":216,"h":70},"char_doc":{"x":430,"y":502,"w":216,"h":70},"char_grumpy":{"x":430,"y":608,"w":216,"h":70},"char_happy":{"x":430,"y":714,"w":216,"h":70},"char_sleepy":{"x":430,"y":820,"w":216,"h":70},"char_bashful":{"x":430,"y":926,"w":216,"h":70},"char_sneezy":{"x":430,"y":1032,"w":216,"h":70},"char_dopey":{"x":430,"y":1138,"w":216,"h":70},"loc_castle":{"x":740,"y":78,"w":216,"h":70},"loc_forest":{"x":740,"y":184,"w":216,"h":70},"loc_cottage":{"x":740,"y":290,"w":216,"h":70},"loc_mine":{"x":740,"y":396,"w":216,"h":70},"prop_mirror":{"x":1050,"y":78,"w":216,"h":70},"prop_boar":{"x":1050,"y":184,"w":216,"h":70},"prop_lace":{"x":1050,"y":290,"w":216,"h":70},"prop_comb":{"x":1050,"y":396,"w":216,"h":70},"prop_apple":{"x":1050,"y":502,"w":216,"h":70},"prop_coffin":{"x":1050,"y":608,"w":216,"h":70},"prop_iron_shoes":{"x":1050,"y":714,"w":216,"h":70}},"nodes":[{"x":36,"y":70,"w":240,"h":60},{"x":36,"y":150,"w":240,"h":60},{"x":36,"y":230,"w":240,"h":60},{"x":36,"y":310,"w":240,"h":60},{"x":36,"y":448,"w":240,"h":60},{"x":36,"y":528,"w":240,"h":60},{"x":36,"y":608,"w":240,"h":60},{"x":36,"y":688,"w":240,"h":60},{"x":36,"y":768,"w":240,"h":60},{"x":36,"y":848,"w":240,"h":60},{"x":36,"y":928,"w":240,"h":60},{"x":36,"y":1066,"w":240,"h":60},{"x":36,"y":1146,"w":240,"h":60},{"x":430,"y":78,"w":216,"h":70},{"x":430,"y":184,"w":216,"h":70},{"x":430,"y":290,"w":216,"h":70},{"x":430,"y":396,"w":216,"h":70},{"x":430,"y":502,"w":216,"h":70},{"x":430,"y":608,"w":216,"h":70},{"x":430,"y":714,"w":216,"h":70},{"x":430,"y":820,"w":216,"h":70},{"x":430,"y":926,"w":216,"h":70},{"x":430,"y":1032,"w":216,"h":70},{"x":430,"y":1138,"w":216,"h":70},{"x":740,"y":78,"w":216,"h":70},{"x":740,"y":184,"w":216,"h":70},{"x":740,"y":290,"w":216,"h":70},{"x":740,"y":396,"w":216,"h":70},{"x":1050,"y":78,"w":216,"h":70},{"x":1050,"y":184,"w":216,"h":70},{"x":1050,"y":290,"w":216,"h":70},{"x":1050,"y":396,"w":216,"h":70},{"x":1050,"y":502,"w":216,"h":70},{"x":1050,"y":608,"w":216,"h":70},{"x":1050,"y":714,"w":216,"h":70}]}}};</script>
+<script>(function () {
+  const data = window.__STORYGRAPH__;
+  const svgs = [...document.querySelectorAll('.story-svg')];
+  const body = document.body;
+  const state = {
+    mode: '', lastLogicMode: 'telling', selected: null, relationScene: 'all', fitted: false, history: [], restoring: false,
+    relationKinds: { telling: new Set(), time: new Set() },
+    entityKinds: new Set(['character', 'location', 'prop']),
+  };
+  const view = new Map();
+  const TYPES = { character: '人物', location: '地点', prop: '道具' };
+  const BEATS = { action: '动作', dialogue: '对白', narration: '旁白' };
+  const RELS = { before: '先后', overlaps: '同时', causes: '因果', setsUp: '伏笔' };
+  const TRAIT_LABELS = {
+    age: '年龄', hair: '发型', signatureLook: '标志外观', look: '外观', appearance: '外观',
+    body: '体型', build: '体型', size: '体形', features: '面容特征', face: '面容', personality: '性格',
+    temperament: '性情', condition: '状态', wardrobe: '着装', costume: '服装', traits: '特征',
+    gender: '性别', role: '角色定位', species: '物种', speed: '速度', color: '颜色', colour: '颜色',
+    habitat: '栖息地', ability: '能力', voice: '嗓音', occupation: '职业', age_range: '年龄段',
+  };
+  const HELP = {
+    telling: '按观众看到的顺序阅读，灰线表示连续场景。',
+    time: '只呈现已明确的时间先后；没有约束的场景归入“先后未定”。',
+    charmap: '查看人物、地点和道具在哪些场景出现，以及人物关系如何变化。',
+  };
+  const MINI = { w: 144, h: 96, pad: 5 };
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const icon = (name) => `<svg class="icon"><use href="#icon-${name}"/></svg>`;
+  const activeSvg = () => svgs.find((svg) => svg.dataset.mode === state.mode);
+  const entity = (id) => data.entities[id] || {};
+  const nameOf = (id) => entity(id).name || id;
+  const sceneTitle = (id) => data.scenes[id]?.title || id;
+  const sceneLabel = (id) => { const n = data.tellingIndex[id]; return n == null ? sceneTitle(id) : `${String(n + 1).padStart(2, '0')} ${sceneTitle(id)}`; };
+  const beatOf = (id) => data.beats.find((beat) => beat.id === id);
+
+  for (const svg of svgs) {
+    const full = (svg.getAttribute('viewBox') || '0 0 100 100').split(/\s+/).map(Number);
+    view.set(svg, { x: full[0], y: full[1], w: full[2], h: full[3], full: { x: full[0], y: full[1], w: full[2], h: full[3] } });
+  }
+
+  function status(message) { document.getElementById('status').textContent = message; }
+
+  // ---- 编辑：提交 ChangeSet 并保留视角 ----
+  function saveSession() {
+    try {
+      const views = {};
+      for (const svg of svgs) { const v = view.get(svg); views[svg.dataset.mode] = { x: v.x, y: v.y, w: v.w, h: v.h }; }
+      sessionStorage.setItem('sparkrealm-view', JSON.stringify({ mode: state.mode, selected: state.selected, relationScene: state.relationScene, views }));
+    } catch (_) { /* ignore */ }
+  }
+  function restoreSession() {
+    let saved = null;
+    try { saved = JSON.parse(sessionStorage.getItem('sparkrealm-view') || 'null'); } catch (_) { saved = null; }
+    if (!saved) return;
+    try { sessionStorage.removeItem('sparkrealm-view'); } catch (_) { /* ignore */ }
+    if (saved.relationScene) state.relationScene = saved.relationScene;
+    if (saved.mode) setMode(saved.mode);
+    for (const svg of svgs) { const s = saved.views && saved.views[svg.dataset.mode]; if (s) Object.assign(view.get(svg), { x: s.x, y: s.y, w: s.w, h: s.h }); }
+    if (saved.selected) select(saved.selected.type, saved.selected.id);
+    applyView(activeSvg());
+  }
+  async function sendChange(operations) {
+    if (!window.__SERVED__) return;
+    saveSession();
+    const changeSet = { changeId: `ui_${Date.now()}`, storyId: data.storyId, baseRevision: data.revision, actor: { kind: 'user', id: 'local' }, operations };
+    try {
+      const response = await fetch('/apply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ changeSet }) });
+      const out = await response.json();
+      if (out.ok) location.reload();
+      else alert(`修改被拒绝：${out.error || ''}${out.message ? ' - ' + out.message : ''}`);
+    } catch (error) { alert(`提交失败：${error.message}`); }
+  }
+  function updateBack() { const button = document.getElementById('detail-back'); if (button) button.disabled = state.history.length === 0; }
+  function pushHistory() {
+    state.history.push({ mode: state.mode, selected: state.selected ? { ...state.selected } : null });
+    updateBack();
+  }
+  function goBack() {
+    const prev = state.history.pop();
+    updateBack();
+    if (!prev) return;
+    state.restoring = true;
+    if (prev.mode && prev.mode !== state.mode) setMode(prev.mode);
+    state.restoring = false;
+    if (prev.selected) select(prev.selected.type, prev.selected.id, true);
+    else clearSelection();
+  }
+  function navigateTo(mode, type, id, focus = false) {
+    const same = state.selected && state.selected.type === type && state.selected.id === id && (!mode || mode === state.mode);
+    if (!same && !state.restoring) pushHistory();
+    if (mode && mode !== state.mode) setMode(mode);
+    select(type, id, focus);
+  }
+  function canvasSize() {
+    const rect = document.getElementById('canvas').getBoundingClientRect();
+    const width = Math.max(320, rect.width), height = Math.max(240, rect.height);
+    return { width, height, ratio: width / height };
+  }
+  function applyView(svg) {
+    const current = view.get(svg);
+    svg.setAttribute('viewBox', `${current.x} ${current.y} ${current.w} ${current.h}`);
+    if (svg === activeSvg()) {
+      document.getElementById('zoom-reset').textContent = `${Math.round((canvasSize().width / current.w) * 100)}%`;
+      renderMinimap();
+    }
+  }
+  function readableView() {
+    const svg = activeSvg(), current = view.get(svg), canvas = canvasSize();
+    const width = Math.max(canvas.width, Math.min(current.full.w, canvas.width / 0.88)); // 图比画布窄时按 100% 显示
+    current.w = width; current.h = width / canvas.ratio;
+    current.x = current.full.x;
+    current.y = current.full.y;
+    applyView(svg);
+  }
+  function fitAll() {
+    const svg = activeSvg(), current = view.get(svg), canvas = canvasSize();
+    const graphRatio = current.full.w / current.full.h;
+    if (graphRatio > canvas.ratio) {
+      current.w = current.full.w; current.h = current.w / canvas.ratio;
+      current.x = current.full.x; current.y = current.full.y - (current.h - current.full.h) / 2;
+    } else {
+      current.h = current.full.h; current.w = current.h * canvas.ratio;
+      current.y = current.full.y; current.x = current.full.x - (current.w - current.full.w) / 2;
+    }
+    applyView(svg);
+  }
+  function zoom(factor, center) {
+    const svg = activeSvg(), current = view.get(svg);
+    const nextWidth = Math.min(Math.max(current.full.w * 2.4, 280), Math.max(280, current.w * factor));
+    const actual = nextWidth / current.w;
+    const point = center || { x: current.x + current.w / 2, y: current.y + current.h / 2 };
+    current.x = point.x - (point.x - current.x) * actual;
+    current.y = point.y - (point.y - current.y) * actual;
+    current.w = nextWidth; current.h *= actual; applyView(svg);
+  }
+  function focusNode(id, force = false) {
+    const rect = data.geoms[state.mode]?.rects?.[id];
+    if (!rect) return;
+    const svg = activeSvg(), current = view.get(svg), canvas = canvasSize();
+    const pad = 40;
+    const inside = rect.x >= current.x + pad && rect.y >= current.y + pad
+      && rect.x + rect.w <= current.x + current.w - pad && rect.y + rect.h <= current.y + current.h - pad;
+    if (inside && !force) return; // 已在视野内则不调整
+    if (force) { // 仅主动“定位”时才改变缩放：放大到可读比例
+      current.w = Math.min(current.full.w, Math.max(520, canvas.width / 0.92));
+      current.h = current.w / canvas.ratio;
+    }
+    // 其余情况保持当前缩放，只平移到可见
+    current.x = rect.x + rect.w / 2 - current.w / 2;
+    current.y = rect.y + rect.h / 2 - current.h / 2;
+    applyView(svg);
+  }
+
+  function renderOutline() {
+    const acts = data.actsFlat.length ? data.actsFlat : [{ id: 'all', title: '全部场景', sceneIds: data.order }];
+    document.getElementById('scene-count').textContent = `${data.stats.scenes} 场`;
+    document.getElementById('outline').innerHTML = acts.map((act) => `<details class="act" open><summary>${esc(act.title || act.id)}</summary>${(act.sceneIds || []).map((id) => {
+      if (!data.scenes[id]) return '';
+      const number = data.tellingIndex[id] == null ? '—' : String(data.tellingIndex[id] + 1).padStart(2, '0');
+      return `<button class="scene-item" data-scene="${esc(id)}"><span class="item-number">${number}</span><span>${esc(sceneTitle(id))}</span></button>`;
+    }).join('')}</details>`).join('');
+    document.querySelectorAll('.scene-item').forEach((button) => button.addEventListener('click', () => navigateTo(null, 'scene', button.dataset.scene, true)));
+  }
+  function renderEntities() {
+    document.getElementById('entities').innerHTML = Object.entries(TYPES).map(([kind, label]) => {
+      const list = data.entitiesByKind[kind] || [];
+      return list.length ? `<details class="entity-group" open><summary>${label} · ${list.length}</summary>${list.map((item) => `<button class="entity-item" data-entity="${esc(item.id)}"><span>${esc(item.name)}</span><span class="count">${item.scenes.length} 场</span></button>`).join('')}</details>` : '';
+    }).join('');
+    document.querySelectorAll('.entity-item').forEach((button) => button.addEventListener('click', () => navigateTo('charmap', 'entity', button.dataset.entity, true)));
+  }
+  function renderFilters() {
+    const target = document.getElementById('legend');
+    target.innerHTML = state.mode === 'charmap'
+      ? Object.entries(TYPES).map(([kind, label]) => `<label class="filter-label"><input type="checkbox" data-entity-kind="${kind}" ${state.entityKinds.has(kind) ? 'checked' : ''}>${label}</label>`).join('')
+        + '<label class="filter-label"><input type="checkbox" data-showedges>显示连线</label>'
+      : Object.entries(RELS).map(([kind, label]) => `<label class="filter-label"><input type="checkbox" data-relation-kind="${kind}" ${state.relationKinds[state.mode].has(kind) ? 'checked' : ''}><span class="line-swatch ${kind}"></span>${label}</label>`).join('');
+    target.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => {
+      if (input.hasAttribute('data-showedges')) { svgs.forEach((svg) => svg.classList.toggle('show-edges', input.checked)); return; }
+      const set = input.dataset.entityKind ? state.entityKinds : state.relationKinds[state.mode];
+      const value = input.dataset.entityKind || input.dataset.relationKind;
+      input.checked ? set.add(value) : set.delete(value); applyFilters();
+    }));
+  }
+  function renderRelationScope() {
+    const select = document.getElementById('relation-scope');
+    select.innerHTML = `<option value="all">全部变化</option>${data.order.map((id) => `<option value="${esc(id)}">${data.tellingIndex[id] + 1}. ${esc(sceneTitle(id))}</option>`).join('')}`;
+    select.value = state.relationScene;
+  }
+  function applyFilters() {
+    for (const svg of svgs) {
+      svg.querySelectorAll('.logic-edge').forEach((edge) => {
+        const visible = state.mode === svg.dataset.mode && state.relationKinds[state.mode]?.has(edge.dataset.kind);
+        edge.classList.toggle('filter-off', !visible); edge.classList.toggle('visible', visible);
+      });
+      svg.querySelectorAll('.entity').forEach((node) => node.classList.toggle('type-off', !state.entityKinds.has(node.dataset.kind)));
+      svg.querySelectorAll('.part-edge').forEach((edge) => edge.classList.toggle('type-off', !state.entityKinds.has(edge.dataset.kind)));
+      svg.querySelectorAll('.pair-edge').forEach((edge) => {
+        const relation = data.characterRelations.find((item) => item.id === edge.dataset.relationId);
+        edge.classList.toggle('scope-off', state.relationScene !== 'all' && !relation?.sceneIds.includes(state.relationScene));
+      });
+    }
+    renderMinimap();
+  }
+
+  function clearMarks() {
+    svgs.forEach((svg) => svg.querySelectorAll('.selected,.neighbor,.hot,.dim,.hover-show').forEach((node) => node.classList.remove('selected', 'neighbor', 'hot', 'dim', 'hover-show')));
+    document.querySelectorAll('.scene-item,.entity-item').forEach((item) => item.classList.remove('active'));
+  }
+  function openDetail() {
+    body.classList.add('right-open'); document.getElementById('right-panel').inert = false;
+    document.getElementById('toggle-right').setAttribute('aria-expanded', 'true');
+  }
+  function closeDetail() {
+    body.classList.remove('right-open'); document.getElementById('right-panel').inert = true;
+    document.getElementById('toggle-right').setAttribute('aria-expanded', 'false');
+  }
+  function clearSelection() {
+    state.selected = null; clearMarks();
+    document.getElementById('focus').disabled = true; document.getElementById('clear-selection').hidden = true;
+    document.getElementById('detail').innerHTML = '<p>选择一个场景或故事要素，查看完整内容及其关联。</p>'; closeDetail();
+  }
+  function select(type, id, shouldFocus = false) {
+    state.selected = { type, id }; clearMarks();
+    const svg = activeSvg();
+    svg.querySelector(`[data-node-id="${CSS.escape(id)}"]`)?.classList.add('selected');
+    if (type === 'scene') {
+      document.querySelectorAll(`.scene-item[data-scene="${CSS.escape(id)}"]`).forEach((item) => item.classList.add('active'));
+      if (state.mode === 'charmap') {
+        svg.querySelectorAll('.part-edge').forEach((edge) => {
+          if (edge.dataset.source === id) { edge.classList.add('hot'); svg.querySelector(`[data-node-id="${CSS.escape(edge.dataset.target)}"]`)?.classList.add('neighbor'); }
+        });
+        state.relationScene = id; document.getElementById('relation-scope').value = id; applyFilters();
+      } else {
+        svg.querySelectorAll('.logic-edge').forEach((edge) => {
+          if (edge.dataset.source === id || edge.dataset.target === id) {
+            edge.classList.add('visible', 'hot');
+            svg.querySelector(`[data-node-id="${CSS.escape(edge.dataset.source === id ? edge.dataset.target : edge.dataset.source)}"]`)?.classList.add('neighbor');
+          }
+        });
+      }
+      renderSceneDetail(id);
+    } else if (type === 'entity') {
+      document.querySelectorAll(`.entity-item[data-entity="${CSS.escape(id)}"]`).forEach((item) => item.classList.add('active'));
+      svg.querySelectorAll('.part-edge').forEach((edge) => {
+        if (edge.dataset.target === id) { edge.classList.add('hot'); svg.querySelector(`[data-node-id="${CSS.escape(edge.dataset.source)}"]`)?.classList.add('neighbor'); }
+      });
+      svg.querySelectorAll('.pair-edge').forEach((edge) => { if (edge.dataset.source === id || edge.dataset.target === id) edge.classList.add('hot'); });
+      renderEntityDetail(id);
+    } else if (type === 'beat') {
+      const beat = beatOf(id);
+      if (beat) { svg.querySelector(`[data-node-id="${CSS.escape(beat.sceneId)}"]`)?.classList.add('selected'); renderBeatDetail(id); }
+    }
+    openDetail();
+    document.getElementById('focus').disabled = !['scene', 'entity'].includes(type);
+    document.getElementById('clear-selection').hidden = false;
+    if (shouldFocus) focusNode(type === 'beat' ? beatOf(id)?.sceneId : id);
+    status(`${type === 'entity' ? nameOf(id) : type === 'beat' ? '节拍' : sceneLabel(id)} 已选择`);
+  }
+
+  function changeOf(pair, sid) {
+    const scenes = data.order;
+    const factsById = new Map(pair.facts.map((fact) => [fact.id, fact]));
+    const activeAt = (s) => (pair.perScene[s] || []).map((fid) => factsById.get(fid)).filter(Boolean);
+    const idx = scenes.indexOf(sid);
+    const prevSid = idx > 0 ? scenes[idx - 1] : null;
+    const current = [...new Set(activeAt(sid).map((fact) => fact.kind))];
+    const previous = prevSid ? [...new Set(activeAt(prevSid).map((fact) => fact.kind))] : [];
+    const reasons = [...new Set(activeAt(sid).filter((fact) => !previous.includes(fact.kind)).map((fact) => fact.description).filter(Boolean))];
+    const reason = reasons.length ? reasons.join('；') : (data.scenes[sid]?.summary || '');
+    return { from: previous.join('、'), to: current.join('、'), reason };
+  }
+
+  function relationChain(pair) {
+    const factsById = new Map(pair.facts.map((fact) => [fact.id, fact]));
+    const seq = [];
+    let prev = null;
+    for (const sid of data.order) {
+      const kinds = [...new Set((pair.perScene[sid] || []).map((fid) => factsById.get(fid)).filter(Boolean).map((fact) => fact.kind))];
+      if (!kinds.length) continue; // 未声明关系的场次不参与
+      const joined = kinds.join('、');
+      if (joined !== prev) { seq.push(joined); prev = joined; }
+    }
+    return seq.join(' → ');
+  }
+
+  function relationEvents(pair) {
+    if (!pair) return '';
+    return pair.changePoints.map((sid) => {
+      const { from, to, reason } = changeOf(pair, sid);
+      const label = from ? `${from} → ${to}` : to;
+      return `<button type="button" class="evo-event" data-jump-scene="${esc(sid)}" data-pair="${esc(pair.key)}"><b>${esc(sceneLabel(sid))}</b><span class="evo-transition">${esc(label)}</span>${reason ? `<span class="evo-reason">原因：${esc(reason)}</span>` : ''}</button><div class="evo-preview" hidden></div>`;
+    }).join('');
+  }
+
+  function scenePreviewHtml(sid) {
+    const s = data.scenes[sid];
+    if (!s) return '';
+    const loc = s.locationId ? entity(s.locationId) : null;
+    const people = Object.entries(s.participants || {}).map(([cid, st]) => `${nameOf(cid)}${st.emotion ? `（${st.emotion}）` : ''}`).join('、') || '未指定';
+    const beats = (s.beats || []).map((b) => `<div class="preview-beat"><b>${BEATS[b.kind] || b.kind}</b>${esc(b.text)}</div>`).join('');
+    return `<div class="row">${esc(s.summary || '')}</div>
+      <div class="row"><b>地点</b>　${esc(loc ? loc.name : '未指定')}</div>
+      <div class="row"><b>人物</b>　${esc(people)}</div>${beats}`;
+  }
+  function toggleEvoPreview(button, sid) {
+    let box = button.nextElementSibling;
+    if (!box || !box.classList.contains('evo-preview')) { box = document.createElement('div'); box.className = 'evo-preview'; button.after(box); }
+    if (!box.hidden) { box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML = scenePreviewHtml(sid);
+  }
+  function highlightSceneInCharmap(sid) {
+    svgs.forEach((svg) => svg.querySelectorAll('.selected,.neighbor,.hot,.dim,.hover-show').forEach((n) => n.classList.remove('selected', 'neighbor', 'hot', 'dim', 'hover-show')));
+    const svg = activeSvg();
+    const ents = new Set(Object.entries(data.entityScenes).filter(([, sids]) => sids.includes(sid)).map(([e]) => e));
+    svg.querySelectorAll('.rscene').forEach((n) => n.classList.toggle('selected', n.dataset.nodeId === sid));
+    svg.querySelectorAll('.char-node').forEach((n) => { if (ents.has(n.dataset.nodeId)) n.classList.add('selected'); else n.classList.add('dim'); });
+    svg.querySelectorAll('.part-edge').forEach((e) => { if (e.dataset.scene === sid) e.classList.add('hot'); else e.classList.add('dim'); });
+    document.querySelectorAll('.scene-item').forEach((el) => el.classList.toggle('active', el.dataset.scene === sid));
+  }
+
+  function relationText(relation) {
+    const arrow = relation.direction === 'directed' ? '→' : '↔';
+    const scope = relation.scopeType === 'global' ? '全篇有效' : `${relation.sceneIds.length} 场有效`;
+    return `<div class="relation-item"><b>${esc(relation.sourceName)}</b> ${arrow} <b>${esc(relation.targetName)}</b>：${esc(relation.kind)}<span class="scope-label">${scope}${relation.description ? ` · ${esc(relation.description)}` : ''}</span></div>`;
+  }
+  function edgeText(edge) {
+    const endpoint = (part) => part.type === 'scene' ? sceneLabel(part.id) : (beatOf(part.id)?.text || part.id);
+    return `<div class="relation-item"><b>${RELS[edge.kind]}</b>：${esc(endpoint(edge.source))} → ${esc(endpoint(edge.target))}${edge.description ? `<span class="scope-label">${esc(edge.description)}</span>` : ''}</div>`;
+  }
+  function bindDetailActions() {
+    const panel = document.getElementById('detail');
+    panel.querySelectorAll('[data-jump-scene]:not([data-pair])').forEach((button) => button.addEventListener('click', () => navigateTo('telling', 'scene', button.dataset.jumpScene, true)));
+    panel.querySelectorAll('[data-pair][data-jump-scene]').forEach((button) => button.addEventListener('click', () => {
+      const sid = button.dataset.jumpScene;
+      if (state.mode === 'charmap') { highlightSceneInCharmap(sid); toggleEvoPreview(button, sid); }
+      else { navigateTo('telling', 'scene', sid, true); }
+    }));
+    panel.querySelectorAll('[data-jump-entity]').forEach((button) => button.addEventListener('click', () => navigateTo('charmap', 'entity', button.dataset.jumpEntity, true)));
+    panel.querySelectorAll('[data-beat]').forEach((button) => button.addEventListener('click', () => navigateTo(null, 'beat', button.dataset.beat)));
+    panel.querySelectorAll('[data-nav]').forEach((button) => button.addEventListener('click', () => navigateScene(Number(button.dataset.nav))));
+    panel.querySelectorAll('[data-edit-scene-title]').forEach((button) => button.addEventListener('click', () => {
+      const sid = button.dataset.editSceneTitle;
+      const current = (data.scenes[sid] && data.scenes[sid].title) || sid;
+      const title = prompt('新的场景标题', current);
+      if (title && title !== current) sendChange([{ op: 'scene.update', id: sid, changes: { title } }]);
+    }));
+    panel.querySelectorAll('[data-edit-entity-name]').forEach((button) => button.addEventListener('click', () => {
+      const eid = button.dataset.editEntityName;
+      const current = nameOf(eid);
+      const name = prompt('新的名称', current);
+      if (name && name !== current) sendChange([{ op: 'entity.replace', entityId: eid, newName: name, aliases: [current] }]);
+    }));
+  }
+  function refRow(id, state) {
+    return `<div class="ref-row"><button class="jump" data-jump-entity="${esc(id)}">${esc(nameOf(id))}</button>${state ? `<span class="ref-state">：${esc(state)}</span>` : ''}</div>`;
+  }
+
+  function renderSceneDetail(id) {
+    const scene = data.scenes[id], index = data.order.indexOf(id);
+    const location = scene.locationId ? entity(scene.locationId) : null;
+    const area = location && scene.areaId ? (location.areas || []).find((item) => item.id === scene.areaId) : null;
+    const locRow = location ? refRow(scene.locationId, area ? area.name : '') : '<div class="row">未指定</div>';
+    const people = Object.entries(scene.participants || {}).map(([personId, value]) => {
+      const detail = [value.emotion, value.goal, value.knowledge, value.appearance].filter(Boolean).join('；');
+      return refRow(personId, detail);
+    }).join('') || '<div class="row">未指定</div>';
+    const props = Object.entries(scene.props || {}).map(([propId, value]) => {
+      const holder = value && Object.hasOwn(value, 'holderId') ? (value.holderId == null ? '无人持有' : `由${nameOf(value.holderId)}持有`) : '';
+      const detail = [value?.condition, value?.appearance, holder].filter(Boolean).join('；');
+      return refRow(propId, detail);
+    }).join('') || '<div class="row">未指定</div>';
+    const beats = (scene.beats || []).map((beat) => `<button class="beat-item" data-beat="${esc(beat.id)}"><b>${BEATS[beat.kind] || beat.kind}${beat.kind === 'dialogue' && beat.speakerId ? ` · ${esc(nameOf(beat.speakerId))}` : ''}</b>${esc(beat.text)}</button>`).join('') || '<div class="row">尚无节拍</div>';
+    const logic = data.edges.filter((edge) => edge.sourceScene === id || edge.targetScene === id).map(edgeText).join('') || '<div class="row">尚无显式逻辑关系</div>';
+    const relations = data.characterRelations.filter((relation) => relation.sceneIds.includes(id)).map(relationText).join('') || '<div class="row">本场没有人物关系记录</div>';
+    const changesHere = data.relationsByPair.filter((pair) => pair.changePoints.includes(id));
+    const changeHtml = changesHere.map((pair) => {
+      const { from, to, reason } = changeOf(pair, id);
+      const label = from ? `${from} → ${to}` : to;
+      return `<div class="evo-event"><b>${esc(nameOf(pair.a))} ⇄ ${esc(nameOf(pair.b))}</b><span class="evo-transition">${esc(label)}</span>${reason ? `<span class="evo-reason">原因：${esc(reason)}</span>` : ''}</div>`;
+    }).join('') || '<div class="row">本场没有关系变化</div>';
+    const t = data.sceneTime && data.sceneTime[id];
+    const timeLabel = data.timeKnown.includes(id) ? `时间点 ${(data.layer[id] || 0) + 1}${t ? `（${t}）` : ''}` : (t ? `故事时间先后未定（${t}）` : '故事时间先后未定');
+    document.getElementById('detail').innerHTML = `<div class="scene-nav"><button data-nav="-1" ${index <= 0 ? 'disabled' : ''}>${icon('chevron-left')}上一场</button><button data-nav="1" ${index < 0 || index >= data.order.length - 1 ? 'disabled' : ''}>下一场${icon('chevron-right')}</button></div>
+      <h3>${esc(scene.title || id)}${window.__SERVED__ ? ` <button class="edit-btn" data-edit-scene-title="${esc(id)}">改名</button>` : ''}</h3><div class="sub">第 ${index + 1} 场 · ${timeLabel}${data.inverted.includes(id) ? ' · 非线性讲述' : ''}</div><p>${esc(scene.summary || '情节概述待补充')}</p>
+      <h4>地点</h4>${locRow}
+      <h4>氛围</h4><div class="row">${esc(scene.mood || '未指定')}</div>
+      <h4>故事线</h4><div class="row">${(scene.threadIds || []).map((threadId) => `<span class="tag">${esc(data.threads[threadId]?.name || threadId)}</span>`).join('') || '未指定'}</div>
+      <h4>人物</h4>${people}<h4>道具</h4>${props}
+      <details open><summary>场景节拍 · ${(scene.beats || []).length}</summary>${beats}</details>
+      <details><summary>故事逻辑</summary>${logic}</details>
+      <details><summary>本场人物关系</summary>${relations}</details>
+      <details ${changesHere.length ? 'open' : ''}><summary>本场关系变化 · ${changesHere.length}</summary>${changeHtml}</details>`;
+    bindDetailActions();
+  }
+  function renderBeatDetail(id) {
+    const beat = beatOf(id); if (!beat) return;
+    const logic = data.edges.filter((edge) => edge.source.id === id || edge.target.id === id).map(edgeText).join('') || '<div class="row">尚无显式逻辑关系</div>';
+    document.getElementById('detail').innerHTML = `<button class="jump" data-jump-scene="${esc(beat.sceneId)}">${icon('chevron-left')} 返回 ${esc(sceneLabel(beat.sceneId))}</button>
+      <h3>${esc(BEATS[beat.kind] || beat.kind)}</h3><div class="sub">场景节拍</div>
+      ${beat.kind === 'dialogue' ? `<div class="row"><b>说话人</b>　<button class="jump" data-jump-entity="${esc(beat.speakerId)}">${esc(nameOf(beat.speakerId))}</button>${beat.tone ? ` · ${esc(beat.tone)}` : ''}</div>` : ''}
+      <p>${esc(beat.text)}</p><h4>相关逻辑</h4>${logic}`;
+    bindDetailActions();
+  }
+  function renderEntityDetail(id) {
+    const item = entity(id), appearances = data.entityScenes[id] || [];
+    const traits = Object.entries(item.fixedTraits || {}).map(([key, value]) => `<div class="row"><b>${esc(TRAIT_LABELS[key] || key)}</b>　${esc(value)}</div>`).join('');
+    const pairs = data.relationsByPair.filter((pair) => pair.a === id || pair.b === id);
+    document.getElementById('detail').innerHTML = `<h3>${item.referenceImage ? `<img class="ref-thumb" src="${esc(item.referenceImage)}" alt="">` : ''}${esc(item.name || id)}${window.__SERVED__ ? ` <button class="edit-btn" data-edit-entity-name="${esc(id)}">改名</button>` : ''}</h3>
+      <div class="sub">${TYPES[item.kind] || item.kind} · ${appearances.length} 场出现</div>${item.description ? `<p>${esc(item.description)}</p>` : ''}
+      ${(item.tags || []).map((tag) => `<span class="tag">${esc(tag)}</span>`).join('')}${traits ? `<h4>固定设定</h4>${traits}` : ''}${item.motivation ? `<div class="row"><b>动机</b>　${esc(item.motivation)}</div>` : ''}
+      ${pairs.length ? `<details open><summary>人物关系 · ${pairs.length}</summary>${pairs.map((pair) => {
+        const other = pair.a === id ? pair.b : pair.a;
+        const chain = relationChain(pair);
+        const events = relationEvents(pair);
+        const head = `与 <button class="jump" data-jump-entity="${esc(other)}">${esc(nameOf(other))}</button>${chain ? `<span class="pair-chain">${esc(chain)}</span>` : ''}`;
+        return events ? `<details class="pair-block"><summary>${head}</summary>${events}</details>` : `<div class="pair-block static">${head}</div>`;
+      }).join('')}</details>` : ''}
+      <details open><summary>出现的场景 · ${appearances.length}</summary>${appearances.map((sceneId) => {
+        const number = data.tellingIndex[sceneId] == null ? '—' : String(data.tellingIndex[sceneId] + 1).padStart(2, '0');
+        return `<div class="scene-appearance"><button class="jump" data-jump-scene="${esc(sceneId)}"><span class="item-number">${number}</span><b>${esc(sceneTitle(sceneId))}</b></button><p>${esc(data.scenes[sceneId].summary || '')}</p></div>`;
+      }).join('') || '<div class="row">尚未出场</div>'}</details>`;
+    bindDetailActions();
+  }
+  function navigateScene(delta) {
+    const currentId = state.selected?.type === 'scene' ? state.selected.id : beatOf(state.selected?.id)?.sceneId;
+    const next = data.order[data.order.indexOf(currentId) + delta]; if (next) navigateTo(null, 'scene', next, true);
+  }
+  function setMode(mode) {
+    const changed = state.mode !== mode;
+    state.mode = mode;
+    if (mode === 'telling' || mode === 'time') state.lastLogicMode = mode;
+    svgs.forEach((svg) => svg.classList.toggle('active', svg.dataset.mode === mode));
+    const logicView = mode !== 'charmap';
+    document.querySelectorAll('[data-view]').forEach((tab) => {
+      const active = (tab.dataset.view === 'logic') === logicView; tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1;
+    });
+    const layoutToggle = document.getElementById('layout-toggle');
+    layoutToggle.hidden = !logicView;
+    layoutToggle.textContent = mode === 'time' ? '切换为讲述顺序' : '切换为故事时间';
+    document.getElementById('mode-context').textContent = HELP[mode];
+    document.getElementById('relation-scope-wrap').hidden = mode !== 'charmap';
+    document.getElementById('story-count').textContent = `${data.stats.scenes} 场 · ${data.stats.entities} 个要素`;
+    renderFilters(); applyFilters();
+    if (state.selected) {
+      const valid = mode === 'charmap' ? ['scene', 'entity'] : ['scene', 'beat'];
+      valid.includes(state.selected.type) ? select(state.selected.type, state.selected.id) : clearSelection();
+    }
+    if (changed) readableView(); // 切换视图时按画布比例重新适配（选择/跳转不改缩放）
+  }
+  function setView(view) { const mode = view === 'charmap' ? 'charmap' : state.lastLogicMode || 'telling'; if (mode !== state.mode) pushHistory(); setMode(mode); }
+
+  function bindCanvas() {
+    for (const svg of svgs) {
+      svg.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const rect = svg.getBoundingClientRect();
+        const current = view.get(svg);
+        if (event.ctrlKey || event.metaKey) {
+          // 缩放：Ctrl/⌘ + 滚轮（或触控板双指缩放）
+          zoom(event.deltaY > 0 ? 1.12 : 1 / 1.12, { x: current.x + ((event.clientX - rect.left) / rect.width) * current.w, y: current.y + ((event.clientY - rect.top) / rect.height) * current.h });
+        } else {
+          // 平移：滚轮上下、Shift+滚轮或横向滚动左右
+          const unitX = current.w / rect.width;
+          const unitY = current.h / rect.height;
+          current.x += (event.shiftKey ? event.deltaY : event.deltaX) * unitX;
+          current.y += (event.shiftKey ? 0 : event.deltaY) * unitY;
+          applyView(svg);
+        }
+      }, { passive: false });
+      let drag = null;
+      svg.addEventListener('pointerdown', (event) => {
+        if (event.target.closest('[data-node-id],.logic-edge,.pair-edge')) return;
+        drag = { x: event.clientX, y: event.clientY, view: { ...view.get(svg) } };
+        svg.setPointerCapture(event.pointerId); svg.classList.add('panning');
+      });
+      svg.addEventListener('pointermove', (event) => {
+        if (!drag) return; const rect = svg.getBoundingClientRect(), current = view.get(svg);
+        current.x = drag.view.x - (event.clientX - drag.x) * (drag.view.w / rect.width);
+        current.y = drag.view.y - (event.clientY - drag.y) * (drag.view.h / rect.height); applyView(svg);
+      });
+      const stop = () => { drag = null; svg.classList.remove('panning'); };
+      svg.addEventListener('pointerup', stop); svg.addEventListener('pointercancel', stop);
+      svg.addEventListener('click', (event) => {
+        const node = event.target.closest('[data-node-id]'); if (node) return navigateTo(null, node.dataset.nodeType, node.dataset.nodeId);
+        const logic = event.target.closest('.logic-edge'); if (logic) { pushHistory(); return renderLogicDetail(logic.dataset.edgeId); }
+        const relation = event.target.closest('.pair-edge'); if (relation) { pushHistory(); return renderCharacterRelationDetail(relation.dataset.relationId); }
+      });
+      svg.addEventListener('keydown', (event) => {
+        if (!['Enter', ' '].includes(event.key)) return; event.preventDefault();
+        const node = event.target.closest('[data-node-id]'); if (node) navigateTo(null, node.dataset.nodeType, node.dataset.nodeId);
+      });
+      svg.addEventListener('mouseover', (event) => {
+        const node = event.target.closest('[data-node-id]'); if (!node) return;
+        const id = node.dataset.nodeId;
+        svg.querySelectorAll('.logic-edge, .part-edge, .pair-edge').forEach((edge) => {
+          if (edge.dataset.source === id || edge.dataset.target === id) edge.classList.add('hover-show');
+        });
+      });
+      svg.addEventListener('mouseout', (event) => {
+        if (event.relatedTarget && event.relatedTarget.closest && event.relatedTarget.closest('[data-node-id]')) return;
+        svg.querySelectorAll('.hover-show').forEach((edge) => edge.classList.remove('hover-show'));
+      });
+    }
+  }
+  function renderLogicDetail(id) {
+    const edge = data.edges.find((item) => item.id === id); if (!edge) return;
+    state.selected = { type: 'relation', id }; openDetail();
+    document.getElementById('detail').innerHTML = `<h3>${RELS[edge.kind]}</h3><div class="sub">故事逻辑关系</div>${edgeText(edge)}`;
+  }
+  function renderCharacterRelationDetail(id) {
+    const relation = data.characterRelations.find((item) => item.id === id); if (!relation) return;
+    state.selected = { type: 'characterRelation', id }; openDetail();
+    document.getElementById('detail').innerHTML = `<h3>${esc(relation.kind)}</h3><div class="sub">人物关系</div>${relationText(relation)}<h4>生效场景</h4>${relation.sceneIds.map((sceneId) => `<div class="row"><button class="jump" data-jump-scene="${esc(sceneId)}">${esc(sceneLabel(sceneId))}</button></div>`).join('')}`;
+    bindDetailActions();
+  }
+  function renderMinimap() {
+    const container = document.getElementById('minimap'), geom = data.geoms[state.mode], svg = activeSvg(); if (!geom || !svg) return;
+    const scale = Math.min((MINI.w - MINI.pad * 2) / geom.w, (MINI.h - MINI.pad * 2) / geom.h);
+    const ox = MINI.pad + (MINI.w - MINI.pad * 2 - geom.w * scale) / 2, oy = MINI.pad + (MINI.h - MINI.pad * 2 - geom.h * scale) / 2, current = view.get(svg);
+    const nodes = geom.nodes.map((rect) => `<rect x="${ox + rect.x * scale}" y="${oy + rect.y * scale}" width="${Math.max(1, rect.w * scale)}" height="${Math.max(1, rect.h * scale)}" rx="1"/>`).join('');
+    container.innerHTML = `<svg viewBox="0 0 ${MINI.w} ${MINI.h}" width="${MINI.w}" height="${MINI.h}">${nodes}<rect class="vp" x="${ox + current.x * scale}" y="${oy + current.y * scale}" width="${current.w * scale}" height="${current.h * scale}"/></svg>`;
+  }
+
+  function searchItems(query) {
+    const q = query.toLocaleLowerCase(), results = [];
+    for (const [id, scene] of Object.entries(data.scenes)) if (`${scene.title || ''} ${scene.summary || ''} ${id}`.toLocaleLowerCase().includes(q)) results.push({ type: 'scene', id, label: sceneLabel(id), detail: scene.summary || '场景' });
+    for (const beat of data.beats) if (`${beat.text} ${beat.id}`.toLocaleLowerCase().includes(q)) results.push({ type: 'beat', id: beat.id, label: beat.text, detail: `节拍 · ${sceneLabel(beat.sceneId)}` });
+    for (const [id, item] of Object.entries(data.entities)) if (`${item.name || ''} ${item.description || ''} ${(item.tags || []).join(' ')} ${id}`.toLocaleLowerCase().includes(q)) results.push({ type: 'entity', id, label: item.name || id, detail: TYPES[item.kind] || item.kind });
+    return results.slice(0, 12);
+  }
+  function renderSearch(query) {
+    const panel = document.getElementById('search-results'), input = document.getElementById('search');
+    if (!query.trim()) { panel.hidden = true; input.setAttribute('aria-expanded', 'false'); return; }
+    const results = searchItems(query.trim());
+    panel.innerHTML = results.length ? results.map((result, index) => `<button class="search-result${index === 0 ? ' active' : ''}" data-result-type="${result.type}" data-result-id="${esc(result.id)}"><span class="result-type">${esc(result.detail)}</span><span class="result-text">${esc(result.label)}</span></button>`).join('') : '<div class="search-empty">没有匹配内容</div>';
+    panel.hidden = false; input.setAttribute('aria-expanded', 'true');
+    panel.querySelectorAll('.search-result').forEach((button) => button.addEventListener('click', () => chooseSearchResult(button)));
+  }
+  function chooseSearchResult(button) {
+    const type = button.dataset.resultType; navigateTo(type === 'entity' ? 'charmap' : 'telling', type, button.dataset.resultId, true);
+    document.getElementById('search-results').hidden = true; document.getElementById('search').setAttribute('aria-expanded', 'false');
+  }
+  function bindControls() {
+    document.querySelectorAll('[data-view]').forEach((tab) => tab.addEventListener('click', () => setView(tab.dataset.view)));
+    document.getElementById('layout-toggle').addEventListener('click', () => { pushHistory(); setMode(state.mode === 'time' ? 'telling' : 'time'); });
+    document.getElementById('detail-back').addEventListener('click', goBack);
+    document.getElementById('zoom-in').addEventListener('click', () => zoom(1 / 1.18));
+    document.getElementById('zoom-out').addEventListener('click', () => zoom(1.18));
+    document.getElementById('zoom-reset').addEventListener('click', readableView);
+    document.getElementById('fit').addEventListener('click', fitAll);
+    document.getElementById('focus').addEventListener('click', () => focusNode(state.selected?.type === 'beat' ? beatOf(state.selected.id)?.sceneId : state.selected?.id, true));
+    document.getElementById('clear-selection').addEventListener('click', clearSelection);
+    document.getElementById('close-detail').addEventListener('click', closeDetail);
+    document.getElementById('toggle-right').addEventListener('click', () => body.classList.contains('right-open') ? closeDetail() : openDetail());
+    document.getElementById('toggle-left').addEventListener('click', () => {
+      body.classList.toggle('left-closed'); const open = !body.classList.contains('left-closed');
+      document.getElementById('toggle-left').setAttribute('aria-expanded', String(open)); requestAnimationFrame(readableView);
+    });
+    document.getElementById('theme').addEventListener('click', () => {
+      const root = document.documentElement; root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem('sparkrealm-theme', root.dataset.theme); } catch (_) {}
+    });
+    document.getElementById('relation-scope').addEventListener('change', (event) => { state.relationScene = event.target.value; applyFilters(); });
+    const search = document.getElementById('search');
+    search.addEventListener('input', () => renderSearch(search.value));
+    search.addEventListener('keydown', (event) => {
+      const results = [...document.querySelectorAll('.search-result')];
+      if (event.key === 'Enter' && results.length) { event.preventDefault(); chooseSearchResult(results.find((item) => item.classList.contains('active')) || results[0]); }
+    });
+    document.addEventListener('pointerdown', (event) => { if (!event.target.closest('.search-wrap')) document.getElementById('search-results').hidden = true; });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { if (!document.getElementById('search-results').hidden) document.getElementById('search-results').hidden = true; else clearSelection(); }
+      if (event.target.matches('input,select,button')) return;
+      if (event.key === 'ArrowRight') navigateScene(1); if (event.key === 'ArrowLeft') navigateScene(-1);
+    });
+    document.getElementById('minimap').addEventListener('click', (event) => {
+      const geom = data.geoms[state.mode], rect = event.currentTarget.getBoundingClientRect();
+      const scale = Math.min((MINI.w - MINI.pad * 2) / geom.w, (MINI.h - MINI.pad * 2) / geom.h);
+      const ox = MINI.pad + (MINI.w - MINI.pad * 2 - geom.w * scale) / 2, oy = MINI.pad + (MINI.h - MINI.pad * 2 - geom.h * scale) / 2, current = view.get(activeSvg());
+      current.x = (event.clientX - rect.left - ox) / scale - current.w / 2; current.y = (event.clientY - rect.top - oy) / scale - current.h / 2; applyView(activeSvg());
+    });
+    window.addEventListener('resize', () => applyView(activeSvg()));
+  }
+
+  try { const theme = localStorage.getItem('sparkrealm-theme'); if (['dark', 'light'].includes(theme)) document.documentElement.dataset.theme = theme; } catch (_) {}
+  renderOutline(); renderEntities(); renderRelationScope(); bindCanvas(); bindControls();
+  document.getElementById('empty-state').hidden = data.stats.scenes !== 0;
+  document.getElementById('detail').innerHTML = '<p>选择一个场景或故事要素，查看完整内容及其关联。</p>';
+  if (window.matchMedia('(max-width: 700px)').matches) {
+    body.classList.add('left-closed');
+    document.getElementById('toggle-left').setAttribute('aria-expanded', 'false');
+  }
+
+  setMode('telling');
+  restoreSession();
+
+  // 服务模式：轮询 revision，外部（Agent 经 CLI）改动后自动刷新并保留视角
+  if (window.__SERVED__) {
+    const last = data.revision;
+    setInterval(async () => {
+      try {
+        const response = await fetch('/state');
+        const state = await response.json();
+        if (state.revision !== last) { saveSession(); location.reload(); }
+      } catch (_) { /* 忽略网络错误 */ }
+    }, 2000);
+  }
+
+  window.__storygraph = {
+    sendChange,
+    getState: () => ({ mode: state.mode, revision: data.revision, selected: state.selected, served: Boolean(window.__SERVED__) }),
+  };
+})();
+</script>
+</body>
+</html>

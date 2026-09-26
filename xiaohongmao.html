@@ -1,0 +1,1099 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小红帽 · SparkRealm StoryGraph</title>
+<style>:root {
+  color-scheme: light;
+  --bg: #f5f6f5; --panel: #ffffff; --panel-2: #f0f2f1;
+  --ink: #202823; --muted: #5b665f; --dim: #69756e; --border: #dce2de;
+  --accent: #177b63; --accent-soft: #e7f2ed;
+  --before: #687b91; --causes: #ba5063; --setsUp: #987017; --overlaps: #7564b5;
+  --left-width: 240px; --right-width: 344px;
+  --shadow: 0 6px 24px #18261d12;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #101a2e; --panel: #17233b; --panel-2: #1d2c47;
+  --ink: #e8eefb; --muted: #9fb0cc; --dim: #7385a3; --border: #2b3b5a;
+  --accent: #4cc2f5; --accent-soft: #16324c;
+  --before: #6ba4f7; --causes: #f2798a; --setsUp: #f2c14e; --overlaps: #a894f5;
+  --shadow: 0 6px 24px #00000055;
+}
+* { box-sizing: border-box; letter-spacing: 0; }
+html, body { margin: 0; height: 100%; }
+body { font: 14px/1.5 ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--ink); background: var(--bg); display: grid; grid-template: 60px 48px minmax(0, 1fr) / var(--left-width) minmax(0, 1fr) 0; grid-template-areas: "top top top" "bar bar bar" "left canvas right"; height: 100dvh; overflow: hidden; }
+body.left-closed { --left-width: 0px; }
+body.right-open { grid-template-columns: var(--left-width) minmax(0, 1fr) 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .38; }
+button, select, input { border: 1px solid var(--border); border-radius: 6px; background: var(--panel); }
+button:hover:not(:disabled) { background: var(--panel-2); }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+button { -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+.icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.icon-defs { width: 0; height: 0; position: absolute; }
+.icon-button { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; flex: none; padding: 0; border-color: transparent; background: transparent; }
+.divider { height: 20px; width: 1px; background: var(--border); flex: none; }
+.topbar { grid-area: top; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 0 20px; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 25; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand strong { font-size: 16px; white-space: nowrap; }
+.brand-icon { color: var(--accent); width: 24px; height: 24px; }
+.brand-logo { width: 26px; height: 26px; object-fit: contain; flex: none; }
+.story-title { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-actions { display: flex; align-items: center; gap: 12px; flex: none; }
+.search-wrap { width: 244px; position: relative; display: flex; align-items: center; }
+.search-wrap > .icon { position: absolute; left: 10px; color: var(--dim); pointer-events: none; }
+#search { padding: 7px 10px 7px 34px; width: 100%; background: var(--panel-2); font-size: 13px; }
+.search-results { position: absolute; right: 0; top: 42px; width: 360px; max-width: calc(100vw - 24px); max-height: 380px; overflow: auto; padding: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); }
+.search-result { display: block; text-align: left; width: 100%; border: 0; padding: 10px; }
+.search-result.active { background: var(--accent-soft); }
+.search-result .result-type { font-size: 11px; color: var(--dim); display: block; }
+.search-result .result-text { display: block; overflow-wrap: anywhere; }
+mark { color: var(--ink); background: var(--accent-soft); font-weight: 650; }
+.search-empty { padding: 16px; color: var(--muted); }
+.workspace-bar { grid-area: bar; display: flex; align-items: center; gap: 12px; padding: 0 14px; border-bottom: 1px solid var(--border); background: var(--panel); z-index: 10; }
+.seg { display: flex; height: 100%; gap: 20px; }
+.seg button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 0 4px; background: transparent; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.seg button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 650; }
+.subseg { margin-left: 8px; gap: 14px; }
+.subseg button { font-size: 12px; }
+.workspace-count { margin-left: auto; font-size: 12px; color: var(--dim); }
+#toggle-right { margin-left: auto; }
+.workspace-count + #toggle-right { margin-left: 0; }
+.left { grid-area: left; min-width: 0; overflow: auto; border-right: 1px solid var(--border); background: var(--panel); z-index: 12; }
+.left-closed .left { visibility: hidden; }
+.panel { padding: 18px 14px; border-bottom: 1px solid var(--border); }
+.section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.section-heading h2, .panel > summary { font-size: 12px; font-weight: 650; margin: 0; }
+.section-heading > span { color: var(--dim); font-size: 12px; }
+.panel > summary { cursor: pointer; }
+.panel[open] > summary { margin-bottom: 14px; }
+.act { margin-top: 10px; }
+.act > summary { cursor: pointer; font-size: 12px; color: var(--dim); padding: 6px 0; overflow-wrap: anywhere; }
+.scene-item, .entity-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; border: 0; padding: 8px; font-size: 13px; }
+.scene-item > span:last-child, .entity-item > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-number { color: var(--dim); font: 11px ui-monospace, monospace; width: 20px; flex: none; }
+.scene-item.active, .entity-item.active { background: var(--accent-soft); color: var(--accent); }
+.group-title { color: var(--dim); font-size: 11px; margin: 14px 0 6px; }
+.entity-group { margin: 8px 0; }
+.entity-group > summary { cursor: pointer; color: var(--dim); font-size: 11px; padding: 5px 0; }
+.entity-group[open] > summary { margin-bottom: 4px; }
+.entity-item .count { color: var(--dim); margin-left: auto; flex: none; font-size: 11px; }
+.filter-label { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 5px 0; }
+input[type="checkbox"] { accent-color: var(--accent); }
+.line-swatch { width: 20px; height: 0; border-top: 2px solid var(--before); }
+.line-swatch.causes { border-color: var(--causes); }
+.line-swatch.setsUp { border-color: var(--setsUp); border-top-style: dashed; }
+.line-swatch.overlaps { border-color: var(--overlaps); border-top-style: dotted; }
+.canvas { grid-area: canvas; position: relative; min-width: 0; min-height: 0; overflow: hidden; background: radial-gradient(circle at 1px 1px, var(--border) .7px, transparent 1px) 0 0 / 24px 24px, var(--bg); }
+.story-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: none; cursor: grab; touch-action: none; }
+.story-svg.active { display: block; }
+.story-svg.panning { cursor: grabbing; }
+.context-bar { position: absolute; left: 18px; right: 18px; top: 14px; z-index: 4; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; pointer-events: none; }
+#mode-context { background: var(--bg); padding: 2px 5px; font-size: 11px; color: var(--dim); }
+.layout-toggle { pointer-events: auto; font-size: 11px; padding: 3px 10px; border-radius: 6px; background: var(--panel); color: var(--muted); white-space: nowrap; }
+.layout-toggle:hover { color: var(--ink); border-color: var(--dim); }
+#relation-scope-wrap { font-size: 12px; color: var(--muted); pointer-events: auto; display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; }
+#relation-scope { max-width: 180px; width: 150px; font-size: 12px; padding: 4px; border: 0; }
+.column-label { fill: var(--muted); font-size: 13px; font-weight: 600; }
+.graph-node { cursor: pointer; outline: none; }
+.node-box { fill: var(--panel); stroke: var(--border); stroke-width: 1.2; }
+.graph-node:hover .node-box { stroke: var(--dim); }
+.graph-node.selected .node-box, .graph-node:focus-visible .node-box { stroke: var(--accent); stroke-width: 2.5; }
+.graph-node.neighbor .node-box { stroke: var(--accent); stroke-opacity: .55; }
+.graph-node.dim { opacity: .42; }
+.node-content { width: 100%; height: 100%; padding: 15px; overflow: hidden; color: var(--ink); font-size: 13px; line-height: 1.5; }
+.node-heading { display: flex; align-items: flex-start; gap: 9px; height: 43px; }
+.node-number { flex: none; font: 11px/22px ui-monospace, monospace; color: var(--dim); }
+.node-title { font-size: 14px; font-weight: 650; line-height: 21px; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.node-summary { margin: 6px 0 10px; height: 40px; color: var(--muted); font-size: 13px; line-height: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.node-people, .node-location { color: var(--muted); font-size: 11px; line-height: 19px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.node-location { color: var(--dim); }
+.node-footer { display: flex; justify-content: space-between; gap: 6px; align-items: center; border-top: 1px solid var(--border); padding-top: 7px; margin-top: 8px; color: var(--dim); font-size: 10px; }
+.node-badges { display: flex; gap: 8px; color: var(--accent); }
+.role-climax .node-badges { color: var(--causes); }
+.role-turningPoint .node-badges { color: var(--setsUp); }
+.compact .node-content { padding: 10px 12px; }
+.compact .node-heading { height: auto; }
+.compact .node-title { font-size: 13px; line-height: 19px; }
+.entity .node-content { padding: 10px 12px; }
+.entity-heading { display: flex; align-items: center; gap: 8px; }
+.entity-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.entity-kind { color: var(--accent); font-size: 10px; flex: none; }
+.entity-kind.kind-location { color: var(--before); }
+.entity-kind.kind-prop { color: var(--setsUp); }
+.entity-count { color: var(--dim); font-size: 11px; margin-top: 7px; }
+.sequence-edge { fill: none; stroke: var(--dim); stroke-width: 1.2; opacity: .45; }
+.marker-sequence { fill: var(--dim); }
+.logic-edge, .pair-edge { outline: none; cursor: pointer; }
+.edge-line, .part-edge { fill: none; stroke-width: 1.7; }
+.edge-hit { fill: none; stroke: transparent; stroke-width: 16; pointer-events: stroke; }
+.logic-edge { opacity: 0; pointer-events: none; }
+.logic-edge .edge-hit { pointer-events: none; }
+.logic-edge.visible, .logic-edge.hot, .logic-edge.hover-show { opacity: .8; pointer-events: auto; }
+.logic-edge.visible .edge-hit, .logic-edge.hot .edge-hit, .logic-edge.hover-show .edge-hit { pointer-events: stroke; }
+.edge-line { stroke: var(--before); }
+.rel-causes .edge-line { stroke: var(--causes); }
+.rel-setsUp .edge-line { stroke: var(--setsUp); stroke-dasharray: 5 4; }
+.rel-overlaps .edge-line { stroke: var(--overlaps); stroke-dasharray: 2 4; }
+.marker-before { fill: var(--before); }
+.marker-causes { fill: var(--causes); }
+.marker-setsUp { fill: var(--setsUp); }
+.marker-person { fill: var(--accent); }
+.pair-edge .edge-line { stroke: var(--accent); }
+/* 要素关系：连线默认隐藏，选中/悬停或勾选“显示连线”才出现 */
+.pair-edge, .part-edge { opacity: 0; pointer-events: none; }
+.part-edge { stroke: var(--dim); }
+.edge-line, .sequence-edge, .part-edge { vector-effect: non-scaling-stroke; }
+.hot .edge-line, .logic-edge:focus-visible .edge-line, .pair-edge:focus-visible .edge-line { stroke-width: 3; }
+.part-edge.hot, .part-edge.hover-show, .charm-svg.show-edges .part-edge { opacity: .5; stroke: var(--dim); }
+.part-edge.hot { stroke: var(--accent); opacity: .8; stroke-width: 2; pointer-events: auto; }
+.pair-edge.hot, .pair-edge.hover-show, .charm-svg.show-edges .pair-edge { opacity: .78; pointer-events: auto; }
+.pair-edge.dim { opacity: .12; }
+.scope-off, .type-off, .filter-off { display: none !important; }
+.canvas-toolbar { position: absolute; left: 18px; bottom: 18px; display: flex; gap: 3px; align-items: center; padding: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); z-index: 5; }
+.zoom-value { width: 54px; border: 0; font-size: 12px; padding: 7px 0; background: transparent; font-variant-numeric: tabular-nums; }
+.clear-selection { position: absolute; top: 52px; left: 22px; display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 7px; z-index: 5; }
+.clear-selection .icon { width: 13px; height: 13px; }
+.minimap { position: absolute; right: 18px; bottom: 18px; width: 144px; height: 96px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); z-index: 5; cursor: crosshair; }
+.minimap rect { fill: var(--dim); opacity: .4; }
+.minimap rect.vp { fill: var(--accent); fill-opacity: .12; stroke: var(--accent); opacity: 1; }
+.right { position: fixed; right: 0; top: 108px; bottom: 0; width: var(--right-width); min-width: 0; overflow: auto; background: var(--panel); border-left: 1px solid var(--border); box-shadow: var(--shadow); visibility: hidden; z-index: 15; }
+.right-open .right { visibility: visible; }
+.detail-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 2; color: var(--dim); font-size: 12px; }
+.detail-toolbar-left { display: flex; align-items: center; gap: 8px; }
+.detail { padding: 20px; font-size: 13px; overflow-wrap: anywhere; }
+.detail h3 { margin: 0 0 10px; font-size: 19px; line-height: 1.5; }
+.detail h4, .detail details > summary { margin: 24px 0 10px; font-size: 12px; font-weight: 650; }
+.detail details > summary { cursor: pointer; }
+.detail p { color: var(--muted); line-height: 1.8; }
+.detail .sub { color: var(--dim); font-size: 11px; margin-bottom: 10px; }
+.detail .row { margin: 7px 0; color: var(--muted); }
+.detail .row b { color: var(--ink); font-weight: 550; }
+.detail .ref-row { margin: 7px 0; }
+.ref-kind { display: inline-block; min-width: 28px; color: var(--dim); font-size: 11px; margin-right: 6px; }
+.ref-row .jump { color: var(--accent); }
+.ref-row .jump:hover { text-decoration: underline; }
+.ref-state { color: var(--muted); }
+.detail .tag { display: inline-block; background: var(--panel-2); border-radius: 3px; padding: 2px 6px; font-size: 11px; margin: 0 4px 4px 0; }
+.detail .jump { color: var(--accent); border: 0; background: transparent; padding: 0; text-align: left; cursor: pointer; }
+.detail .jump:hover { text-decoration: underline; }
+.edit-btn { font-size: 11px; padding: 2px 8px; margin-left: 6px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--accent); cursor: pointer; vertical-align: middle; }
+.edit-btn:hover { border-color: var(--accent); }
+.scene-nav { display: flex; justify-content: space-between; margin: 18px 0; }
+.scene-nav button { display: flex; align-items: center; gap: 4px; padding: 6px 8px; font-size: 12px; }
+.beat-item { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-left: 2px solid var(--border); border-radius: 0; padding: 8px 10px; margin: 4px 0; line-height: 1.8; font-size: 13px; overflow-wrap: anywhere; }
+.beat-item b { display: block; color: var(--dim); font-size: 11px; }
+.beat-item.selected { border-left-color: var(--accent); background: var(--accent-soft); }
+.relation-item { border-top: 1px solid var(--border); padding: 10px 0; line-height: 1.8; }
+.relation-item .scope-label { display: block; color: var(--dim); font-size: 11px; }
+.pair-block { margin: 10px 0; }
+.pair-block > summary { cursor: pointer; font-size: 13px; font-weight: 550; padding: 6px 0; }
+.pair-block.static { font-size: 13px; font-weight: 550; }
+.pair-chain { display: block; color: var(--muted); font-size: 12px; font-weight: 400; margin-top: 3px; }
+.pair-block > summary .jump { border: 0; background: transparent; padding: 0; color: var(--accent); }
+.detail .evo-event { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: 9px 4px; line-height: 1.7; color: var(--ink); cursor: pointer; }
+.detail .evo-event:hover { background: var(--panel-2); }
+.rel-kinds { color: var(--ink); font-size: 12px; margin: 4px 0 6px; }
+.evo-event b { display: block; }
+.evo-transition { color: var(--accent); }
+.evo-reason { display: block; color: var(--muted); font-size: 12px; }
+.evo-preview { padding: 8px 4px 12px; border-top: 1px dashed var(--border); background: var(--panel-2); border-radius: 6px; }
+.evo-preview .row { margin: 5px 0; }
+.preview-beat { margin: 5px 0; color: var(--muted); line-height: 1.7; }
+.preview-beat b { display: inline-block; min-width: 30px; color: var(--dim); font-weight: 500; margin-right: 6px; }
+.detail .scene-appearance { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.detail .scene-appearance button { display: inline-flex; align-items: baseline; gap: 8px; }
+.detail .scene-appearance p { margin: 6px 0; }
+.detail code { font-size: 11px; }
+.ref-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 8px; vertical-align: middle; }
+#empty-state { position: absolute; inset: 40% 0 auto; text-align: center; color: var(--muted); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 1100px) {
+  :root { --left-width: 210px; --right-width: 320px; }
+  body.right-open { grid-template-columns: var(--left-width) minmax(0, 1fr) 0; }
+  .minimap { display: none; }
+}
+@media (max-width: 700px) {
+  body, body.right-open { grid-template-columns: 0 minmax(0, 1fr) 0; }
+  .topbar { padding: 0 12px; gap: 12px; }
+  .brand { gap: 7px; }
+  .brand strong { font-size: 14px; }
+  .brand .divider, .story-title { display: none; }
+  .header-actions { gap: 3px; min-width: 0; }
+  .search-wrap { width: 132px; }
+  .workspace-bar { gap: 5px; padding: 0 8px; }
+  .seg { gap: 14px; }
+  .seg button { font-size: 12px; }
+  .workspace-count { display: none; }
+  #toggle-right { margin-left: auto; }
+  .left { position: fixed; left: 0; top: 108px; bottom: 0; width: 260px; box-shadow: var(--shadow); }
+  .right { width: min(344px, 100vw); }
+  .context-bar { left: 12px; right: 12px; flex-wrap: wrap; }
+  #relation-scope-wrap { margin-left: auto; }
+  .canvas-toolbar { left: 12px; bottom: 12px; }
+  .clear-selection { top: 84px; left: 12px; }
+}
+</style>
+</head>
+<body>
+<!-- Lucide icons, lucide-static v1.47.0, ISC license. -->
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="icon-panel-left" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></symbol>
+  <symbol id="icon-panel-right" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+  <symbol id="icon-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol>
+  <symbol id="icon-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol>
+  <symbol id="icon-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2"/><path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715"/><path d="M16 12a4 4 0 0 0-4-4"/><path d="m19 5-1.256 1.256"/><path d="M20 12h2"/></symbol>
+  <symbol id="icon-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="icon-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="icon-network" viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></symbol>
+  <symbol id="icon-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+</defs></svg>
+
+<header class="topbar">
+  <div class="brand"><img class="brand-logo" src="data:image/png;base64,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" alt="SparkRealm"><strong>SparkRealm</strong><span class="divider"></span><span class="story-title" title="小红帽">小红帽</span></div>
+  <div class="header-actions">
+    <div class="search-wrap"><svg class="icon"><use href="#icon-search"/></svg><input id="search" type="search" autocomplete="off" placeholder="搜索故事" aria-label="搜索场景、节拍或要素" aria-controls="search-results" aria-expanded="false"><div id="search-results" class="search-results" hidden></div></div>
+    <button class="icon-button" id="theme" type="button" title="切换主题" aria-label="切换主题"><svg class="icon"><use href="#icon-sun-moon"/></svg></button>
+  </div>
+</header>
+<nav class="workspace-bar" aria-label="图谱视图">
+  <button class="icon-button" id="toggle-left" title="显示或收起目录" aria-label="显示或收起目录" aria-expanded="true" aria-controls="left-panel"><svg class="icon"><use href="#icon-panel-left"/></svg></button>
+  <div class="seg" role="tablist" aria-label="故事视图">
+    <button role="tab" data-view="logic" aria-selected="true" class="active">故事逻辑</button>
+    <button role="tab" data-view="charmap" aria-selected="false" tabindex="-1">要素关系</button>
+  </div>
+
+  <span id="story-count" class="workspace-count"></span>
+  <button class="icon-button" id="toggle-right" title="显示或收起详情" aria-label="显示或收起详情" aria-expanded="false" aria-controls="right-panel"><svg class="icon"><use href="#icon-panel-right"/></svg></button>
+</nav>
+<aside class="left" id="left-panel" aria-label="故事目录">
+  <section class="panel"><div class="section-heading"><h2>故事大纲</h2><span id="scene-count"></span></div><div id="outline"></div></section>
+  <details class="panel" open><summary>故事要素</summary><div id="entities"></div></details>
+  <details class="panel"><summary>故事情节</summary><div id="legend"></div></details>
+</aside>
+<main class="canvas" id="canvas" aria-label="故事图谱画布">
+  <div class="context-bar"><span id="mode-context"></span><button type="button" id="layout-toggle" class="layout-toggle" hidden></button><label id="relation-scope-wrap" hidden>关系时点 <select id="relation-scope" aria-label="关系生效场景"></select></label></div>
+  <svg class="story-svg" data-mode="telling" viewBox="0 0 1164 1172" aria-label="讲述顺序图"><defs><marker id="telling-before" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-before"/></marker><marker id="telling-causes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-causes"/></marker><marker id="telling-setsUp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-setsUp"/></marker><marker id="telling-sequence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-sequence"/></marker><marker id="telling-person" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-person"/></marker></defs><g class="edges"><path class="sequence-edge" d="M 336 169 C 362 169 374 169 400 169" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 400 169 C 374 169 362 471 336 471" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 336 471 C 362 471 374 471 400 471" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 400 471 C 374 471 362 773 336 773" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 336 773 C 362 773 374 773 400 773" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 700 773 C 726 773 738 773 764 773" marker-end="url(#telling-sequence)"/><path class="sequence-edge" d="M 764 773 C 592.8 773 507.20000000000005 1015 336 1015" marker-end="url(#telling-sequence)"/><g class="logic-edge rel-causes" data-edge-id="lr_1" data-source="scene_001" data-target="scene_002" data-kind="causes" tabindex="0" role="button" aria-label="因果：出门送吃食，才在小路上遇见大灰狼。"><path class="edge-hit" d="M 336 151 C 362 151 374 151 400 151"/><path class="edge-line" d="M 336 151 C 362 151 374 151 400 151" marker-end="url(#telling-causes)"/><title>因果：出门送吃食，才在小路上遇见大灰狼。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_2" data-source="scene_002" data-target="scene_003" data-kind="causes" tabindex="0" role="button" aria-label="因果：得知住处后，狼诱她采花以便先行。"><path class="edge-hit" d="M 400 151 C 374 151 362 453 336 453"/><path class="edge-line" d="M 400 151 C 374 151 362 453 336 453" marker-end="url(#telling-causes)"/><title>因果：得知住处后，狼诱她采花以便先行。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_3" data-source="scene_003" data-target="scene_004" data-kind="causes" tabindex="0" role="button" aria-label="因果：小红帽被支开，狼抢先抵达小屋行凶。"><path class="edge-hit" d="M 336 453 C 362 453 374 453 400 453"/><path class="edge-line" d="M 336 453 C 362 453 374 453 400 453" marker-end="url(#telling-causes)"/><title>因果：小红帽被支开，狼抢先抵达小屋行凶。</title></g><g class="logic-edge rel-before" data-edge-id="lr_4" data-source="scene_004" data-target="scene_005" data-kind="before" tabindex="0" role="button" aria-label="先后：假扮就绪后，小红帽才推门而入。"><path class="edge-hit" d="M 400 453 C 374 453 362 755 336 755"/><path class="edge-line" d="M 400 453 C 374 453 362 755 336 755" marker-end="url(#telling-before)"/><title>先后：假扮就绪后，小红帽才推门而入。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_5" data-source="scene_005" data-target="scene_006" data-kind="causes" tabindex="0" role="button" aria-label="因果：身份被识破，狼当即吞下小红帽。"><path class="edge-hit" d="M 336 755 C 362 755 374 755 400 755"/><path class="edge-line" d="M 336 755 C 362 755 374 755 400 755" marker-end="url(#telling-causes)"/><title>因果：身份被识破，狼当即吞下小红帽。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_6" data-source="scene_006" data-target="scene_007" data-kind="causes" tabindex="0" role="button" aria-label="因果：震天的鼾声引来路过的猎人。"><path class="edge-hit" d="M 700 755 C 726 755 738 755 764 755"/><path class="edge-line" d="M 700 755 C 726 755 738 755 764 755" marker-end="url(#telling-causes)"/><title>因果：震天的鼾声引来路过的猎人。</title></g><g class="logic-edge rel-before" data-edge-id="lr_7" data-source="scene_007" data-target="scene_008" data-kind="before" tabindex="0" role="button" aria-label="先后：获救之后，三人围坐庆余生。"><path class="edge-hit" d="M 764 755 C 592.8 755 507.20000000000005 997 336 997"/><path class="edge-line" d="M 764 755 C 592.8 755 507.20000000000005 997 336 997" marker-end="url(#telling-before)"/><title>先后：获救之后，三人围坐庆余生。</title></g></g><g class="nodes"><g class="graph-node scene role-setup" data-node-id="scene_001" data-node-type="scene" transform="translate(36 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">01</span><span class="node-title" title="妈妈的嘱托">妈妈的嘱托</span></div>
+    <p class="node-summary" title="妈妈让小红帽给生病的外婆送去蛋糕和酒，叮嘱她别离开大路。">妈妈让小红帽给生病的外婆送去蛋糕和酒，叮嘱她别离开大路。</p>
+    <div class="node-location" title="家">家</div>
+    <div class="node-people" title="妈妈、小红帽">妈妈、小红帽</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_002" data-node-type="scene" transform="translate(400 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">02</span><span class="node-title" title="林中小路遇狼">林中小路遇狼</span></div>
+    <p class="node-summary" title="小红帽在林中遇见大灰狼，被三言两语套出了外婆的住处。">小红帽在林中遇见大灰狼，被三言两语套出了外婆的住处。</p>
+    <div class="node-location" title="森林">森林</div>
+    <div class="node-people" title="小红帽、大灰狼">小红帽、大灰狼</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_003" data-node-type="scene" transform="translate(36 374)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">03</span><span class="node-title" title="采花误时">采花误时</span></div>
+    <p class="node-summary" title="狼诱小红帽去采花，自己却抄近路抢先赶往外婆的小屋。">狼诱小红帽去采花，自己却抄近路抢先赶往外婆的小屋。</p>
+    <div class="node-location" title="森林">森林</div>
+    <div class="node-people" title="小红帽、大灰狼">小红帽、大灰狼</div>
+    <div class="node-footer"><span>4 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_004" data-node-type="scene" transform="translate(400 374)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">04</span><span class="node-title" title="假扮外婆">假扮外婆</span></div>
+    <p class="node-summary" title="大灰狼赶到小屋吞下外婆，穿上她的睡衣、戴上睡帽，躺进被窝等候。">大灰狼赶到小屋吞下外婆，穿上她的睡衣、戴上睡帽，躺进被窝等候。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="外婆、大灰狼">外婆、大灰狼</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_005" data-node-type="scene" transform="translate(36 676)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">05</span><span class="node-title" title="四问识破">四问识破</span></div>
+    <p class="node-summary" title="小红帽到访，接连追问“耳朵、眼睛、手、嘴为什么这么大”，终被假扮外婆的狼识破。">小红帽到访，接连追问“耳朵、眼睛、手、嘴为什么这么大”，终被假扮外婆的狼识破。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="小红帽、大灰狼">小红帽、大灰狼</div>
+    <div class="node-footer"><span>10 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_006" data-node-type="scene" transform="translate(400 676)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">06</span><span class="node-title" title="狼吞小红帽">狼吞小红帽</span></div>
+    <p class="node-summary" title="大灰狼一跃而起吞下小红帽，拍拍肚皮躺回床上，打起震天的呼噜。">大灰狼一跃而起吞下小红帽，拍拍肚皮躺回床上，打起震天的呼噜。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="小红帽、大灰狼">小红帽、大灰狼</div>
+    <div class="node-footer"><span>2 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_007" data-node-type="scene" transform="translate(764 676)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">07</span><span class="node-title" title="猎人相救">猎人相救</span></div>
+    <p class="node-summary" title="猎人循着鼾声进屋，剪开狼肚救出祖孙，填入石头；狼醒后栽倒而死。">猎人循着鼾声进屋，剪开狼肚救出祖孙，填入石头；狼醒后栽倒而死。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="猎人、大灰狼、小红帽、外婆">猎人、大灰狼、小红帽、外婆</div>
+    <div class="node-footer"><span>7 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_008" data-node-type="scene" transform="translate(36 918)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">08</span><span class="node-title" title="劫后余生">劫后余生</span></div>
+    <p class="node-summary" title="祖孙与猎人分食蛋糕与酒，小红帽立誓再不听信陌生人；林中再无恶狼。">祖孙与猎人分食蛋糕与酒，小红帽立誓再不听信陌生人；林中再无恶狼。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="小红帽、外婆、猎人">小红帽、外婆、猎人</div>
+    <div class="node-footer"><span>4 个节拍</span><span class="node-badges"><span>过渡</span></span></div></div></foreignObject>
+  </g></g><text class="column-label" x="36" y="53">第一幕·嘱托与路遇</text><text class="column-label" x="36" y="355">第二幕·狼的诡计</text><text class="column-label" x="36" y="657">第三幕·识破与相救</text></svg><svg class="story-svg" data-mode="time" viewBox="0 0 1528 882" aria-label="故事时间图"><defs><marker id="time-before" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-before"/></marker><marker id="time-causes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-causes"/></marker><marker id="time-setsUp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-setsUp"/></marker><marker id="time-sequence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-sequence"/></marker><marker id="time-person" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-person"/></marker></defs><g class="edges"><g class="logic-edge rel-causes" data-edge-id="lr_1" data-source="scene_001" data-target="scene_002" data-kind="causes" tabindex="0" role="button" aria-label="因果：出门送吃食，才在小路上遇见大灰狼。"><path class="edge-hit" d="M 336 707 C 362 707 374 707 400 707"/><path class="edge-line" d="M 336 707 C 362 707 374 707 400 707" marker-end="url(#time-causes)"/><title>因果：出门送吃食，才在小路上遇见大灰狼。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_2" data-source="scene_002" data-target="scene_003" data-kind="causes" tabindex="0" role="button" aria-label="因果：得知住处后，狼诱她采花以便先行。"><path class="edge-hit" d="M 700 707 C 726 707 738 707 764 707"/><path class="edge-line" d="M 700 707 C 726 707 738 707 764 707" marker-end="url(#time-causes)"/><title>因果：得知住处后，狼诱她采花以便先行。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_3" data-source="scene_003" data-target="scene_004" data-kind="causes" tabindex="0" role="button" aria-label="因果：小红帽被支开，狼抢先抵达小屋行凶。"><path class="edge-hit" d="M 764 707 C 592.8 707 507.20000000000005 151 336 151"/><path class="edge-line" d="M 764 707 C 592.8 707 507.20000000000005 151 336 151" marker-end="url(#time-causes)"/><title>因果：小红帽被支开，狼抢先抵达小屋行凶。</title></g><g class="logic-edge rel-before" data-edge-id="lr_4" data-source="scene_004" data-target="scene_005" data-kind="before" tabindex="0" role="button" aria-label="先后：假扮就绪后，小红帽才推门而入。"><path class="edge-hit" d="M 168 266 C 168 299.6 168 316.4 168 350"/><path class="edge-line" d="M 168 266 C 168 299.6 168 316.4 168 350" marker-end="url(#time-before)"/><title>先后：假扮就绪后，小红帽才推门而入。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_5" data-source="scene_005" data-target="scene_006" data-kind="causes" tabindex="0" role="button" aria-label="因果：身份被识破，狼当即吞下小红帽。"><path class="edge-hit" d="M 336 429 C 652.8 429 811.2 707 1128 707"/><path class="edge-line" d="M 336 429 C 652.8 429 811.2 707 1128 707" marker-end="url(#time-causes)"/><title>因果：身份被识破，狼当即吞下小红帽。</title></g><g class="logic-edge rel-causes" data-edge-id="lr_6" data-source="scene_006" data-target="scene_007" data-kind="causes" tabindex="0" role="button" aria-label="因果：震天的鼾声引来路过的猎人。"><path class="edge-hit" d="M 1128 707 C 956.8 707 871.2 151 700 151"/><path class="edge-line" d="M 1128 707 C 956.8 707 871.2 151 700 151" marker-end="url(#time-causes)"/><title>因果：震天的鼾声引来路过的猎人。</title></g><g class="logic-edge rel-before" data-edge-id="lr_7" data-source="scene_007" data-target="scene_008" data-kind="before" tabindex="0" role="button" aria-label="先后：获救之后，三人围坐庆余生。"><path class="edge-hit" d="M 532 266 C 532 299.6 532 316.4 532 350"/><path class="edge-line" d="M 532 266 C 532 299.6 532 316.4 532 350" marker-end="url(#time-before)"/><title>先后：获救之后，三人围坐庆余生。</title></g></g><g class="nodes"><g class="graph-node scene role-setup" data-node-id="scene_001" data-node-type="scene" transform="translate(36 628)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">01</span><span class="node-title" title="妈妈的嘱托">妈妈的嘱托</span></div>
+    <p class="node-summary" title="妈妈让小红帽给生病的外婆送去蛋糕和酒，叮嘱她别离开大路。">妈妈让小红帽给生病的外婆送去蛋糕和酒，叮嘱她别离开大路。</p>
+    <div class="node-location" title="家">家</div>
+    <div class="node-people" title="妈妈、小红帽">妈妈、小红帽</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>铺垫</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_002" data-node-type="scene" transform="translate(400 628)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">02</span><span class="node-title" title="林中小路遇狼">林中小路遇狼</span></div>
+    <p class="node-summary" title="小红帽在林中遇见大灰狼，被三言两语套出了外婆的住处。">小红帽在林中遇见大灰狼，被三言两语套出了外婆的住处。</p>
+    <div class="node-location" title="森林">森林</div>
+    <div class="node-people" title="小红帽、大灰狼">小红帽、大灰狼</div>
+    <div class="node-footer"><span>6 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_003" data-node-type="scene" transform="translate(764 628)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">03</span><span class="node-title" title="采花误时">采花误时</span></div>
+    <p class="node-summary" title="狼诱小红帽去采花，自己却抄近路抢先赶往外婆的小屋。">狼诱小红帽去采花，自己却抄近路抢先赶往外婆的小屋。</p>
+    <div class="node-location" title="森林">森林</div>
+    <div class="node-people" title="小红帽、大灰狼">小红帽、大灰狼</div>
+    <div class="node-footer"><span>4 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_004" data-node-type="scene" transform="translate(36 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">04</span><span class="node-title" title="假扮外婆">假扮外婆</span></div>
+    <p class="node-summary" title="大灰狼赶到小屋吞下外婆，穿上她的睡衣、戴上睡帽，躺进被窝等候。">大灰狼赶到小屋吞下外婆，穿上她的睡衣、戴上睡帽，躺进被窝等候。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="外婆、大灰狼">外婆、大灰狼</div>
+    <div class="node-footer"><span>5 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_005" data-node-type="scene" transform="translate(36 350)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">05</span><span class="node-title" title="四问识破">四问识破</span></div>
+    <p class="node-summary" title="小红帽到访，接连追问“耳朵、眼睛、手、嘴为什么这么大”，终被假扮外婆的狼识破。">小红帽到访，接连追问“耳朵、眼睛、手、嘴为什么这么大”，终被假扮外婆的狼识破。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="小红帽、大灰狼">小红帽、大灰狼</div>
+    <div class="node-footer"><span>10 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-climax" data-node-id="scene_006" data-node-type="scene" transform="translate(1128 628)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">06</span><span class="node-title" title="狼吞小红帽">狼吞小红帽</span></div>
+    <p class="node-summary" title="大灰狼一跃而起吞下小红帽，拍拍肚皮躺回床上，打起震天的呼噜。">大灰狼一跃而起吞下小红帽，拍拍肚皮躺回床上，打起震天的呼噜。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="小红帽、大灰狼">小红帽、大灰狼</div>
+    <div class="node-footer"><span>2 个节拍</span><span class="node-badges"><span>高潮</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-turningPoint" data-node-id="scene_007" data-node-type="scene" transform="translate(400 72)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">07</span><span class="node-title" title="猎人相救">猎人相救</span></div>
+    <p class="node-summary" title="猎人循着鼾声进屋，剪开狼肚救出祖孙，填入石头；狼醒后栽倒而死。">猎人循着鼾声进屋，剪开狼肚救出祖孙，填入石头；狼醒后栽倒而死。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="猎人、大灰狼、小红帽、外婆">猎人、大灰狼、小红帽、外婆</div>
+    <div class="node-footer"><span>7 个节拍</span><span class="node-badges"><span>转折</span></span></div></div></foreignObject>
+  </g><g class="graph-node scene role-transition" data-node-id="scene_008" data-node-type="scene" transform="translate(400 350)" tabindex="0" role="button">
+    <rect class="node-box" width="300" height="194" rx="8"/>
+    <foreignObject x="1" y="1" width="298" height="192"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">08</span><span class="node-title" title="劫后余生">劫后余生</span></div>
+    <p class="node-summary" title="祖孙与猎人分食蛋糕与酒，小红帽立誓再不听信陌生人；林中再无恶狼。">祖孙与猎人分食蛋糕与酒，小红帽立誓再不听信陌生人；林中再无恶狼。</p>
+    <div class="node-location" title="外婆的小屋">外婆的小屋</div>
+    <div class="node-people" title="小红帽、外婆、猎人">小红帽、外婆、猎人</div>
+    <div class="node-footer"><span>4 个节拍</span><span class="node-badges"><span>过渡</span></span></div></div></foreignObject>
+  </g></g><text class="column-label" x="36" y="53">时间点 1：正午、傍晚</text><text class="column-label" x="36" y="331">时间点 2：下午、傍晚</text><text class="column-label" x="36" y="609">先后未定</text></svg><svg class="story-svg charm-svg" data-mode="charmap" viewBox="0 0 1380 910" aria-label="要素关系图"><defs><marker id="charmap-before" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-before"/></marker><marker id="charmap-causes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-causes"/></marker><marker id="charmap-setsUp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-setsUp"/></marker><marker id="charmap-sequence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-sequence"/></marker><marker id="charmap-person" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="marker-person"/></marker></defs><g class="edges"><path class="part-edge" d="M 276 100 C 337.6 100 368.4 219 430 219" data-source="scene_001" data-target="char_mother" data-kind="character"/><path class="part-edge" d="M 276 100 C 337.6 100 368.4 113 430 113" data-source="scene_001" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 276 180 C 337.6 180 368.4 113 430 113" data-source="scene_002" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 276 318 C 337.6 318 368.4 113 430 113" data-source="scene_003" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 156 506 C 156 362.79999999999995 538 291.20000000000005 538 148" data-source="scene_005" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 156 586 C 156 410.79999999999995 538 323.20000000000005 538 148" data-source="scene_006" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 156 666 C 156 458.79999999999995 538 355.20000000000005 538 148" data-source="scene_007" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 156 746 C 156 506.79999999999995 538 387.20000000000005 538 148" data-source="scene_008" data-target="char_red" data-kind="character"/><path class="part-edge" d="M 276 100 C 461.6 100 554.4 113 740 113" data-source="scene_001" data-target="loc_home" data-kind="location"/><path class="part-edge" d="M 276 100 C 585.6 100 740.4 219 1050 219" data-source="scene_001" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 180 C 585.6 180 740.4 219 1050 219" data-source="scene_002" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 318 C 585.6 318 740.4 219 1050 219" data-source="scene_003" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 536 C 585.6 536 740.4 219 1050 219" data-source="scene_005" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 776 C 585.6 776 740.4 219 1050 219" data-source="scene_008" data-target="prop_basket" data-kind="prop"/><path class="part-edge" d="M 276 100 C 585.6 100 740.4 113 1050 113" data-source="scene_001" data-target="prop_hood" data-kind="prop"/><path class="part-edge" d="M 276 180 C 337.6 180 368.4 325 430 325" data-source="scene_002" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 318 C 337.6 318 368.4 325 430 325" data-source="scene_003" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 398 C 337.6 398 368.4 325 430 325" data-source="scene_004" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 536 C 337.6 536 368.4 325 430 325" data-source="scene_005" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 616 C 337.6 616 368.4 325 430 325" data-source="scene_006" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 696 C 337.6 696 368.4 325 430 325" data-source="scene_007" data-target="char_wolf" data-kind="character"/><path class="part-edge" d="M 276 180 C 461.6 180 554.4 219 740 219" data-source="scene_002" data-target="loc_forest" data-kind="location"/><path class="part-edge" d="M 276 318 C 461.6 318 554.4 219 740 219" data-source="scene_003" data-target="loc_forest" data-kind="location"/><path class="part-edge" d="M 276 398 C 337.6 398 368.4 431 430 431" data-source="scene_004" data-target="char_grandma" data-kind="character"/><path class="part-edge" d="M 276 696 C 337.6 696 368.4 431 430 431" data-source="scene_007" data-target="char_grandma" data-kind="character"/><path class="part-edge" d="M 276 776 C 337.6 776 368.4 431 430 431" data-source="scene_008" data-target="char_grandma" data-kind="character"/><path class="part-edge" d="M 276 398 C 461.6 398 554.4 325 740 325" data-source="scene_004" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 536 C 461.6 536 554.4 325 740 325" data-source="scene_005" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 616 C 461.6 616 554.4 325 740 325" data-source="scene_006" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 696 C 461.6 696 554.4 325 740 325" data-source="scene_007" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 776 C 461.6 776 554.4 325 740 325" data-source="scene_008" data-target="loc_cottage" data-kind="location"/><path class="part-edge" d="M 276 398 C 585.6 398 740.4 431 1050 431" data-source="scene_004" data-target="prop_gown" data-kind="prop"/><path class="part-edge" d="M 276 536 C 585.6 536 740.4 431 1050 431" data-source="scene_005" data-target="prop_gown" data-kind="prop"/><path class="part-edge" d="M 276 616 C 585.6 616 740.4 431 1050 431" data-source="scene_006" data-target="prop_gown" data-kind="prop"/><path class="part-edge" d="M 276 398 C 585.6 398 740.4 325 1050 325" data-source="scene_004" data-target="prop_cap" data-kind="prop"/><path class="part-edge" d="M 276 536 C 585.6 536 740.4 325 1050 325" data-source="scene_005" data-target="prop_cap" data-kind="prop"/><path class="part-edge" d="M 276 616 C 585.6 616 740.4 325 1050 325" data-source="scene_006" data-target="prop_cap" data-kind="prop"/><path class="part-edge" d="M 276 696 C 337.6 696 368.4 537 430 537" data-source="scene_007" data-target="char_hunter" data-kind="character"/><path class="part-edge" d="M 276 776 C 337.6 776 368.4 537 430 537" data-source="scene_008" data-target="char_hunter" data-kind="character"/><path class="part-edge" d="M 276 696 C 585.6 696 740.4 537 1050 537" data-source="scene_007" data-target="prop_scissors" data-kind="prop"/><path class="part-edge" d="M 276 696 C 585.6 696 740.4 643 1050 643" data-source="scene_007" data-target="prop_stones" data-kind="prop"/><g class="pair-edge" data-relation-id="cr_1" data-source="char_wolf" data-target="char_red" tabindex="0" role="button" aria-label="大灰狼 → 小红帽：欺骗与吞食"><path class="edge-hit" d="M 646 325 C 686 325 686 113 646 113"/><path class="edge-line" d="M 646 325 C 686 325 686 113 646 113" marker-end="url(#charmap-person)"/><title>大灰狼 → 小红帽：欺骗与吞食</title></g><g class="pair-edge" data-relation-id="cr_2" data-source="char_wolf" data-target="char_grandma" tabindex="0" role="button" aria-label="大灰狼 → 外婆：吞食"><path class="edge-hit" d="M 646 325 C 694 325 694 431 646 431"/><path class="edge-line" d="M 646 325 C 694 325 694 431 646 431" marker-end="url(#charmap-person)"/><title>大灰狼 → 外婆：吞食</title></g><g class="pair-edge" data-relation-id="cr_3" data-source="char_hunter" data-target="char_red" tabindex="0" role="button" aria-label="猎人 → 小红帽：相救"><path class="edge-hit" d="M 646 537 C 702 537 702 113 646 113"/><path class="edge-line" d="M 646 537 C 702 537 702 113 646 113" marker-end="url(#charmap-person)"/><title>猎人 → 小红帽：相救</title></g><g class="pair-edge" data-relation-id="cr_4" data-source="char_hunter" data-target="char_grandma" tabindex="0" role="button" aria-label="猎人 → 外婆：相救"><path class="edge-hit" d="M 646 537 C 710 537 710 431 646 431"/><path class="edge-line" d="M 646 537 C 710 537 710 431 646 431" marker-end="url(#charmap-person)"/><title>猎人 → 外婆：相救</title></g><g class="pair-edge" data-relation-id="cr_5" data-source="char_mother" data-target="char_red" tabindex="0" role="button" aria-label="妈妈 → 小红帽：母女，谨慎嘱咐"><path class="edge-hit" d="M 646 219 C 718 219 718 113 646 113"/><path class="edge-line" d="M 646 219 C 718 219 718 113 646 113" marker-end="url(#charmap-person)"/><title>妈妈 → 小红帽：母女，谨慎嘱咐</title></g><g class="pair-edge" data-relation-id="cr_6" data-source="char_grandma" data-target="char_red" tabindex="0" role="button" aria-label="外婆 → 小红帽：外婆的疼爱"><path class="edge-hit" d="M 646 431 C 686 431 686 113 646 113"/><path class="edge-line" d="M 646 431 C 686 431 686 113 646 113" marker-end="url(#charmap-person)"/><title>外婆 → 小红帽：外婆的疼爱</title></g></g><g class="nodes"><g class="graph-node scene compact" data-node-id="scene_001" data-node-type="scene" transform="translate(36 70)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">01</span><span class="node-title" title="妈妈的嘱托">妈妈的嘱托</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_002" data-node-type="scene" transform="translate(36 150)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">02</span><span class="node-title" title="林中小路遇狼">林中小路遇狼</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_003" data-node-type="scene" transform="translate(36 288)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">03</span><span class="node-title" title="采花误时">采花误时</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_004" data-node-type="scene" transform="translate(36 368)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">04</span><span class="node-title" title="假扮外婆">假扮外婆</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_005" data-node-type="scene" transform="translate(36 506)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">05</span><span class="node-title" title="四问识破">四问识破</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_006" data-node-type="scene" transform="translate(36 586)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">06</span><span class="node-title" title="狼吞小红帽">狼吞小红帽</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_007" data-node-type="scene" transform="translate(36 666)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">07</span><span class="node-title" title="猎人相救">猎人相救</span></div></div></foreignObject>
+  </g><g class="graph-node scene compact" data-node-id="scene_008" data-node-type="scene" transform="translate(36 746)" tabindex="0" role="button">
+    <rect class="node-box" width="240" height="60" rx="8"/>
+    <foreignObject x="1" y="1" width="238" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="node-heading"><span class="node-number">08</span><span class="node-title" title="劫后余生">劫后余生</span></div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_red" data-node-type="entity" data-kind="character" transform="translate(430 78)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="小红帽">小红帽</span></div><div class="entity-count">7 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_mother" data-node-type="entity" data-kind="character" transform="translate(430 184)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="妈妈">妈妈</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_wolf" data-node-type="entity" data-kind="character" transform="translate(430 290)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="大灰狼">大灰狼</span></div><div class="entity-count">6 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_grandma" data-node-type="entity" data-kind="character" transform="translate(430 396)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="外婆">外婆</span></div><div class="entity-count">3 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-character" data-node-id="char_hunter" data-node-type="entity" data-kind="character" transform="translate(430 502)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-character">人物</span><span class="entity-name" title="猎人">猎人</span></div><div class="entity-count">2 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_home" data-node-type="entity" data-kind="location" transform="translate(740 78)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">地点</span><span class="entity-name" title="家">家</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_forest" data-node-type="entity" data-kind="location" transform="translate(740 184)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">地点</span><span class="entity-name" title="森林">森林</span></div><div class="entity-count">2 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-location" data-node-id="loc_cottage" data-node-type="entity" data-kind="location" transform="translate(740 290)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-location">地点</span><span class="entity-name" title="外婆的小屋">外婆的小屋</span></div><div class="entity-count">5 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_hood" data-node-type="entity" data-kind="prop" transform="translate(1050 78)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="红帽">红帽</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_basket" data-node-type="entity" data-kind="prop" transform="translate(1050 184)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="篮子">篮子</span></div><div class="entity-count">5 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_cap" data-node-type="entity" data-kind="prop" transform="translate(1050 290)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="睡帽">睡帽</span></div><div class="entity-count">3 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_gown" data-node-type="entity" data-kind="prop" transform="translate(1050 396)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="睡衣">睡衣</span></div><div class="entity-count">3 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_scissors" data-node-type="entity" data-kind="prop" transform="translate(1050 502)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="剪刀">剪刀</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g><g class="graph-node entity kind-prop" data-node-id="prop_stones" data-node-type="entity" data-kind="prop" transform="translate(1050 608)" tabindex="0" role="button">
+    <rect class="node-box" width="216" height="70" rx="8"/>
+    <foreignObject x="1" y="1" width="214" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-content"><div class="entity-heading"><span class="entity-kind kind-prop">道具</span><span class="entity-name" title="石头">石头</span></div><div class="entity-count">1 场出现</div></div></foreignObject>
+  </g></g><text class="column-label" x="430" y="53">人物</text><text class="column-label" x="740" y="53">地点</text><text class="column-label" x="1050" y="53">道具</text><text class="column-label" x="36" y="53">第一幕·嘱托与路遇</text><text class="column-label" x="36" y="271">第二幕·狼的诡计</text><text class="column-label" x="36" y="489">第三幕·识破与相救</text></svg>
+  <div id="empty-state" hidden>故事尚无场景</div>
+  <div class="canvas-toolbar" role="toolbar" aria-label="画布缩放">
+    <button class="icon-button" id="zoom-out" aria-label="缩小" title="缩小"><svg class="icon"><use href="#icon-minus"/></svg></button>
+    <button id="zoom-reset" class="zoom-value" aria-label="恢复可读缩放" title="恢复可读缩放">100%</button>
+    <button class="icon-button" id="zoom-in" aria-label="放大" title="放大"><svg class="icon"><use href="#icon-plus"/></svg></button>
+    <span class="divider"></span>
+    <button class="icon-button" id="fit" aria-label="查看全图" title="查看全图"><svg class="icon"><use href="#icon-scan"/></svg></button>
+    <button class="icon-button" id="focus" aria-label="定位所选节点" title="定位所选节点" disabled><svg class="icon"><use href="#icon-focus"/></svg></button>
+  </div>
+  <button id="clear-selection" class="clear-selection" hidden><svg class="icon"><use href="#icon-x"/></svg>清除选择</button>
+  <div id="minimap" class="minimap" aria-label="图谱缩略图"></div>
+</main>
+<aside class="right" id="right-panel" aria-label="故事详情" inert>
+  <div class="detail-toolbar"><div class="detail-toolbar-left"><button class="icon-button" id="detail-back" aria-label="返回上一处" title="返回上一处" disabled><svg class="icon"><use href="#icon-chevron-left"/></svg></button><span>故事详情</span></div><button class="icon-button" id="close-detail" aria-label="关闭详情" title="关闭详情"><svg class="icon"><use href="#icon-x"/></svg></button></div>
+  <div id="detail" class="detail"></div>
+</aside>
+<div id="status" role="status" aria-live="polite" class="sr-only"></div>
+<script>window.__STORYGRAPH__ = {"meta":{"title":"小红帽","logline":"小红帽给生病的外婆送蛋糕与酒，途中被大灰狼套出住处并诱去采花；狼先到小屋吞下外婆、假扮她，又吞下小红帽。猎人循着鼾声剪开狼肚救出祖孙，填入石头除掉了恶狼。","theme":"轻信与好奇的代价，谨慎与机智可自救","language":"zh-CN"},"storyId":"story_little_red","revision":2,"entities":{"char_red":{"kind":"character","name":"小红帽","tags":["主角","女孩"],"fixedTraits":{"外貌":"总戴一顶红色天鹅绒小帽","性情":"乖巧天真、毫无戒心"},"motivation":"把蛋糕和酒送到外婆家，讨外婆欢心","voiceDescription":"清脆稚嫩"},"char_mother":{"kind":"character","name":"妈妈","tags":["配角"],"fixedTraits":{"身份":"小红帽的母亲","性情":"慈爱而谨慎"},"motivation":"照顾好生病的母亲，也护好女儿","voiceDescription":"温和而郑重"},"char_grandma":{"kind":"character","name":"外婆","tags":["配角"],"fixedTraits":{"身份":"小红帽的外婆","性情":"慈祥虚弱"},"motivation":"安度病中时光，疼爱外孙女","voiceDescription":"苍老含混"},"char_wolf":{"kind":"character","name":"大灰狼","tags":["反派"],"fixedTraits":{"外貌":"灰毛、牙口尖利","性情":"狡诈凶残、善于伪装"},"motivation":"骗出外婆住处，把祖孙二人一口吞掉","voiceDescription":"假意和善、暗中阴冷"},"char_hunter":{"kind":"character","name":"猎人","tags":["配角"],"fixedTraits":{"身份":"林中的猎人","性情":"机警、果断、心地善良"},"motivation":"除掉恶狼，救出遇险的人","voiceDescription":"低沉爽利"},"loc_home":{"kind":"location","name":"家","description":"小红帽与妈妈居住的小屋，林外村子的边缘。"},"loc_forest":{"kind":"location","name":"森林","description":"通往外婆家的幽深林子，岔路与花丛遍布。","areas":[{"id":"area_path","name":"林间小路","description":"妈妈反复叮嘱不要离开的大路。"},{"id":"area_flower","name":"花丛","description":"路边一片开满野花的坡地。"}]},"loc_cottage":{"kind":"location","name":"外婆的小屋","description":"森林另一头、三棵大橡树下的老屋，外婆卧床养病之处。"},"prop_hood":{"kind":"prop","name":"红帽","description":"外婆送给小红帽的红色天鹅绒小帽，她总戴在头上。","initialOwnerId":"char_red"},"prop_basket":{"kind":"prop","name":"篮子","description":"装着蛋糕和一瓶葡萄酒的竹篮。","initialOwnerId":"char_red"},"prop_cap":{"kind":"prop","name":"睡帽","description":"外婆的睡帽，被大灰狼戴上去假扮老人。","initialOwnerId":null},"prop_gown":{"kind":"prop","name":"睡衣","description":"外婆的睡衣，被大灰狼穿上冒充外婆。","initialOwnerId":null},"prop_scissors":{"kind":"prop","name":"剪刀","description":"猎人随身携带的剪刀，用来剪开狼肚。","initialOwnerId":null},"prop_stones":{"kind":"prop","name":"石头","description":"填进狼肚、压垮大灰狼的沉甸甸的石头。","initialOwnerId":null}},"threads":{"thread_main":{"id":"thread_main","name":"主线","description":"小红帽送吃食途中遭狼算计，祖孙被吞又获救、恶狼受惩的完整历程。"}},"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"order":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"unarranged":[],"tellingIndex":{"scene_001":0,"scene_002":1,"scene_003":2,"scene_004":3,"scene_005":4,"scene_006":5,"scene_007":6,"scene_008":7},"layer":{"scene_001":0,"scene_002":0,"scene_003":0,"scene_004":0,"scene_005":1,"scene_006":0,"scene_007":0,"scene_008":1},"sceneTime":{"scene_001":"早晨","scene_002":"正午","scene_003":"正午","scene_004":"正午","scene_005":"下午","scene_006":"下午","scene_007":"傍晚","scene_008":"傍晚"},"timeKnown":["scene_005","scene_004","scene_008","scene_007"],"inverted":[],"actsFlat":[{"id":"act_1","title":"第一幕·嘱托与路遇","summary":"妈妈托付小红帽送吃食，叮嘱别离开大路；她却在林中遇上了大灰狼。","sceneIds":["scene_001","scene_002"]},{"id":"act_2","title":"第二幕·狼的诡计","summary":"狼诱小红帽采花拖延，抢先赶到小屋吞下外婆并假扮她。","sceneIds":["scene_003","scene_004"]},{"id":"act_3","title":"第三幕·识破与相救","summary":"小红帽四问识破恶狼却被吞下；猎人剪开狼肚救出祖孙，填石除狼。","sceneIds":["scene_005","scene_006","scene_007","scene_008"]}],"beats":[{"id":"beat_0001","kind":"narration","text":"从前有个可爱的小姑娘，外婆送她一顶红色天鹅绒小帽，她总戴着，大家便叫她小红帽。","sceneId":"scene_001","index":0},{"id":"beat_0002","kind":"dialogue","text":"把这篮蛋糕和葡萄酒给外婆送去，她病了，吃了会好些。","speakerId":"char_mother","tone":"叮嘱","sceneId":"scene_001","index":1},{"id":"beat_0003","kind":"dialogue","text":"路上要乖乖的，别离开大路；到了外婆家，要有礼貌。","speakerId":"char_mother","tone":"郑重","sceneId":"scene_001","index":2},{"id":"beat_0004","kind":"dialogue","text":"我会的，妈妈。","speakerId":"char_red","tone":"乖巧","sceneId":"scene_001","index":3},{"id":"beat_0005","kind":"action","text":"小红帽提起篮子，戴上红帽子，蹦蹦跳跳地出了门。","sceneId":"scene_001","index":4},{"id":"beat_0006","kind":"narration","text":"通往森林的小路上，小红帽迎面撞见一只大灰狼。","sceneId":"scene_002","index":0},{"id":"beat_0007","kind":"action","text":"狼心里盘算着坏主意，脸上却堆起笑容。","sceneId":"scene_002","index":1},{"id":"beat_0008","kind":"dialogue","text":"早上好，小红帽。这么早，要去哪儿呀？","speakerId":"char_wolf","tone":"假惺惺","sceneId":"scene_002","index":2},{"id":"beat_0009","kind":"dialogue","text":"去外婆家！她住在森林另一头，那三棵大橡树下的屋子里。","speakerId":"char_red","tone":"天真","sceneId":"scene_002","index":3},{"id":"beat_0010","kind":"dialogue","text":"那屋子离这儿还远吗？","speakerId":"char_wolf","tone":"试探","sceneId":"scene_002","index":4},{"id":"beat_0011","kind":"narration","text":"小红帽毫无戒心，把外婆的住处和盘托出。","sceneId":"scene_002","index":5},{"id":"beat_0012","kind":"dialogue","text":"瞧那片花丛多美，摘一束给外婆戴上，她一定喜欢。","speakerId":"char_wolf","tone":"诱哄","sceneId":"scene_003","index":0},{"id":"beat_0013","kind":"action","text":"小红帽放下篮子，钻进花丛，越采越远，早忘了妈妈的叮嘱。","sceneId":"scene_003","index":1},{"id":"beat_0014","kind":"narration","text":"趁她低头采花，大灰狼抄近路，直奔外婆的小屋。","sceneId":"scene_003","index":2},{"id":"beat_0015","kind":"action","text":"花丛里的小红帽还一无所知，只想着把最大的一束捧给外婆。","sceneId":"scene_003","index":3},{"id":"beat_0016","kind":"action","text":"大灰狼敲响外婆的门，装出小红帽的声音骗开了门。","sceneId":"scene_004","index":0},{"id":"beat_0017","kind":"narration","text":"外婆病着，正躺在床上，毫无防备。","sceneId":"scene_004","index":1},{"id":"beat_0018","kind":"action","text":"狼猛地扑上床，一口把外婆吞进了肚子。","sceneId":"scene_004","index":2},{"id":"beat_0019","kind":"action","text":"它穿上外婆的睡衣，戴上睡帽，躺进被窝，拉上窗帘。","sceneId":"scene_004","index":3},{"id":"beat_0020","kind":"dialogue","text":"现在，就等那小姑娘送上门来了。","speakerId":"char_wolf","tone":"得意自语","sceneId":"scene_004","index":4},{"id":"beat_0021","kind":"narration","text":"小红帽捧着花束来到小屋，见门虚掩着，便轻轻走了进去。","sceneId":"scene_005","index":0},{"id":"beat_0022","kind":"action","text":"床上“外婆”把被子拉得很高，脸几乎藏在睡帽下面。","sceneId":"scene_005","index":1},{"id":"beat_0023","kind":"dialogue","text":"外婆，您的耳朵怎么这么大呀？","speakerId":"char_red","tone":"疑惑","sceneId":"scene_005","index":2},{"id":"beat_0024","kind":"dialogue","text":"为了更好地听你说话呀。","speakerId":"char_wolf","tone":"压低嗓音","sceneId":"scene_005","index":3},{"id":"beat_0025","kind":"dialogue","text":"外婆，您的眼睛怎么这么大呀？","speakerId":"char_red","tone":"疑惑","sceneId":"scene_005","index":4},{"id":"beat_0026","kind":"dialogue","text":"为了更好地看你呀。","speakerId":"char_wolf","tone":"故作温柔","sceneId":"scene_005","index":5},{"id":"beat_0027","kind":"dialogue","text":"外婆，您的手怎么这么大呀？","speakerId":"char_red","tone":"迟疑","sceneId":"scene_005","index":6},{"id":"beat_0028","kind":"dialogue","text":"为了更好地抱你呀。","speakerId":"char_wolf","tone":"敷衍","sceneId":"scene_005","index":7},{"id":"beat_0029","kind":"dialogue","text":"外婆……您的嘴，怎么大得吓人？","speakerId":"char_red","tone":"惊恐","sceneId":"scene_005","index":8},{"id":"beat_0030","kind":"dialogue","text":"为了——一口吃掉你！","speakerId":"char_wolf","tone":"猛地暴起","sceneId":"scene_005","index":9},{"id":"beat_0031","kind":"action","text":"话音未落，大灰狼从床上一跃而起，把小红帽整个吞了下去。","sceneId":"scene_006","index":0},{"id":"beat_0032","kind":"narration","text":"它拍拍肚皮，重新躺回床上，很快打起震天的呼噜。","sceneId":"scene_006","index":1},{"id":"beat_0033","kind":"narration","text":"傍晚，猎人路过小屋，听见屋里传来不寻常的鼾声。","sceneId":"scene_007","index":0},{"id":"beat_0034","kind":"dialogue","text":"这呼噜声，可不像老太太能打出来的。","speakerId":"char_hunter","tone":"低声自语","sceneId":"scene_007","index":1},{"id":"beat_0035","kind":"action","text":"猎人推门进去，果然看见床上那鼓鼓的大肚子。","sceneId":"scene_007","index":2},{"id":"beat_0036","kind":"action","text":"他取出剪刀，小心剪开狼肚，小红帽和外婆先后爬了出来。","sceneId":"scene_007","index":3},{"id":"beat_0037","kind":"dialogue","text":"好心的猎人，谢谢您！","speakerId":"char_red","tone":"惊喜交加","sceneId":"scene_007","index":4},{"id":"beat_0038","kind":"action","text":"他们搬来石头，塞进狼肚，再一针一线缝好。","sceneId":"scene_007","index":5},{"id":"beat_0039","kind":"narration","text":"大灰狼醒来想逃，却被肚里的石头压得重重栽倒，一命呜呼。","sceneId":"scene_007","index":6},{"id":"beat_0040","kind":"dialogue","text":"多亏了你们，我这把老骨头才能再活几年。","speakerId":"char_grandma","tone":"虚弱却欢喜","sceneId":"scene_008","index":0},{"id":"beat_0041","kind":"dialogue","text":"以后我一定听妈妈的话，再也不离开大路，也不轻信陌生人。","speakerId":"char_red","tone":"认真","sceneId":"scene_008","index":1},{"id":"beat_0042","kind":"narration","text":"三人围坐分食篮中的蛋糕与葡萄酒，小屋重新暖了起来。","sceneId":"scene_008","index":2},{"id":"beat_0043","kind":"narration","text":"从此，谁也没有再在这片森林里，见过那只凶恶的大灰狼。","sceneId":"scene_008","index":3}],"beatsOf":{"scene_001":[{"id":"beat_0001","kind":"narration","text":"从前有个可爱的小姑娘，外婆送她一顶红色天鹅绒小帽，她总戴着，大家便叫她小红帽。"},{"id":"beat_0002","kind":"dialogue","speakerId":"char_mother","tone":"叮嘱","text":"把这篮蛋糕和葡萄酒给外婆送去，她病了，吃了会好些。"},{"id":"beat_0003","kind":"dialogue","speakerId":"char_mother","tone":"郑重","text":"路上要乖乖的，别离开大路；到了外婆家，要有礼貌。"},{"id":"beat_0004","kind":"dialogue","speakerId":"char_red","tone":"乖巧","text":"我会的，妈妈。"},{"id":"beat_0005","kind":"action","text":"小红帽提起篮子，戴上红帽子，蹦蹦跳跳地出了门。"}],"scene_002":[{"id":"beat_0006","kind":"narration","text":"通往森林的小路上，小红帽迎面撞见一只大灰狼。"},{"id":"beat_0007","kind":"action","text":"狼心里盘算着坏主意，脸上却堆起笑容。"},{"id":"beat_0008","kind":"dialogue","speakerId":"char_wolf","tone":"假惺惺","text":"早上好，小红帽。这么早，要去哪儿呀？"},{"id":"beat_0009","kind":"dialogue","speakerId":"char_red","tone":"天真","text":"去外婆家！她住在森林另一头，那三棵大橡树下的屋子里。"},{"id":"beat_0010","kind":"dialogue","speakerId":"char_wolf","tone":"试探","text":"那屋子离这儿还远吗？"},{"id":"beat_0011","kind":"narration","text":"小红帽毫无戒心，把外婆的住处和盘托出。"}],"scene_003":[{"id":"beat_0012","kind":"dialogue","speakerId":"char_wolf","tone":"诱哄","text":"瞧那片花丛多美，摘一束给外婆戴上，她一定喜欢。"},{"id":"beat_0013","kind":"action","text":"小红帽放下篮子，钻进花丛，越采越远，早忘了妈妈的叮嘱。"},{"id":"beat_0014","kind":"narration","text":"趁她低头采花，大灰狼抄近路，直奔外婆的小屋。"},{"id":"beat_0015","kind":"action","text":"花丛里的小红帽还一无所知，只想着把最大的一束捧给外婆。"}],"scene_004":[{"id":"beat_0016","kind":"action","text":"大灰狼敲响外婆的门，装出小红帽的声音骗开了门。"},{"id":"beat_0017","kind":"narration","text":"外婆病着，正躺在床上，毫无防备。"},{"id":"beat_0018","kind":"action","text":"狼猛地扑上床，一口把外婆吞进了肚子。"},{"id":"beat_0019","kind":"action","text":"它穿上外婆的睡衣，戴上睡帽，躺进被窝，拉上窗帘。"},{"id":"beat_0020","kind":"dialogue","speakerId":"char_wolf","tone":"得意自语","text":"现在，就等那小姑娘送上门来了。"}],"scene_005":[{"id":"beat_0021","kind":"narration","text":"小红帽捧着花束来到小屋，见门虚掩着，便轻轻走了进去。"},{"id":"beat_0022","kind":"action","text":"床上“外婆”把被子拉得很高，脸几乎藏在睡帽下面。"},{"id":"beat_0023","kind":"dialogue","speakerId":"char_red","tone":"疑惑","text":"外婆，您的耳朵怎么这么大呀？"},{"id":"beat_0024","kind":"dialogue","speakerId":"char_wolf","tone":"压低嗓音","text":"为了更好地听你说话呀。"},{"id":"beat_0025","kind":"dialogue","speakerId":"char_red","tone":"疑惑","text":"外婆，您的眼睛怎么这么大呀？"},{"id":"beat_0026","kind":"dialogue","speakerId":"char_wolf","tone":"故作温柔","text":"为了更好地看你呀。"},{"id":"beat_0027","kind":"dialogue","speakerId":"char_red","tone":"迟疑","text":"外婆，您的手怎么这么大呀？"},{"id":"beat_0028","kind":"dialogue","speakerId":"char_wolf","tone":"敷衍","text":"为了更好地抱你呀。"},{"id":"beat_0029","kind":"dialogue","speakerId":"char_red","tone":"惊恐","text":"外婆……您的嘴，怎么大得吓人？"},{"id":"beat_0030","kind":"dialogue","speakerId":"char_wolf","tone":"猛地暴起","text":"为了——一口吃掉你！"}],"scene_006":[{"id":"beat_0031","kind":"action","text":"话音未落，大灰狼从床上一跃而起，把小红帽整个吞了下去。"},{"id":"beat_0032","kind":"narration","text":"它拍拍肚皮，重新躺回床上，很快打起震天的呼噜。"}],"scene_007":[{"id":"beat_0033","kind":"narration","text":"傍晚，猎人路过小屋，听见屋里传来不寻常的鼾声。"},{"id":"beat_0034","kind":"dialogue","speakerId":"char_hunter","tone":"低声自语","text":"这呼噜声，可不像老太太能打出来的。"},{"id":"beat_0035","kind":"action","text":"猎人推门进去，果然看见床上那鼓鼓的大肚子。"},{"id":"beat_0036","kind":"action","text":"他取出剪刀，小心剪开狼肚，小红帽和外婆先后爬了出来。"},{"id":"beat_0037","kind":"dialogue","speakerId":"char_red","tone":"惊喜交加","text":"好心的猎人，谢谢您！"},{"id":"beat_0038","kind":"action","text":"他们搬来石头，塞进狼肚，再一针一线缝好。"},{"id":"beat_0039","kind":"narration","text":"大灰狼醒来想逃，却被肚里的石头压得重重栽倒，一命呜呼。"}],"scene_008":[{"id":"beat_0040","kind":"dialogue","speakerId":"char_grandma","tone":"虚弱却欢喜","text":"多亏了你们，我这把老骨头才能再活几年。"},{"id":"beat_0041","kind":"dialogue","speakerId":"char_red","tone":"认真","text":"以后我一定听妈妈的话，再也不离开大路，也不轻信陌生人。"},{"id":"beat_0042","kind":"narration","text":"三人围坐分食篮中的蛋糕与葡萄酒，小屋重新暖了起来。"},{"id":"beat_0043","kind":"narration","text":"从此，谁也没有再在这片森林里，见过那只凶恶的大灰狼。"}]},"beatOwner":{"beat_0001":"scene_001","beat_0002":"scene_001","beat_0003":"scene_001","beat_0004":"scene_001","beat_0005":"scene_001","beat_0006":"scene_002","beat_0007":"scene_002","beat_0008":"scene_002","beat_0009":"scene_002","beat_0010":"scene_002","beat_0011":"scene_002","beat_0012":"scene_003","beat_0013":"scene_003","beat_0014":"scene_003","beat_0015":"scene_003","beat_0016":"scene_004","beat_0017":"scene_004","beat_0018":"scene_004","beat_0019":"scene_004","beat_0020":"scene_004","beat_0021":"scene_005","beat_0022":"scene_005","beat_0023":"scene_005","beat_0024":"scene_005","beat_0025":"scene_005","beat_0026":"scene_005","beat_0027":"scene_005","beat_0028":"scene_005","beat_0029":"scene_005","beat_0030":"scene_005","beat_0031":"scene_006","beat_0032":"scene_006","beat_0033":"scene_007","beat_0034":"scene_007","beat_0035":"scene_007","beat_0036":"scene_007","beat_0037":"scene_007","beat_0038":"scene_007","beat_0039":"scene_007","beat_0040":"scene_008","beat_0041":"scene_008","beat_0042":"scene_008","beat_0043":"scene_008"},"edges":[{"id":"lr_1","kind":"causes","description":"出门送吃食，才在小路上遇见大灰狼。","source":{"type":"scene","id":"scene_001"},"target":{"type":"scene","id":"scene_002"},"sourceScene":"scene_001","targetScene":"scene_002"},{"id":"lr_2","kind":"causes","description":"得知住处后，狼诱她采花以便先行。","source":{"type":"scene","id":"scene_002"},"target":{"type":"scene","id":"scene_003"},"sourceScene":"scene_002","targetScene":"scene_003"},{"id":"lr_3","kind":"causes","description":"小红帽被支开，狼抢先抵达小屋行凶。","source":{"type":"scene","id":"scene_003"},"target":{"type":"scene","id":"scene_004"},"sourceScene":"scene_003","targetScene":"scene_004"},{"id":"lr_4","kind":"before","description":"假扮就绪后，小红帽才推门而入。","source":{"type":"scene","id":"scene_004"},"target":{"type":"scene","id":"scene_005"},"sourceScene":"scene_004","targetScene":"scene_005"},{"id":"lr_5","kind":"causes","description":"身份被识破，狼当即吞下小红帽。","source":{"type":"scene","id":"scene_005"},"target":{"type":"scene","id":"scene_006"},"sourceScene":"scene_005","targetScene":"scene_006"},{"id":"lr_6","kind":"causes","description":"震天的鼾声引来路过的猎人。","source":{"type":"scene","id":"scene_006"},"target":{"type":"scene","id":"scene_007"},"sourceScene":"scene_006","targetScene":"scene_007"},{"id":"lr_7","kind":"before","description":"获救之后，三人围坐庆余生。","source":{"type":"scene","id":"scene_007"},"target":{"type":"scene","id":"scene_008"},"sourceScene":"scene_007","targetScene":"scene_008"}],"characterRelations":[{"id":"cr_1","kind":"欺骗与吞食","direction":"directed","description":"以花言巧语套出住处，将她诱离大路后吞下。","source":"char_wolf","target":"char_red","sourceName":"大灰狼","targetName":"小红帽","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]},{"id":"cr_2","kind":"吞食","direction":"directed","description":"抢先到小屋，将病中的外婆一口吞下。","source":"char_wolf","target":"char_grandma","sourceName":"大灰狼","targetName":"外婆","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]},{"id":"cr_3","kind":"相救","direction":"directed","description":"剪开狼肚，把小红帽从死亡边缘救回。","source":"char_hunter","target":"char_red","sourceName":"猎人","targetName":"小红帽","scopeType":"scenes","sceneIds":["scene_007","scene_008"]},{"id":"cr_4","kind":"相救","direction":"directed","description":"同样救出了被吞的外婆并除掉恶狼。","source":"char_hunter","target":"char_grandma","sourceName":"猎人","targetName":"外婆","scopeType":"scenes","sceneIds":["scene_007"]},{"id":"cr_5","kind":"母女，谨慎嘱咐","direction":"directed","description":"托付送吃食并反复叮嘱不要离开大路。","source":"char_mother","target":"char_red","sourceName":"妈妈","targetName":"小红帽","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]},{"id":"cr_6","kind":"外婆的疼爱","direction":"directed","description":"送红帽、疼爱外孙女，是这段行程的缘由。","source":"char_grandma","target":"char_red","sourceName":"外婆","targetName":"小红帽","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]}],"relationsByPair":[{"key":"char_red~char_wolf","a":"char_red","b":"char_wolf","facts":[{"id":"cr_1","sourceCharacterId":"char_wolf","targetCharacterId":"char_red","kind":"欺骗与吞食","direction":"directed","description":"以花言巧语套出住处，将她诱离大路后吞下。","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]}],"perScene":{"scene_001":["cr_1"],"scene_002":["cr_1"],"scene_003":["cr_1"],"scene_004":["cr_1"],"scene_005":["cr_1"],"scene_006":["cr_1"],"scene_007":["cr_1"],"scene_008":["cr_1"]},"changePoints":[],"global":true},{"key":"char_grandma~char_wolf","a":"char_grandma","b":"char_wolf","facts":[{"id":"cr_2","sourceCharacterId":"char_wolf","targetCharacterId":"char_grandma","kind":"吞食","direction":"directed","description":"抢先到小屋，将病中的外婆一口吞下。","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]}],"perScene":{"scene_001":["cr_2"],"scene_002":["cr_2"],"scene_003":["cr_2"],"scene_004":["cr_2"],"scene_005":["cr_2"],"scene_006":["cr_2"],"scene_007":["cr_2"],"scene_008":["cr_2"]},"changePoints":[],"global":true},{"key":"char_hunter~char_red","a":"char_hunter","b":"char_red","facts":[{"id":"cr_3","sourceCharacterId":"char_hunter","targetCharacterId":"char_red","kind":"相救","direction":"directed","description":"剪开狼肚，把小红帽从死亡边缘救回。","scopeType":"scenes","sceneIds":["scene_007","scene_008"]}],"perScene":{"scene_001":[],"scene_002":[],"scene_003":[],"scene_004":[],"scene_005":[],"scene_006":[],"scene_007":["cr_3"],"scene_008":["cr_3"]},"changePoints":["scene_007"],"global":false},{"key":"char_grandma~char_hunter","a":"char_grandma","b":"char_hunter","facts":[{"id":"cr_4","sourceCharacterId":"char_hunter","targetCharacterId":"char_grandma","kind":"相救","direction":"directed","description":"同样救出了被吞的外婆并除掉恶狼。","scopeType":"scenes","sceneIds":["scene_007"]}],"perScene":{"scene_001":[],"scene_002":[],"scene_003":[],"scene_004":[],"scene_005":[],"scene_006":[],"scene_007":["cr_4"],"scene_008":[]},"changePoints":["scene_007"],"global":false},{"key":"char_mother~char_red","a":"char_mother","b":"char_red","facts":[{"id":"cr_5","sourceCharacterId":"char_mother","targetCharacterId":"char_red","kind":"母女，谨慎嘱咐","direction":"directed","description":"托付送吃食并反复叮嘱不要离开大路。","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]}],"perScene":{"scene_001":["cr_5"],"scene_002":["cr_5"],"scene_003":["cr_5"],"scene_004":["cr_5"],"scene_005":["cr_5"],"scene_006":["cr_5"],"scene_007":["cr_5"],"scene_008":["cr_5"]},"changePoints":[],"global":true},{"key":"char_grandma~char_red","a":"char_grandma","b":"char_red","facts":[{"id":"cr_6","sourceCharacterId":"char_grandma","targetCharacterId":"char_red","kind":"外婆的疼爱","direction":"directed","description":"送红帽、疼爱外孙女，是这段行程的缘由。","scopeType":"global","sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"]}],"perScene":{"scene_001":["cr_6"],"scene_002":["cr_6"],"scene_003":["cr_6"],"scene_004":["cr_6"],"scene_005":["cr_6"],"scene_006":["cr_6"],"scene_007":["cr_6"],"scene_008":["cr_6"]},"changePoints":[],"global":true}],"relationGraph":{"groups":[{"id":"act_1","title":"第一幕·嘱托与路遇","index":0,"sceneIds":["scene_001","scene_002"],"entityIds":["char_mother","char_red","loc_home","prop_basket","prop_hood","char_wolf","loc_forest"]},{"id":"act_2","title":"第二幕·狼的诡计","index":1,"sceneIds":["scene_003","scene_004"],"entityIds":["char_red","char_wolf","loc_forest","prop_basket","char_grandma","loc_cottage","prop_gown","prop_cap"]},{"id":"act_3","title":"第三幕·识破与相救","index":2,"sceneIds":["scene_005","scene_006","scene_007","scene_008"],"entityIds":["char_red","char_wolf","loc_cottage","prop_gown","prop_cap","prop_basket","char_hunter","char_grandma","prop_scissors","prop_stones"]}],"entities":[{"id":"char_red","name":"小红帽","kind":"character","tags":["主角","女孩"],"actIds":["act_1","act_2","act_3"],"firstOrder":0},{"id":"char_mother","name":"妈妈","kind":"character","tags":["配角"],"actIds":["act_1"],"firstOrder":0},{"id":"char_wolf","name":"大灰狼","kind":"character","tags":["反派"],"actIds":["act_1","act_2","act_3"],"firstOrder":1},{"id":"char_grandma","name":"外婆","kind":"character","tags":["配角"],"actIds":["act_2","act_3"],"firstOrder":3},{"id":"char_hunter","name":"猎人","kind":"character","tags":["配角"],"actIds":["act_3"],"firstOrder":6},{"id":"loc_home","name":"家","kind":"location","tags":[],"actIds":["act_1"],"firstOrder":0},{"id":"loc_forest","name":"森林","kind":"location","tags":[],"actIds":["act_1","act_2"],"firstOrder":1},{"id":"loc_cottage","name":"外婆的小屋","kind":"location","tags":[],"actIds":["act_2","act_3"],"firstOrder":3},{"id":"prop_hood","name":"红帽","kind":"prop","tags":[],"actIds":["act_1"],"firstOrder":0},{"id":"prop_basket","name":"篮子","kind":"prop","tags":[],"actIds":["act_1","act_2","act_3"],"firstOrder":0},{"id":"prop_cap","name":"睡帽","kind":"prop","tags":[],"actIds":["act_2","act_3"],"firstOrder":3},{"id":"prop_gown","name":"睡衣","kind":"prop","tags":[],"actIds":["act_2","act_3"],"firstOrder":3},{"id":"prop_scissors","name":"剪刀","kind":"prop","tags":[],"actIds":["act_3"],"firstOrder":6},{"id":"prop_stones","name":"石头","kind":"prop","tags":[],"actIds":["act_3"],"firstOrder":6}],"pairEdges":[{"id":"cr_1","a":"char_wolf","b":"char_red","aName":"大灰狼","bName":"小红帽","kinds":["欺骗与吞食"],"directed":true,"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"scopeType":"global","description":"以花言巧语套出住处，将她诱离大路后吞下。","lane":0},{"id":"cr_2","a":"char_wolf","b":"char_grandma","aName":"大灰狼","bName":"外婆","kinds":["吞食"],"directed":true,"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"scopeType":"global","description":"抢先到小屋，将病中的外婆一口吞下。","lane":0},{"id":"cr_3","a":"char_hunter","b":"char_red","aName":"猎人","bName":"小红帽","kinds":["相救"],"directed":true,"sceneIds":["scene_007","scene_008"],"scopeType":"scenes","description":"剪开狼肚，把小红帽从死亡边缘救回。","lane":0},{"id":"cr_4","a":"char_hunter","b":"char_grandma","aName":"猎人","bName":"外婆","kinds":["相救"],"directed":true,"sceneIds":["scene_007"],"scopeType":"scenes","description":"同样救出了被吞的外婆并除掉恶狼。","lane":0},{"id":"cr_5","a":"char_mother","b":"char_red","aName":"妈妈","bName":"小红帽","kinds":["母女，谨慎嘱咐"],"directed":true,"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"scopeType":"global","description":"托付送吃食并反复叮嘱不要离开大路。","lane":0},{"id":"cr_6","a":"char_grandma","b":"char_red","aName":"外婆","bName":"小红帽","kinds":["外婆的疼爱"],"directed":true,"sceneIds":["scene_001","scene_002","scene_003","scene_004","scene_005","scene_006","scene_007","scene_008"],"scopeType":"global","description":"送红帽、疼爱外孙女，是这段行程的缘由。","lane":0}]},"entityScenes":{"char_mother":["scene_001"],"char_red":["scene_001","scene_002","scene_003","scene_005","scene_006","scene_007","scene_008"],"loc_home":["scene_001"],"prop_basket":["scene_001","scene_002","scene_003","scene_005","scene_008"],"prop_hood":["scene_001"],"char_wolf":["scene_002","scene_003","scene_004","scene_005","scene_006","scene_007"],"loc_forest":["scene_002","scene_003"],"char_grandma":["scene_004","scene_007","scene_008"],"loc_cottage":["scene_004","scene_005","scene_006","scene_007","scene_008"],"prop_gown":["scene_004","scene_005","scene_006"],"prop_cap":["scene_004","scene_005","scene_006"],"char_hunter":["scene_007","scene_008"],"prop_scissors":["scene_007"],"prop_stones":["scene_007"]},"entitiesByKind":{"character":[{"id":"char_red","name":"小红帽","kind":"character","tags":["主角","女孩"],"scenes":["scene_001","scene_002","scene_003","scene_005","scene_006","scene_007","scene_008"]},{"id":"char_mother","name":"妈妈","kind":"character","tags":["配角"],"scenes":["scene_001"]},{"id":"char_wolf","name":"大灰狼","kind":"character","tags":["反派"],"scenes":["scene_002","scene_003","scene_004","scene_005","scene_006","scene_007"]},{"id":"char_grandma","name":"外婆","kind":"character","tags":["配角"],"scenes":["scene_004","scene_007","scene_008"]},{"id":"char_hunter","name":"猎人","kind":"character","tags":["配角"],"scenes":["scene_007","scene_008"]}],"location":[{"id":"loc_home","name":"家","kind":"location","tags":[],"scenes":["scene_001"]},{"id":"loc_forest","name":"森林","kind":"location","tags":[],"scenes":["scene_002","scene_003"]},{"id":"loc_cottage","name":"外婆的小屋","kind":"location","tags":[],"scenes":["scene_004","scene_005","scene_006","scene_007","scene_008"]}],"prop":[{"id":"prop_hood","name":"红帽","kind":"prop","tags":[],"scenes":["scene_001"]},{"id":"prop_basket","name":"篮子","kind":"prop","tags":[],"scenes":["scene_001","scene_002","scene_003","scene_005","scene_008"]},{"id":"prop_cap","name":"睡帽","kind":"prop","tags":[],"scenes":["scene_004","scene_005","scene_006"]},{"id":"prop_gown","name":"睡衣","kind":"prop","tags":[],"scenes":["scene_004","scene_005","scene_006"]},{"id":"prop_scissors","name":"剪刀","kind":"prop","tags":[],"scenes":["scene_007"]},{"id":"prop_stones","name":"石头","kind":"prop","tags":[],"scenes":["scene_007"]}]},"stats":{"scenes":8,"beats":43,"entities":14,"logicRelations":7,"characterRelations":6,"acts":3,"threads":1},"scenes":{"scene_001":{"id":"scene_001","title":"妈妈的嘱托","summary":"妈妈让小红帽给生病的外婆送去蛋糕和酒，叮嘱她别离开大路。","locationId":"loc_home","areaId":null,"time":{"timeOfDay":"morning"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"setup","mood":"温馨","participants":{"char_mother":{"emotion":"关切","goal":"让女儿安全地把吃食送到外婆家","knowledge":"知晓林中并不太平","appearance":"站在门口"},"char_red":{"emotion":"乖巧期待","goal":"去看望外婆","knowledge":"只当是一段寻常的路","appearance":"戴着红帽、提着篮子"}},"locationState":{"lighting":"清晨暖光","weather":null,"condition":"屋舍整洁"},"props":{"prop_basket":{"appearance":"装满蛋糕与葡萄酒的篮子","condition":"崭新","holderId":"char_red"},"prop_hood":{"appearance":"红色天鹅绒小帽","condition":"完好","holderId":"char_red"}},"beats":[{"id":"beat_0001","kind":"narration","text":"从前有个可爱的小姑娘，外婆送她一顶红色天鹅绒小帽，她总戴着，大家便叫她小红帽。"},{"id":"beat_0002","kind":"dialogue","speakerId":"char_mother","tone":"叮嘱","text":"把这篮蛋糕和葡萄酒给外婆送去，她病了，吃了会好些。"},{"id":"beat_0003","kind":"dialogue","speakerId":"char_mother","tone":"郑重","text":"路上要乖乖的，别离开大路；到了外婆家，要有礼貌。"},{"id":"beat_0004","kind":"dialogue","speakerId":"char_red","tone":"乖巧","text":"我会的，妈妈。"},{"id":"beat_0005","kind":"action","text":"小红帽提起篮子，戴上红帽子，蹦蹦跳跳地出了门。"}]},"scene_002":{"id":"scene_002","title":"林中小路遇狼","summary":"小红帽在林中遇见大灰狼，被三言两语套出了外婆的住处。","locationId":"loc_forest","areaId":"area_path","time":{"timeOfDay":"midday"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"天真中的危险","participants":{"char_red":{"emotion":"天真无邪","goal":"尽快把吃食送到外婆家","knowledge":"不知眼前是恶狼","appearance":"提着篮子"},"char_wolf":{"emotion":"假意和善、暗自盘算","goal":"骗出外婆的住处","knowledge":"一眼看穿小红帽的心思","appearance":"灰毛蓬松、堆着笑"}},"locationState":{"lighting":"正午林荫斑驳","weather":null,"condition":"小路寂静"},"props":{"prop_basket":{"appearance":"装满蛋糕与葡萄酒的篮子","condition":"完好","holderId":"char_red"}},"beats":[{"id":"beat_0006","kind":"narration","text":"通往森林的小路上，小红帽迎面撞见一只大灰狼。"},{"id":"beat_0007","kind":"action","text":"狼心里盘算着坏主意，脸上却堆起笑容。"},{"id":"beat_0008","kind":"dialogue","speakerId":"char_wolf","tone":"假惺惺","text":"早上好，小红帽。这么早，要去哪儿呀？"},{"id":"beat_0009","kind":"dialogue","speakerId":"char_red","tone":"天真","text":"去外婆家！她住在森林另一头，那三棵大橡树下的屋子里。"},{"id":"beat_0010","kind":"dialogue","speakerId":"char_wolf","tone":"试探","text":"那屋子离这儿还远吗？"},{"id":"beat_0011","kind":"narration","text":"小红帽毫无戒心，把外婆的住处和盘托出。"}]},"scene_003":{"id":"scene_003","title":"采花误时","summary":"狼诱小红帽去采花，自己却抄近路抢先赶往外婆的小屋。","locationId":"loc_forest","areaId":"area_flower","time":{"timeOfDay":"midday"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"明媚的陷阱","participants":{"char_red":{"emotion":"被说动","goal":"摘一束最美的花送给外婆","knowledge":"仍不知狼的阴谋","appearance":"弯腰钻入花丛"},"char_wolf":{"emotion":"暗自得意","goal":"支开小红帽，抢先到小屋","knowledge":"已知外婆住处","appearance":"转身奔向林深处"}},"locationState":{"lighting":"阳光洒满花坡","weather":"微风","condition":"野花盛开"},"props":{"prop_basket":{"appearance":"被放在路边的篮子","condition":"完好","holderId":"char_red"}},"beats":[{"id":"beat_0012","kind":"dialogue","speakerId":"char_wolf","tone":"诱哄","text":"瞧那片花丛多美，摘一束给外婆戴上，她一定喜欢。"},{"id":"beat_0013","kind":"action","text":"小红帽放下篮子，钻进花丛，越采越远，早忘了妈妈的叮嘱。"},{"id":"beat_0014","kind":"narration","text":"趁她低头采花，大灰狼抄近路，直奔外婆的小屋。"},{"id":"beat_0015","kind":"action","text":"花丛里的小红帽还一无所知，只想着把最大的一束捧给外婆。"}]},"scene_004":{"id":"scene_004","title":"假扮外婆","summary":"大灰狼赶到小屋吞下外婆，穿上她的睡衣、戴上睡帽，躺进被窝等候。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"midday"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"阴森","participants":{"char_grandma":{"emotion":"病弱无助","goal":"静养","knowledge":"对危险毫无察觉","appearance":"卧病在床"},"char_wolf":{"emotion":"凶残而得意","goal":"吞掉外婆并伪装等她上门","knowledge":"已知小红帽在路上","appearance":"披上外婆的睡装"}},"locationState":{"lighting":"屋内昏暗","weather":null,"condition":"窗帘低垂"},"props":{"prop_gown":{"appearance":"外婆的睡衣","condition":"被狼穿上","holderId":"char_wolf"},"prop_cap":{"appearance":"外婆的睡帽","condition":"被狼戴上","holderId":"char_wolf"}},"beats":[{"id":"beat_0016","kind":"action","text":"大灰狼敲响外婆的门，装出小红帽的声音骗开了门。"},{"id":"beat_0017","kind":"narration","text":"外婆病着，正躺在床上，毫无防备。"},{"id":"beat_0018","kind":"action","text":"狼猛地扑上床，一口把外婆吞进了肚子。"},{"id":"beat_0019","kind":"action","text":"它穿上外婆的睡衣，戴上睡帽，躺进被窝，拉上窗帘。"},{"id":"beat_0020","kind":"dialogue","speakerId":"char_wolf","tone":"得意自语","text":"现在，就等那小姑娘送上门来了。"}]},"scene_005":{"id":"scene_005","title":"四问识破","summary":"小红帽到访，接连追问“耳朵、眼睛、手、嘴为什么这么大”，终被假扮外婆的狼识破。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"afternoon"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"climax","mood":"悬疑","participants":{"char_red":{"emotion":"疑惑不安","goal":"问候并陪伴外婆","knowledge":"渐渐觉得“外婆”不对劲","appearance":"捧着花束走近床边"},"char_wolf":{"emotion":"强自镇定、伺机而动","goal":"骗过小红帽再一口吞下","knowledge":"绝不能露馅","appearance":"把被子拉到鼻尖"}},"locationState":{"lighting":"屋内昏暗","weather":null,"condition":"静得能听见呼吸"},"props":{"prop_gown":{"appearance":"外婆的睡衣","condition":"被狼穿着","holderId":"char_wolf"},"prop_cap":{"appearance":"外婆的睡帽","condition":"被狼戴着","holderId":"char_wolf"},"prop_basket":{"appearance":"蛋糕与葡萄酒","condition":"完好","holderId":"char_red"}},"beats":[{"id":"beat_0021","kind":"narration","text":"小红帽捧着花束来到小屋，见门虚掩着，便轻轻走了进去。"},{"id":"beat_0022","kind":"action","text":"床上“外婆”把被子拉得很高，脸几乎藏在睡帽下面。"},{"id":"beat_0023","kind":"dialogue","speakerId":"char_red","tone":"疑惑","text":"外婆，您的耳朵怎么这么大呀？"},{"id":"beat_0024","kind":"dialogue","speakerId":"char_wolf","tone":"压低嗓音","text":"为了更好地听你说话呀。"},{"id":"beat_0025","kind":"dialogue","speakerId":"char_red","tone":"疑惑","text":"外婆，您的眼睛怎么这么大呀？"},{"id":"beat_0026","kind":"dialogue","speakerId":"char_wolf","tone":"故作温柔","text":"为了更好地看你呀。"},{"id":"beat_0027","kind":"dialogue","speakerId":"char_red","tone":"迟疑","text":"外婆，您的手怎么这么大呀？"},{"id":"beat_0028","kind":"dialogue","speakerId":"char_wolf","tone":"敷衍","text":"为了更好地抱你呀。"},{"id":"beat_0029","kind":"dialogue","speakerId":"char_red","tone":"惊恐","text":"外婆……您的嘴，怎么大得吓人？"},{"id":"beat_0030","kind":"dialogue","speakerId":"char_wolf","tone":"猛地暴起","text":"为了——一口吃掉你！"}]},"scene_006":{"id":"scene_006","title":"狼吞小红帽","summary":"大灰狼一跃而起吞下小红帽，拍拍肚皮躺回床上，打起震天的呼噜。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"afternoon"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"climax","mood":"惊惧","participants":{"char_red":{"emotion":"惊恐","goal":"逃离","knowledge":"为时已晚","appearance":"被扑倒"},"char_wolf":{"emotion":"饱足得意","goal":"饱餐后歇息","knowledge":"自认得手","appearance":"鼓着肚皮"}},"locationState":{"lighting":"屋内昏暗","weather":null,"condition":"床铺凌乱"},"props":{"prop_gown":{"appearance":"外婆的睡衣","condition":"被狼穿着","holderId":"char_wolf"},"prop_cap":{"appearance":"外婆的睡帽","condition":"歪斜","holderId":"char_wolf"}},"beats":[{"id":"beat_0031","kind":"action","text":"话音未落，大灰狼从床上一跃而起，把小红帽整个吞了下去。"},{"id":"beat_0032","kind":"narration","text":"它拍拍肚皮，重新躺回床上，很快打起震天的呼噜。"}]},"scene_007":{"id":"scene_007","title":"猎人相救","summary":"猎人循着鼾声进屋，剪开狼肚救出祖孙，填入石头；狼醒后栽倒而死。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"evening"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"turningPoint","mood":"紧张转欣慰","participants":{"char_hunter":{"emotion":"警觉果断","goal":"查清屋里的异常并除掉恶狼","knowledge":"从鼾声察觉有异","appearance":"背着猎具、手持剪刀"},"char_wolf":{"emotion":"酣睡无备","goal":"安睡","knowledge":"不知猎人已至","appearance":"四脚朝天、肚皮鼓胀"},"char_red":{"emotion":"惊喜交加","goal":"平安脱险","knowledge":"被猎人从狼肚中救出","appearance":"从狼肚里爬出、衣衫凌乱"},"char_grandma":{"emotion":"虚弱又庆幸","goal":"死里逃生","knowledge":"被猎人从狼肚中救出","appearance":"病弱、从狼肚里爬出"}},"locationState":{"lighting":"暮色渐浓","weather":null,"condition":"鼾声震屋"},"props":{"prop_scissors":{"appearance":"猎人的剪刀","condition":"锋利","holderId":"char_hunter"},"prop_stones":{"appearance":"屋外搬来的石头","condition":"沉甸甸","holderId":null}},"beats":[{"id":"beat_0033","kind":"narration","text":"傍晚，猎人路过小屋，听见屋里传来不寻常的鼾声。"},{"id":"beat_0034","kind":"dialogue","speakerId":"char_hunter","tone":"低声自语","text":"这呼噜声，可不像老太太能打出来的。"},{"id":"beat_0035","kind":"action","text":"猎人推门进去，果然看见床上那鼓鼓的大肚子。"},{"id":"beat_0036","kind":"action","text":"他取出剪刀，小心剪开狼肚，小红帽和外婆先后爬了出来。"},{"id":"beat_0037","kind":"dialogue","speakerId":"char_red","tone":"惊喜交加","text":"好心的猎人，谢谢您！"},{"id":"beat_0038","kind":"action","text":"他们搬来石头，塞进狼肚，再一针一线缝好。"},{"id":"beat_0039","kind":"narration","text":"大灰狼醒来想逃，却被肚里的石头压得重重栽倒，一命呜呼。"}]},"scene_008":{"id":"scene_008","title":"劫后余生","summary":"祖孙与猎人分食蛋糕与酒，小红帽立誓再不听信陌生人；林中再无恶狼。","locationId":"loc_cottage","areaId":null,"time":{"timeOfDay":"evening"},"threadIds":["thread_main"],"narrativeMode":"present","narrativeRole":"transition","mood":"温暖而有余悸","participants":{"char_red":{"emotion":"后怕又庆幸","goal":"记住教训、好好陪着外婆","knowledge":"明白了轻信与好奇的代价","appearance":"红帽上沾着草屑"},"char_grandma":{"emotion":"虚弱却欢喜","goal":"与大家共享安宁","knowledge":"知晓自己被猎人救下","appearance":"重新躺回被窝"},"char_hunter":{"emotion":"欣慰","goal":"确认众人平安","knowledge":"彻底除了祸患","appearance":"坐在炉边"}},"locationState":{"lighting":"炉火暖黄","weather":null,"condition":"小屋重新暖了起来"},"props":{"prop_basket":{"appearance":"蛋糕与葡萄酒","condition":"完好","holderId":null}},"beats":[{"id":"beat_0040","kind":"dialogue","speakerId":"char_grandma","tone":"虚弱却欢喜","text":"多亏了你们，我这把老骨头才能再活几年。"},{"id":"beat_0041","kind":"dialogue","speakerId":"char_red","tone":"认真","text":"以后我一定听妈妈的话，再也不离开大路，也不轻信陌生人。"},{"id":"beat_0042","kind":"narration","text":"三人围坐分食篮中的蛋糕与葡萄酒，小屋重新暖了起来。"},{"id":"beat_0043","kind":"narration","text":"从此，谁也没有再在这片森林里，见过那只凶恶的大灰狼。"}]}},"title":"小红帽","warnings":[],"geoms":{"telling":{"w":1164,"h":1172,"rects":{"scene_001":{"x":36,"y":72,"w":300,"h":194},"scene_002":{"x":400,"y":72,"w":300,"h":194},"scene_003":{"x":36,"y":374,"w":300,"h":194},"scene_004":{"x":400,"y":374,"w":300,"h":194},"scene_005":{"x":36,"y":676,"w":300,"h":194},"scene_006":{"x":400,"y":676,"w":300,"h":194},"scene_007":{"x":764,"y":676,"w":300,"h":194},"scene_008":{"x":36,"y":918,"w":300,"h":194}},"nodes":[{"x":36,"y":72,"w":300,"h":194},{"x":400,"y":72,"w":300,"h":194},{"x":36,"y":374,"w":300,"h":194},{"x":400,"y":374,"w":300,"h":194},{"x":36,"y":676,"w":300,"h":194},{"x":400,"y":676,"w":300,"h":194},{"x":764,"y":676,"w":300,"h":194},{"x":36,"y":918,"w":300,"h":194}]},"time":{"w":1528,"h":882,"rects":{"scene_004":{"x":36,"y":72,"w":300,"h":194},"scene_007":{"x":400,"y":72,"w":300,"h":194},"scene_005":{"x":36,"y":350,"w":300,"h":194},"scene_008":{"x":400,"y":350,"w":300,"h":194},"scene_001":{"x":36,"y":628,"w":300,"h":194},"scene_002":{"x":400,"y":628,"w":300,"h":194},"scene_003":{"x":764,"y":628,"w":300,"h":194},"scene_006":{"x":1128,"y":628,"w":300,"h":194}},"nodes":[{"x":36,"y":72,"w":300,"h":194},{"x":400,"y":72,"w":300,"h":194},{"x":36,"y":350,"w":300,"h":194},{"x":400,"y":350,"w":300,"h":194},{"x":36,"y":628,"w":300,"h":194},{"x":400,"y":628,"w":300,"h":194},{"x":764,"y":628,"w":300,"h":194},{"x":1128,"y":628,"w":300,"h":194}]},"charmap":{"w":1380,"h":910,"rects":{"scene_001":{"x":36,"y":70,"w":240,"h":60},"scene_002":{"x":36,"y":150,"w":240,"h":60},"scene_003":{"x":36,"y":288,"w":240,"h":60},"scene_004":{"x":36,"y":368,"w":240,"h":60},"scene_005":{"x":36,"y":506,"w":240,"h":60},"scene_006":{"x":36,"y":586,"w":240,"h":60},"scene_007":{"x":36,"y":666,"w":240,"h":60},"scene_008":{"x":36,"y":746,"w":240,"h":60},"char_red":{"x":430,"y":78,"w":216,"h":70},"char_mother":{"x":430,"y":184,"w":216,"h":70},"char_wolf":{"x":430,"y":290,"w":216,"h":70},"char_grandma":{"x":430,"y":396,"w":216,"h":70},"char_hunter":{"x":430,"y":502,"w":216,"h":70},"loc_home":{"x":740,"y":78,"w":216,"h":70},"loc_forest":{"x":740,"y":184,"w":216,"h":70},"loc_cottage":{"x":740,"y":290,"w":216,"h":70},"prop_hood":{"x":1050,"y":78,"w":216,"h":70},"prop_basket":{"x":1050,"y":184,"w":216,"h":70},"prop_cap":{"x":1050,"y":290,"w":216,"h":70},"prop_gown":{"x":1050,"y":396,"w":216,"h":70},"prop_scissors":{"x":1050,"y":502,"w":216,"h":70},"prop_stones":{"x":1050,"y":608,"w":216,"h":70}},"nodes":[{"x":36,"y":70,"w":240,"h":60},{"x":36,"y":150,"w":240,"h":60},{"x":36,"y":288,"w":240,"h":60},{"x":36,"y":368,"w":240,"h":60},{"x":36,"y":506,"w":240,"h":60},{"x":36,"y":586,"w":240,"h":60},{"x":36,"y":666,"w":240,"h":60},{"x":36,"y":746,"w":240,"h":60},{"x":430,"y":78,"w":216,"h":70},{"x":430,"y":184,"w":216,"h":70},{"x":430,"y":290,"w":216,"h":70},{"x":430,"y":396,"w":216,"h":70},{"x":430,"y":502,"w":216,"h":70},{"x":740,"y":78,"w":216,"h":70},{"x":740,"y":184,"w":216,"h":70},{"x":740,"y":290,"w":216,"h":70},{"x":1050,"y":78,"w":216,"h":70},{"x":1050,"y":184,"w":216,"h":70},{"x":1050,"y":290,"w":216,"h":70},{"x":1050,"y":396,"w":216,"h":70},{"x":1050,"y":502,"w":216,"h":70},{"x":1050,"y":608,"w":216,"h":70}]}}};</script>
+<script>(function () {
+  const data = window.__STORYGRAPH__;
+  const svgs = [...document.querySelectorAll('.story-svg')];
+  const body = document.body;
+  const state = {
+    mode: '', lastLogicMode: 'telling', selected: null, relationScene: 'all', fitted: false, history: [], restoring: false,
+    relationKinds: { telling: new Set(), time: new Set() },
+    entityKinds: new Set(['character', 'location', 'prop']),
+  };
+  const view = new Map();
+  const TYPES = { character: '人物', location: '地点', prop: '道具' };
+  const BEATS = { action: '动作', dialogue: '对白', narration: '旁白' };
+  const RELS = { before: '先后', overlaps: '同时', causes: '因果', setsUp: '伏笔' };
+  const TRAIT_LABELS = {
+    age: '年龄', hair: '发型', signatureLook: '标志外观', look: '外观', appearance: '外观',
+    body: '体型', build: '体型', size: '体形', features: '面容特征', face: '面容', personality: '性格',
+    temperament: '性情', condition: '状态', wardrobe: '着装', costume: '服装', traits: '特征',
+    gender: '性别', role: '角色定位', species: '物种', speed: '速度', color: '颜色', colour: '颜色',
+    habitat: '栖息地', ability: '能力', voice: '嗓音', occupation: '职业', age_range: '年龄段',
+  };
+  const HELP = {
+    telling: '按观众看到的顺序阅读，灰线表示连续场景。',
+    time: '只呈现已明确的时间先后；没有约束的场景归入“先后未定”。',
+    charmap: '查看人物、地点和道具在哪些场景出现，以及人物关系如何变化。',
+  };
+  const MINI = { w: 144, h: 96, pad: 5 };
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const icon = (name) => `<svg class="icon"><use href="#icon-${name}"/></svg>`;
+  const activeSvg = () => svgs.find((svg) => svg.dataset.mode === state.mode);
+  const entity = (id) => data.entities[id] || {};
+  const nameOf = (id) => entity(id).name || id;
+  const sceneTitle = (id) => data.scenes[id]?.title || id;
+  const sceneLabel = (id) => { const n = data.tellingIndex[id]; return n == null ? sceneTitle(id) : `${String(n + 1).padStart(2, '0')} ${sceneTitle(id)}`; };
+  const beatOf = (id) => data.beats.find((beat) => beat.id === id);
+
+  for (const svg of svgs) {
+    const full = (svg.getAttribute('viewBox') || '0 0 100 100').split(/\s+/).map(Number);
+    view.set(svg, { x: full[0], y: full[1], w: full[2], h: full[3], full: { x: full[0], y: full[1], w: full[2], h: full[3] } });
+  }
+
+  function status(message) { document.getElementById('status').textContent = message; }
+
+  // ---- 编辑：提交 ChangeSet 并保留视角 ----
+  function saveSession() {
+    try {
+      const views = {};
+      for (const svg of svgs) { const v = view.get(svg); views[svg.dataset.mode] = { x: v.x, y: v.y, w: v.w, h: v.h }; }
+      sessionStorage.setItem('sparkrealm-view', JSON.stringify({ mode: state.mode, selected: state.selected, relationScene: state.relationScene, views }));
+    } catch (_) { /* ignore */ }
+  }
+  function restoreSession() {
+    let saved = null;
+    try { saved = JSON.parse(sessionStorage.getItem('sparkrealm-view') || 'null'); } catch (_) { saved = null; }
+    if (!saved) return;
+    try { sessionStorage.removeItem('sparkrealm-view'); } catch (_) { /* ignore */ }
+    if (saved.relationScene) state.relationScene = saved.relationScene;
+    if (saved.mode) setMode(saved.mode);
+    for (const svg of svgs) { const s = saved.views && saved.views[svg.dataset.mode]; if (s) Object.assign(view.get(svg), { x: s.x, y: s.y, w: s.w, h: s.h }); }
+    if (saved.selected) select(saved.selected.type, saved.selected.id);
+    applyView(activeSvg());
+  }
+  async function sendChange(operations) {
+    if (!window.__SERVED__) return;
+    saveSession();
+    const changeSet = { changeId: `ui_${Date.now()}`, storyId: data.storyId, baseRevision: data.revision, actor: { kind: 'user', id: 'local' }, operations };
+    try {
+      const response = await fetch('/apply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ changeSet }) });
+      const out = await response.json();
+      if (out.ok) location.reload();
+      else alert(`修改被拒绝：${out.error || ''}${out.message ? ' - ' + out.message : ''}`);
+    } catch (error) { alert(`提交失败：${error.message}`); }
+  }
+  function updateBack() { const button = document.getElementById('detail-back'); if (button) button.disabled = state.history.length === 0; }
+  function pushHistory() {
+    state.history.push({ mode: state.mode, selected: state.selected ? { ...state.selected } : null });
+    updateBack();
+  }
+  function goBack() {
+    const prev = state.history.pop();
+    updateBack();
+    if (!prev) return;
+    state.restoring = true;
+    if (prev.mode && prev.mode !== state.mode) setMode(prev.mode);
+    state.restoring = false;
+    if (prev.selected) select(prev.selected.type, prev.selected.id, true);
+    else clearSelection();
+  }
+  function navigateTo(mode, type, id, focus = false) {
+    const same = state.selected && state.selected.type === type && state.selected.id === id && (!mode || mode === state.mode);
+    if (!same && !state.restoring) pushHistory();
+    if (mode && mode !== state.mode) setMode(mode);
+    select(type, id, focus);
+  }
+  function canvasSize() {
+    const rect = document.getElementById('canvas').getBoundingClientRect();
+    const width = Math.max(320, rect.width), height = Math.max(240, rect.height);
+    return { width, height, ratio: width / height };
+  }
+  function applyView(svg) {
+    const current = view.get(svg);
+    svg.setAttribute('viewBox', `${current.x} ${current.y} ${current.w} ${current.h}`);
+    if (svg === activeSvg()) {
+      document.getElementById('zoom-reset').textContent = `${Math.round((canvasSize().width / current.w) * 100)}%`;
+      renderMinimap();
+    }
+  }
+  function readableView() {
+    const svg = activeSvg(), current = view.get(svg), canvas = canvasSize();
+    const width = Math.max(canvas.width, Math.min(current.full.w, canvas.width / 0.88)); // 图比画布窄时按 100% 显示
+    current.w = width; current.h = width / canvas.ratio;
+    current.x = current.full.x;
+    current.y = current.full.y;
+    applyView(svg);
+  }
+  function fitAll() {
+    const svg = activeSvg(), current = view.get(svg), canvas = canvasSize();
+    const graphRatio = current.full.w / current.full.h;
+    if (graphRatio > canvas.ratio) {
+      current.w = current.full.w; current.h = current.w / canvas.ratio;
+      current.x = current.full.x; current.y = current.full.y - (current.h - current.full.h) / 2;
+    } else {
+      current.h = current.full.h; current.w = current.h * canvas.ratio;
+      current.y = current.full.y; current.x = current.full.x - (current.w - current.full.w) / 2;
+    }
+    applyView(svg);
+  }
+  function zoom(factor, center) {
+    const svg = activeSvg(), current = view.get(svg);
+    const nextWidth = Math.min(Math.max(current.full.w * 2.4, 280), Math.max(280, current.w * factor));
+    const actual = nextWidth / current.w;
+    const point = center || { x: current.x + current.w / 2, y: current.y + current.h / 2 };
+    current.x = point.x - (point.x - current.x) * actual;
+    current.y = point.y - (point.y - current.y) * actual;
+    current.w = nextWidth; current.h *= actual; applyView(svg);
+  }
+  function focusNode(id, force = false) {
+    const rect = data.geoms[state.mode]?.rects?.[id];
+    if (!rect) return;
+    const svg = activeSvg(), current = view.get(svg), canvas = canvasSize();
+    const pad = 40;
+    const inside = rect.x >= current.x + pad && rect.y >= current.y + pad
+      && rect.x + rect.w <= current.x + current.w - pad && rect.y + rect.h <= current.y + current.h - pad;
+    if (inside && !force) return; // 已在视野内则不调整
+    if (force) { // 仅主动“定位”时才改变缩放：放大到可读比例
+      current.w = Math.min(current.full.w, Math.max(520, canvas.width / 0.92));
+      current.h = current.w / canvas.ratio;
+    }
+    // 其余情况保持当前缩放，只平移到可见
+    current.x = rect.x + rect.w / 2 - current.w / 2;
+    current.y = rect.y + rect.h / 2 - current.h / 2;
+    applyView(svg);
+  }
+
+  function renderOutline() {
+    const acts = data.actsFlat.length ? data.actsFlat : [{ id: 'all', title: '全部场景', sceneIds: data.order }];
+    document.getElementById('scene-count').textContent = `${data.stats.scenes} 场`;
+    document.getElementById('outline').innerHTML = acts.map((act) => `<details class="act" open><summary>${esc(act.title || act.id)}</summary>${(act.sceneIds || []).map((id) => {
+      if (!data.scenes[id]) return '';
+      const number = data.tellingIndex[id] == null ? '—' : String(data.tellingIndex[id] + 1).padStart(2, '0');
+      return `<button class="scene-item" data-scene="${esc(id)}"><span class="item-number">${number}</span><span>${esc(sceneTitle(id))}</span></button>`;
+    }).join('')}</details>`).join('');
+    document.querySelectorAll('.scene-item').forEach((button) => button.addEventListener('click', () => navigateTo(null, 'scene', button.dataset.scene, true)));
+  }
+  function renderEntities() {
+    document.getElementById('entities').innerHTML = Object.entries(TYPES).map(([kind, label]) => {
+      const list = data.entitiesByKind[kind] || [];
+      return list.length ? `<details class="entity-group" open><summary>${label} · ${list.length}</summary>${list.map((item) => `<button class="entity-item" data-entity="${esc(item.id)}"><span>${esc(item.name)}</span><span class="count">${item.scenes.length} 场</span></button>`).join('')}</details>` : '';
+    }).join('');
+    document.querySelectorAll('.entity-item').forEach((button) => button.addEventListener('click', () => navigateTo('charmap', 'entity', button.dataset.entity, true)));
+  }
+  function renderFilters() {
+    const target = document.getElementById('legend');
+    target.innerHTML = state.mode === 'charmap'
+      ? Object.entries(TYPES).map(([kind, label]) => `<label class="filter-label"><input type="checkbox" data-entity-kind="${kind}" ${state.entityKinds.has(kind) ? 'checked' : ''}>${label}</label>`).join('')
+        + '<label class="filter-label"><input type="checkbox" data-showedges>显示连线</label>'
+      : Object.entries(RELS).map(([kind, label]) => `<label class="filter-label"><input type="checkbox" data-relation-kind="${kind}" ${state.relationKinds[state.mode].has(kind) ? 'checked' : ''}><span class="line-swatch ${kind}"></span>${label}</label>`).join('');
+    target.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => {
+      if (input.hasAttribute('data-showedges')) { svgs.forEach((svg) => svg.classList.toggle('show-edges', input.checked)); return; }
+      const set = input.dataset.entityKind ? state.entityKinds : state.relationKinds[state.mode];
+      const value = input.dataset.entityKind || input.dataset.relationKind;
+      input.checked ? set.add(value) : set.delete(value); applyFilters();
+    }));
+  }
+  function renderRelationScope() {
+    const select = document.getElementById('relation-scope');
+    select.innerHTML = `<option value="all">全部变化</option>${data.order.map((id) => `<option value="${esc(id)}">${data.tellingIndex[id] + 1}. ${esc(sceneTitle(id))}</option>`).join('')}`;
+    select.value = state.relationScene;
+  }
+  function applyFilters() {
+    for (const svg of svgs) {
+      svg.querySelectorAll('.logic-edge').forEach((edge) => {
+        const visible = state.mode === svg.dataset.mode && state.relationKinds[state.mode]?.has(edge.dataset.kind);
+        edge.classList.toggle('filter-off', !visible); edge.classList.toggle('visible', visible);
+      });
+      svg.querySelectorAll('.entity').forEach((node) => node.classList.toggle('type-off', !state.entityKinds.has(node.dataset.kind)));
+      svg.querySelectorAll('.part-edge').forEach((edge) => edge.classList.toggle('type-off', !state.entityKinds.has(edge.dataset.kind)));
+      svg.querySelectorAll('.pair-edge').forEach((edge) => {
+        const relation = data.characterRelations.find((item) => item.id === edge.dataset.relationId);
+        edge.classList.toggle('scope-off', state.relationScene !== 'all' && !relation?.sceneIds.includes(state.relationScene));
+      });
+    }
+    renderMinimap();
+  }
+
+  function clearMarks() {
+    svgs.forEach((svg) => svg.querySelectorAll('.selected,.neighbor,.hot,.dim,.hover-show').forEach((node) => node.classList.remove('selected', 'neighbor', 'hot', 'dim', 'hover-show')));
+    document.querySelectorAll('.scene-item,.entity-item').forEach((item) => item.classList.remove('active'));
+  }
+  function openDetail() {
+    body.classList.add('right-open'); document.getElementById('right-panel').inert = false;
+    document.getElementById('toggle-right').setAttribute('aria-expanded', 'true');
+  }
+  function closeDetail() {
+    body.classList.remove('right-open'); document.getElementById('right-panel').inert = true;
+    document.getElementById('toggle-right').setAttribute('aria-expanded', 'false');
+  }
+  function clearSelection() {
+    state.selected = null; clearMarks();
+    document.getElementById('focus').disabled = true; document.getElementById('clear-selection').hidden = true;
+    document.getElementById('detail').innerHTML = '<p>选择一个场景或故事要素，查看完整内容及其关联。</p>'; closeDetail();
+  }
+  function select(type, id, shouldFocus = false) {
+    state.selected = { type, id }; clearMarks();
+    const svg = activeSvg();
+    svg.querySelector(`[data-node-id="${CSS.escape(id)}"]`)?.classList.add('selected');
+    if (type === 'scene') {
+      document.querySelectorAll(`.scene-item[data-scene="${CSS.escape(id)}"]`).forEach((item) => item.classList.add('active'));
+      if (state.mode === 'charmap') {
+        svg.querySelectorAll('.part-edge').forEach((edge) => {
+          if (edge.dataset.source === id) { edge.classList.add('hot'); svg.querySelector(`[data-node-id="${CSS.escape(edge.dataset.target)}"]`)?.classList.add('neighbor'); }
+        });
+        state.relationScene = id; document.getElementById('relation-scope').value = id; applyFilters();
+      } else {
+        svg.querySelectorAll('.logic-edge').forEach((edge) => {
+          if (edge.dataset.source === id || edge.dataset.target === id) {
+            edge.classList.add('visible', 'hot');
+            svg.querySelector(`[data-node-id="${CSS.escape(edge.dataset.source === id ? edge.dataset.target : edge.dataset.source)}"]`)?.classList.add('neighbor');
+          }
+        });
+      }
+      renderSceneDetail(id);
+    } else if (type === 'entity') {
+      document.querySelectorAll(`.entity-item[data-entity="${CSS.escape(id)}"]`).forEach((item) => item.classList.add('active'));
+      svg.querySelectorAll('.part-edge').forEach((edge) => {
+        if (edge.dataset.target === id) { edge.classList.add('hot'); svg.querySelector(`[data-node-id="${CSS.escape(edge.dataset.source)}"]`)?.classList.add('neighbor'); }
+      });
+      svg.querySelectorAll('.pair-edge').forEach((edge) => { if (edge.dataset.source === id || edge.dataset.target === id) edge.classList.add('hot'); });
+      renderEntityDetail(id);
+    } else if (type === 'beat') {
+      const beat = beatOf(id);
+      if (beat) { svg.querySelector(`[data-node-id="${CSS.escape(beat.sceneId)}"]`)?.classList.add('selected'); renderBeatDetail(id); }
+    }
+    openDetail();
+    document.getElementById('focus').disabled = !['scene', 'entity'].includes(type);
+    document.getElementById('clear-selection').hidden = false;
+    if (shouldFocus) focusNode(type === 'beat' ? beatOf(id)?.sceneId : id);
+    status(`${type === 'entity' ? nameOf(id) : type === 'beat' ? '节拍' : sceneLabel(id)} 已选择`);
+  }
+
+  function changeOf(pair, sid) {
+    const scenes = data.order;
+    const factsById = new Map(pair.facts.map((fact) => [fact.id, fact]));
+    const activeAt = (s) => (pair.perScene[s] || []).map((fid) => factsById.get(fid)).filter(Boolean);
+    const idx = scenes.indexOf(sid);
+    const prevSid = idx > 0 ? scenes[idx - 1] : null;
+    const current = [...new Set(activeAt(sid).map((fact) => fact.kind))];
+    const previous = prevSid ? [...new Set(activeAt(prevSid).map((fact) => fact.kind))] : [];
+    const reasons = [...new Set(activeAt(sid).filter((fact) => !previous.includes(fact.kind)).map((fact) => fact.description).filter(Boolean))];
+    const reason = reasons.length ? reasons.join('；') : (data.scenes[sid]?.summary || '');
+    return { from: previous.join('、'), to: current.join('、'), reason };
+  }
+
+  function relationChain(pair) {
+    const factsById = new Map(pair.facts.map((fact) => [fact.id, fact]));
+    const seq = [];
+    let prev = null;
+    for (const sid of data.order) {
+      const kinds = [...new Set((pair.perScene[sid] || []).map((fid) => factsById.get(fid)).filter(Boolean).map((fact) => fact.kind))];
+      if (!kinds.length) continue; // 未声明关系的场次不参与
+      const joined = kinds.join('、');
+      if (joined !== prev) { seq.push(joined); prev = joined; }
+    }
+    return seq.join(' → ');
+  }
+
+  function relationEvents(pair) {
+    if (!pair) return '';
+    return pair.changePoints.map((sid) => {
+      const { from, to, reason } = changeOf(pair, sid);
+      const label = from ? `${from} → ${to}` : to;
+      return `<button type="button" class="evo-event" data-jump-scene="${esc(sid)}" data-pair="${esc(pair.key)}"><b>${esc(sceneLabel(sid))}</b><span class="evo-transition">${esc(label)}</span>${reason ? `<span class="evo-reason">原因：${esc(reason)}</span>` : ''}</button><div class="evo-preview" hidden></div>`;
+    }).join('');
+  }
+
+  function scenePreviewHtml(sid) {
+    const s = data.scenes[sid];
+    if (!s) return '';
+    const loc = s.locationId ? entity(s.locationId) : null;
+    const people = Object.entries(s.participants || {}).map(([cid, st]) => `${nameOf(cid)}${st.emotion ? `（${st.emotion}）` : ''}`).join('、') || '未指定';
+    const beats = (s.beats || []).map((b) => `<div class="preview-beat"><b>${BEATS[b.kind] || b.kind}</b>${esc(b.text)}</div>`).join('');
+    return `<div class="row">${esc(s.summary || '')}</div>
+      <div class="row"><b>地点</b>　${esc(loc ? loc.name : '未指定')}</div>
+      <div class="row"><b>人物</b>　${esc(people)}</div>${beats}`;
+  }
+  function toggleEvoPreview(button, sid) {
+    let box = button.nextElementSibling;
+    if (!box || !box.classList.contains('evo-preview')) { box = document.createElement('div'); box.className = 'evo-preview'; button.after(box); }
+    if (!box.hidden) { box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML = scenePreviewHtml(sid);
+  }
+  function highlightSceneInCharmap(sid) {
+    svgs.forEach((svg) => svg.querySelectorAll('.selected,.neighbor,.hot,.dim,.hover-show').forEach((n) => n.classList.remove('selected', 'neighbor', 'hot', 'dim', 'hover-show')));
+    const svg = activeSvg();
+    const ents = new Set(Object.entries(data.entityScenes).filter(([, sids]) => sids.includes(sid)).map(([e]) => e));
+    svg.querySelectorAll('.rscene').forEach((n) => n.classList.toggle('selected', n.dataset.nodeId === sid));
+    svg.querySelectorAll('.char-node').forEach((n) => { if (ents.has(n.dataset.nodeId)) n.classList.add('selected'); else n.classList.add('dim'); });
+    svg.querySelectorAll('.part-edge').forEach((e) => { if (e.dataset.scene === sid) e.classList.add('hot'); else e.classList.add('dim'); });
+    document.querySelectorAll('.scene-item').forEach((el) => el.classList.toggle('active', el.dataset.scene === sid));
+  }
+
+  function relationText(relation) {
+    const arrow = relation.direction === 'directed' ? '→' : '↔';
+    const scope = relation.scopeType === 'global' ? '全篇有效' : `${relation.sceneIds.length} 场有效`;
+    return `<div class="relation-item"><b>${esc(relation.sourceName)}</b> ${arrow} <b>${esc(relation.targetName)}</b>：${esc(relation.kind)}<span class="scope-label">${scope}${relation.description ? ` · ${esc(relation.description)}` : ''}</span></div>`;
+  }
+  function edgeText(edge) {
+    const endpoint = (part) => part.type === 'scene' ? sceneLabel(part.id) : (beatOf(part.id)?.text || part.id);
+    return `<div class="relation-item"><b>${RELS[edge.kind]}</b>：${esc(endpoint(edge.source))} → ${esc(endpoint(edge.target))}${edge.description ? `<span class="scope-label">${esc(edge.description)}</span>` : ''}</div>`;
+  }
+  function bindDetailActions() {
+    const panel = document.getElementById('detail');
+    panel.querySelectorAll('[data-jump-scene]:not([data-pair])').forEach((button) => button.addEventListener('click', () => navigateTo('telling', 'scene', button.dataset.jumpScene, true)));
+    panel.querySelectorAll('[data-pair][data-jump-scene]').forEach((button) => button.addEventListener('click', () => {
+      const sid = button.dataset.jumpScene;
+      if (state.mode === 'charmap') { highlightSceneInCharmap(sid); toggleEvoPreview(button, sid); }
+      else { navigateTo('telling', 'scene', sid, true); }
+    }));
+    panel.querySelectorAll('[data-jump-entity]').forEach((button) => button.addEventListener('click', () => navigateTo('charmap', 'entity', button.dataset.jumpEntity, true)));
+    panel.querySelectorAll('[data-beat]').forEach((button) => button.addEventListener('click', () => navigateTo(null, 'beat', button.dataset.beat)));
+    panel.querySelectorAll('[data-nav]').forEach((button) => button.addEventListener('click', () => navigateScene(Number(button.dataset.nav))));
+    panel.querySelectorAll('[data-edit-scene-title]').forEach((button) => button.addEventListener('click', () => {
+      const sid = button.dataset.editSceneTitle;
+      const current = (data.scenes[sid] && data.scenes[sid].title) || sid;
+      const title = prompt('新的场景标题', current);
+      if (title && title !== current) sendChange([{ op: 'scene.update', id: sid, changes: { title } }]);
+    }));
+    panel.querySelectorAll('[data-edit-entity-name]').forEach((button) => button.addEventListener('click', () => {
+      const eid = button.dataset.editEntityName;
+      const current = nameOf(eid);
+      const name = prompt('新的名称', current);
+      if (name && name !== current) sendChange([{ op: 'entity.replace', entityId: eid, newName: name, aliases: [current] }]);
+    }));
+  }
+  function refRow(id, state) {
+    return `<div class="ref-row"><button class="jump" data-jump-entity="${esc(id)}">${esc(nameOf(id))}</button>${state ? `<span class="ref-state">：${esc(state)}</span>` : ''}</div>`;
+  }
+
+  function renderSceneDetail(id) {
+    const scene = data.scenes[id], index = data.order.indexOf(id);
+    const location = scene.locationId ? entity(scene.locationId) : null;
+    const area = location && scene.areaId ? (location.areas || []).find((item) => item.id === scene.areaId) : null;
+    const locRow = location ? refRow(scene.locationId, area ? area.name : '') : '<div class="row">未指定</div>';
+    const people = Object.entries(scene.participants || {}).map(([personId, value]) => {
+      const detail = [value.emotion, value.goal, value.knowledge, value.appearance].filter(Boolean).join('；');
+      return refRow(personId, detail);
+    }).join('') || '<div class="row">未指定</div>';
+    const props = Object.entries(scene.props || {}).map(([propId, value]) => {
+      const holder = value && Object.hasOwn(value, 'holderId') ? (value.holderId == null ? '无人持有' : `由${nameOf(value.holderId)}持有`) : '';
+      const detail = [value?.condition, value?.appearance, holder].filter(Boolean).join('；');
+      return refRow(propId, detail);
+    }).join('') || '<div class="row">未指定</div>';
+    const beats = (scene.beats || []).map((beat) => `<button class="beat-item" data-beat="${esc(beat.id)}"><b>${BEATS[beat.kind] || beat.kind}${beat.kind === 'dialogue' && beat.speakerId ? ` · ${esc(nameOf(beat.speakerId))}` : ''}</b>${esc(beat.text)}</button>`).join('') || '<div class="row">尚无节拍</div>';
+    const logic = data.edges.filter((edge) => edge.sourceScene === id || edge.targetScene === id).map(edgeText).join('') || '<div class="row">尚无显式逻辑关系</div>';
+    const relations = data.characterRelations.filter((relation) => relation.sceneIds.includes(id)).map(relationText).join('') || '<div class="row">本场没有人物关系记录</div>';
+    const changesHere = data.relationsByPair.filter((pair) => pair.changePoints.includes(id));
+    const changeHtml = changesHere.map((pair) => {
+      const { from, to, reason } = changeOf(pair, id);
+      const label = from ? `${from} → ${to}` : to;
+      return `<div class="evo-event"><b>${esc(nameOf(pair.a))} ⇄ ${esc(nameOf(pair.b))}</b><span class="evo-transition">${esc(label)}</span>${reason ? `<span class="evo-reason">原因：${esc(reason)}</span>` : ''}</div>`;
+    }).join('') || '<div class="row">本场没有关系变化</div>';
+    const t = data.sceneTime && data.sceneTime[id];
+    const timeLabel = data.timeKnown.includes(id) ? `时间点 ${(data.layer[id] || 0) + 1}${t ? `（${t}）` : ''}` : (t ? `故事时间先后未定（${t}）` : '故事时间先后未定');
+    document.getElementById('detail').innerHTML = `<div class="scene-nav"><button data-nav="-1" ${index <= 0 ? 'disabled' : ''}>${icon('chevron-left')}上一场</button><button data-nav="1" ${index < 0 || index >= data.order.length - 1 ? 'disabled' : ''}>下一场${icon('chevron-right')}</button></div>
+      <h3>${esc(scene.title || id)}${window.__SERVED__ ? ` <button class="edit-btn" data-edit-scene-title="${esc(id)}">改名</button>` : ''}</h3><div class="sub">第 ${index + 1} 场 · ${timeLabel}${data.inverted.includes(id) ? ' · 非线性讲述' : ''}</div><p>${esc(scene.summary || '情节概述待补充')}</p>
+      <h4>地点</h4>${locRow}
+      <h4>氛围</h4><div class="row">${esc(scene.mood || '未指定')}</div>
+      <h4>故事线</h4><div class="row">${(scene.threadIds || []).map((threadId) => `<span class="tag">${esc(data.threads[threadId]?.name || threadId)}</span>`).join('') || '未指定'}</div>
+      <h4>人物</h4>${people}<h4>道具</h4>${props}
+      <details open><summary>场景节拍 · ${(scene.beats || []).length}</summary>${beats}</details>
+      <details><summary>故事逻辑</summary>${logic}</details>
+      <details><summary>本场人物关系</summary>${relations}</details>
+      <details ${changesHere.length ? 'open' : ''}><summary>本场关系变化 · ${changesHere.length}</summary>${changeHtml}</details>`;
+    bindDetailActions();
+  }
+  function renderBeatDetail(id) {
+    const beat = beatOf(id); if (!beat) return;
+    const logic = data.edges.filter((edge) => edge.source.id === id || edge.target.id === id).map(edgeText).join('') || '<div class="row">尚无显式逻辑关系</div>';
+    document.getElementById('detail').innerHTML = `<button class="jump" data-jump-scene="${esc(beat.sceneId)}">${icon('chevron-left')} 返回 ${esc(sceneLabel(beat.sceneId))}</button>
+      <h3>${esc(BEATS[beat.kind] || beat.kind)}</h3><div class="sub">场景节拍</div>
+      ${beat.kind === 'dialogue' ? `<div class="row"><b>说话人</b>　<button class="jump" data-jump-entity="${esc(beat.speakerId)}">${esc(nameOf(beat.speakerId))}</button>${beat.tone ? ` · ${esc(beat.tone)}` : ''}</div>` : ''}
+      <p>${esc(beat.text)}</p><h4>相关逻辑</h4>${logic}`;
+    bindDetailActions();
+  }
+  function renderEntityDetail(id) {
+    const item = entity(id), appearances = data.entityScenes[id] || [];
+    const traits = Object.entries(item.fixedTraits || {}).map(([key, value]) => `<div class="row"><b>${esc(TRAIT_LABELS[key] || key)}</b>　${esc(value)}</div>`).join('');
+    const pairs = data.relationsByPair.filter((pair) => pair.a === id || pair.b === id);
+    document.getElementById('detail').innerHTML = `<h3>${item.referenceImage ? `<img class="ref-thumb" src="${esc(item.referenceImage)}" alt="">` : ''}${esc(item.name || id)}${window.__SERVED__ ? ` <button class="edit-btn" data-edit-entity-name="${esc(id)}">改名</button>` : ''}</h3>
+      <div class="sub">${TYPES[item.kind] || item.kind} · ${appearances.length} 场出现</div>${item.description ? `<p>${esc(item.description)}</p>` : ''}
+      ${(item.tags || []).map((tag) => `<span class="tag">${esc(tag)}</span>`).join('')}${traits ? `<h4>固定设定</h4>${traits}` : ''}${item.motivation ? `<div class="row"><b>动机</b>　${esc(item.motivation)}</div>` : ''}
+      ${pairs.length ? `<details open><summary>人物关系 · ${pairs.length}</summary>${pairs.map((pair) => {
+        const other = pair.a === id ? pair.b : pair.a;
+        const chain = relationChain(pair);
+        const events = relationEvents(pair);
+        const head = `与 <button class="jump" data-jump-entity="${esc(other)}">${esc(nameOf(other))}</button>${chain ? `<span class="pair-chain">${esc(chain)}</span>` : ''}`;
+        return events ? `<details class="pair-block"><summary>${head}</summary>${events}</details>` : `<div class="pair-block static">${head}</div>`;
+      }).join('')}</details>` : ''}
+      <details open><summary>出现的场景 · ${appearances.length}</summary>${appearances.map((sceneId) => {
+        const number = data.tellingIndex[sceneId] == null ? '—' : String(data.tellingIndex[sceneId] + 1).padStart(2, '0');
+        return `<div class="scene-appearance"><button class="jump" data-jump-scene="${esc(sceneId)}"><span class="item-number">${number}</span><b>${esc(sceneTitle(sceneId))}</b></button><p>${esc(data.scenes[sceneId].summary || '')}</p></div>`;
+      }).join('') || '<div class="row">尚未出场</div>'}</details>`;
+    bindDetailActions();
+  }
+  function navigateScene(delta) {
+    const currentId = state.selected?.type === 'scene' ? state.selected.id : beatOf(state.selected?.id)?.sceneId;
+    const next = data.order[data.order.indexOf(currentId) + delta]; if (next) navigateTo(null, 'scene', next, true);
+  }
+  function setMode(mode) {
+    const changed = state.mode !== mode;
+    state.mode = mode;
+    if (mode === 'telling' || mode === 'time') state.lastLogicMode = mode;
+    svgs.forEach((svg) => svg.classList.toggle('active', svg.dataset.mode === mode));
+    const logicView = mode !== 'charmap';
+    document.querySelectorAll('[data-view]').forEach((tab) => {
+      const active = (tab.dataset.view === 'logic') === logicView; tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1;
+    });
+    const layoutToggle = document.getElementById('layout-toggle');
+    layoutToggle.hidden = !logicView;
+    layoutToggle.textContent = mode === 'time' ? '切换为讲述顺序' : '切换为故事时间';
+    document.getElementById('mode-context').textContent = HELP[mode];
+    document.getElementById('relation-scope-wrap').hidden = mode !== 'charmap';
+    document.getElementById('story-count').textContent = `${data.stats.scenes} 场 · ${data.stats.entities} 个要素`;
+    renderFilters(); applyFilters();
+    if (state.selected) {
+      const valid = mode === 'charmap' ? ['scene', 'entity'] : ['scene', 'beat'];
+      valid.includes(state.selected.type) ? select(state.selected.type, state.selected.id) : clearSelection();
+    }
+    if (changed) readableView(); // 切换视图时按画布比例重新适配（选择/跳转不改缩放）
+  }
+  function setView(view) { const mode = view === 'charmap' ? 'charmap' : state.lastLogicMode || 'telling'; if (mode !== state.mode) pushHistory(); setMode(mode); }
+
+  function bindCanvas() {
+    for (const svg of svgs) {
+      svg.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const rect = svg.getBoundingClientRect();
+        const current = view.get(svg);
+        if (event.ctrlKey || event.metaKey) {
+          // 缩放：Ctrl/⌘ + 滚轮（或触控板双指缩放）
+          zoom(event.deltaY > 0 ? 1.12 : 1 / 1.12, { x: current.x + ((event.clientX - rect.left) / rect.width) * current.w, y: current.y + ((event.clientY - rect.top) / rect.height) * current.h });
+        } else {
+          // 平移：滚轮上下、Shift+滚轮或横向滚动左右
+          const unitX = current.w / rect.width;
+          const unitY = current.h / rect.height;
+          current.x += (event.shiftKey ? event.deltaY : event.deltaX) * unitX;
+          current.y += (event.shiftKey ? 0 : event.deltaY) * unitY;
+          applyView(svg);
+        }
+      }, { passive: false });
+      let drag = null;
+      svg.addEventListener('pointerdown', (event) => {
+        if (event.target.closest('[data-node-id],.logic-edge,.pair-edge')) return;
+        drag = { x: event.clientX, y: event.clientY, view: { ...view.get(svg) } };
+        svg.setPointerCapture(event.pointerId); svg.classList.add('panning');
+      });
+      svg.addEventListener('pointermove', (event) => {
+        if (!drag) return; const rect = svg.getBoundingClientRect(), current = view.get(svg);
+        current.x = drag.view.x - (event.clientX - drag.x) * (drag.view.w / rect.width);
+        current.y = drag.view.y - (event.clientY - drag.y) * (drag.view.h / rect.height); applyView(svg);
+      });
+      const stop = () => { drag = null; svg.classList.remove('panning'); };
+      svg.addEventListener('pointerup', stop); svg.addEventListener('pointercancel', stop);
+      svg.addEventListener('click', (event) => {
+        const node = event.target.closest('[data-node-id]'); if (node) return navigateTo(null, node.dataset.nodeType, node.dataset.nodeId);
+        const logic = event.target.closest('.logic-edge'); if (logic) { pushHistory(); return renderLogicDetail(logic.dataset.edgeId); }
+        const relation = event.target.closest('.pair-edge'); if (relation) { pushHistory(); return renderCharacterRelationDetail(relation.dataset.relationId); }
+      });
+      svg.addEventListener('keydown', (event) => {
+        if (!['Enter', ' '].includes(event.key)) return; event.preventDefault();
+        const node = event.target.closest('[data-node-id]'); if (node) navigateTo(null, node.dataset.nodeType, node.dataset.nodeId);
+      });
+      svg.addEventListener('mouseover', (event) => {
+        const node = event.target.closest('[data-node-id]'); if (!node) return;
+        const id = node.dataset.nodeId;
+        svg.querySelectorAll('.logic-edge, .part-edge, .pair-edge').forEach((edge) => {
+          if (edge.dataset.source === id || edge.dataset.target === id) edge.classList.add('hover-show');
+        });
+      });
+      svg.addEventListener('mouseout', (event) => {
+        if (event.relatedTarget && event.relatedTarget.closest && event.relatedTarget.closest('[data-node-id]')) return;
+        svg.querySelectorAll('.hover-show').forEach((edge) => edge.classList.remove('hover-show'));
+      });
+    }
+  }
+  function renderLogicDetail(id) {
+    const edge = data.edges.find((item) => item.id === id); if (!edge) return;
+    state.selected = { type: 'relation', id }; openDetail();
+    document.getElementById('detail').innerHTML = `<h3>${RELS[edge.kind]}</h3><div class="sub">故事逻辑关系</div>${edgeText(edge)}`;
+  }
+  function renderCharacterRelationDetail(id) {
+    const relation = data.characterRelations.find((item) => item.id === id); if (!relation) return;
+    state.selected = { type: 'characterRelation', id }; openDetail();
+    document.getElementById('detail').innerHTML = `<h3>${esc(relation.kind)}</h3><div class="sub">人物关系</div>${relationText(relation)}<h4>生效场景</h4>${relation.sceneIds.map((sceneId) => `<div class="row"><button class="jump" data-jump-scene="${esc(sceneId)}">${esc(sceneLabel(sceneId))}</button></div>`).join('')}`;
+    bindDetailActions();
+  }
+  function renderMinimap() {
+    const container = document.getElementById('minimap'), geom = data.geoms[state.mode], svg = activeSvg(); if (!geom || !svg) return;
+    const scale = Math.min((MINI.w - MINI.pad * 2) / geom.w, (MINI.h - MINI.pad * 2) / geom.h);
+    const ox = MINI.pad + (MINI.w - MINI.pad * 2 - geom.w * scale) / 2, oy = MINI.pad + (MINI.h - MINI.pad * 2 - geom.h * scale) / 2, current = view.get(svg);
+    const nodes = geom.nodes.map((rect) => `<rect x="${ox + rect.x * scale}" y="${oy + rect.y * scale}" width="${Math.max(1, rect.w * scale)}" height="${Math.max(1, rect.h * scale)}" rx="1"/>`).join('');
+    container.innerHTML = `<svg viewBox="0 0 ${MINI.w} ${MINI.h}" width="${MINI.w}" height="${MINI.h}">${nodes}<rect class="vp" x="${ox + current.x * scale}" y="${oy + current.y * scale}" width="${current.w * scale}" height="${current.h * scale}"/></svg>`;
+  }
+
+  function searchItems(query) {
+    const q = query.toLocaleLowerCase(), results = [];
+    for (const [id, scene] of Object.entries(data.scenes)) if (`${scene.title || ''} ${scene.summary || ''} ${id}`.toLocaleLowerCase().includes(q)) results.push({ type: 'scene', id, label: sceneLabel(id), detail: scene.summary || '场景' });
+    for (const beat of data.beats) if (`${beat.text} ${beat.id}`.toLocaleLowerCase().includes(q)) results.push({ type: 'beat', id: beat.id, label: beat.text, detail: `节拍 · ${sceneLabel(beat.sceneId)}` });
+    for (const [id, item] of Object.entries(data.entities)) if (`${item.name || ''} ${item.description || ''} ${(item.tags || []).join(' ')} ${id}`.toLocaleLowerCase().includes(q)) results.push({ type: 'entity', id, label: item.name || id, detail: TYPES[item.kind] || item.kind });
+    return results.slice(0, 12);
+  }
+  function renderSearch(query) {
+    const panel = document.getElementById('search-results'), input = document.getElementById('search');
+    if (!query.trim()) { panel.hidden = true; input.setAttribute('aria-expanded', 'false'); return; }
+    const results = searchItems(query.trim());
+    panel.innerHTML = results.length ? results.map((result, index) => `<button class="search-result${index === 0 ? ' active' : ''}" data-result-type="${result.type}" data-result-id="${esc(result.id)}"><span class="result-type">${esc(result.detail)}</span><span class="result-text">${esc(result.label)}</span></button>`).join('') : '<div class="search-empty">没有匹配内容</div>';
+    panel.hidden = false; input.setAttribute('aria-expanded', 'true');
+    panel.querySelectorAll('.search-result').forEach((button) => button.addEventListener('click', () => chooseSearchResult(button)));
+  }
+  function chooseSearchResult(button) {
+    const type = button.dataset.resultType; navigateTo(type === 'entity' ? 'charmap' : 'telling', type, button.dataset.resultId, true);
+    document.getElementById('search-results').hidden = true; document.getElementById('search').setAttribute('aria-expanded', 'false');
+  }
+  function bindControls() {
+    document.querySelectorAll('[data-view]').forEach((tab) => tab.addEventListener('click', () => setView(tab.dataset.view)));
+    document.getElementById('layout-toggle').addEventListener('click', () => { pushHistory(); setMode(state.mode === 'time' ? 'telling' : 'time'); });
+    document.getElementById('detail-back').addEventListener('click', goBack);
+    document.getElementById('zoom-in').addEventListener('click', () => zoom(1 / 1.18));
+    document.getElementById('zoom-out').addEventListener('click', () => zoom(1.18));
+    document.getElementById('zoom-reset').addEventListener('click', readableView);
+    document.getElementById('fit').addEventListener('click', fitAll);
+    document.getElementById('focus').addEventListener('click', () => focusNode(state.selected?.type === 'beat' ? beatOf(state.selected.id)?.sceneId : state.selected?.id, true));
+    document.getElementById('clear-selection').addEventListener('click', clearSelection);
+    document.getElementById('close-detail').addEventListener('click', closeDetail);
+    document.getElementById('toggle-right').addEventListener('click', () => body.classList.contains('right-open') ? closeDetail() : openDetail());
+    document.getElementById('toggle-left').addEventListener('click', () => {
+      body.classList.toggle('left-closed'); const open = !body.classList.contains('left-closed');
+      document.getElementById('toggle-left').setAttribute('aria-expanded', String(open)); requestAnimationFrame(readableView);
+    });
+    document.getElementById('theme').addEventListener('click', () => {
+      const root = document.documentElement; root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem('sparkrealm-theme', root.dataset.theme); } catch (_) {}
+    });
+    document.getElementById('relation-scope').addEventListener('change', (event) => { state.relationScene = event.target.value; applyFilters(); });
+    const search = document.getElementById('search');
+    search.addEventListener('input', () => renderSearch(search.value));
+    search.addEventListener('keydown', (event) => {
+      const results = [...document.querySelectorAll('.search-result')];
+      if (event.key === 'Enter' && results.length) { event.preventDefault(); chooseSearchResult(results.find((item) => item.classList.contains('active')) || results[0]); }
+    });
+    document.addEventListener('pointerdown', (event) => { if (!event.target.closest('.search-wrap')) document.getElementById('search-results').hidden = true; });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { if (!document.getElementById('search-results').hidden) document.getElementById('search-results').hidden = true; else clearSelection(); }
+      if (event.target.matches('input,select,button')) return;
+      if (event.key === 'ArrowRight') navigateScene(1); if (event.key === 'ArrowLeft') navigateScene(-1);
+    });
+    document.getElementById('minimap').addEventListener('click', (event) => {
+      const geom = data.geoms[state.mode], rect = event.currentTarget.getBoundingClientRect();
+      const scale = Math.min((MINI.w - MINI.pad * 2) / geom.w, (MINI.h - MINI.pad * 2) / geom.h);
+      const ox = MINI.pad + (MINI.w - MINI.pad * 2 - geom.w * scale) / 2, oy = MINI.pad + (MINI.h - MINI.pad * 2 - geom.h * scale) / 2, current = view.get(activeSvg());
+      current.x = (event.clientX - rect.left - ox) / scale - current.w / 2; current.y = (event.clientY - rect.top - oy) / scale - current.h / 2; applyView(activeSvg());
+    });
+    window.addEventListener('resize', () => applyView(activeSvg()));
+  }
+
+  try { const theme = localStorage.getItem('sparkrealm-theme'); if (['dark', 'light'].includes(theme)) document.documentElement.dataset.theme = theme; } catch (_) {}
+  renderOutline(); renderEntities(); renderRelationScope(); bindCanvas(); bindControls();
+  document.getElementById('empty-state').hidden = data.stats.scenes !== 0;
+  document.getElementById('detail').innerHTML = '<p>选择一个场景或故事要素，查看完整内容及其关联。</p>';
+  if (window.matchMedia('(max-width: 700px)').matches) {
+    body.classList.add('left-closed');
+    document.getElementById('toggle-left').setAttribute('aria-expanded', 'false');
+  }
+
+  setMode('telling');
+  restoreSession();
+
+  // 服务模式：轮询 revision，外部（Agent 经 CLI）改动后自动刷新并保留视角
+  if (window.__SERVED__) {
+    const last = data.revision;
+    setInterval(async () => {
+      try {
+        const response = await fetch('/state');
+        const state = await response.json();
+        if (state.revision !== last) { saveSession(); location.reload(); }
+      } catch (_) { /* 忽略网络错误 */ }
+    }, 2000);
+  }
+
+  window.__storygraph = {
+    sendChange,
+    getState: () => ({ mode: state.mode, revision: data.revision, selected: state.selected, served: Boolean(window.__SERVED__) }),
+  };
+})();
+</script>
+</body>
+</html>
