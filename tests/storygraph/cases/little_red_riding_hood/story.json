@@ -1,0 +1,388 @@
+{
+  "schemaVersion": 1,
+  "storyId": "story_little_red",
+  "revision": 1,
+  "metadata": {
+    "title": "小红帽",
+    "logline": "小红帽在去外婆家的路上轻信大灰狼，危急时被猎人救下。",
+    "theme": "轻信与教训",
+    "language": "zh-CN"
+  },
+  "entities": {
+    "char_red": {
+      "kind": "character",
+      "name": "小红帽",
+      "description": "天真活泼的小女孩，常穿红色斗篷。",
+      "tags": ["主角"],
+      "fixedTraits": {
+        "age": "7岁",
+        "hair": "棕色卷发",
+        "signatureLook": "红色丝绒斗篷，白色连衣裙"
+      },
+      "motivation": "给生病的外婆送蛋糕和葡萄酒",
+      "voiceDescription": "清脆稚嫩的童声，语速偏快，好奇时尾音上扬"
+    },
+    "char_mother": {
+      "kind": "character",
+      "name": "妈妈",
+      "description": "小红帽的母亲，细心谨慎。",
+      "tags": ["配角"],
+      "fixedTraits": {
+        "look": "围裙，扎起头发"
+      },
+      "motivation": "让女儿平安把食物送到外婆家",
+      "voiceDescription": "温柔的中年女声"
+    },
+    "char_wolf": {
+      "kind": "character",
+      "name": "大灰狼",
+      "description": "阴险狡诈的大灰狼，善于伪装。",
+      "tags": ["反派"],
+      "fixedTraits": {
+        "body": "体型高大，灰褐色毛皮",
+        "features": "尖耳竖立，尖齿，蓬松尾巴"
+      },
+      "motivation": "吃掉小红帽和外婆",
+      "voiceDescription": "低沉沙哑的男声，伪装时故意压细"
+    },
+    "char_grandma": {
+      "kind": "character",
+      "name": "外婆",
+      "description": "小红帽的外婆，体弱多病。",
+      "tags": ["主角"],
+      "fixedTraits": {
+        "age": "70岁",
+        "appearance": "灰白发丝，花边睡帽，白色睡衣"
+      },
+      "motivation": "盼望外孙女到访",
+      "voiceDescription": "虚弱苍老的女声"
+    },
+    "char_hunter": {
+      "kind": "character",
+      "name": "猎人",
+      "description": "路过小木屋的猎人，警觉果断。",
+      "tags": ["配角"],
+      "fixedTraits": {
+        "appearance": "壮实中年男子，绿色猎装，背着猎枪"
+      },
+      "motivation": "巡林，保护村民",
+      "voiceDescription": "沉稳有力的中年男声"
+    },
+    "loc_village": {
+      "kind": "location",
+      "name": "村庄",
+      "description": "宁静的欧洲小村庄，石板路，花园篱笆。"
+    },
+    "loc_forest_path": {
+      "kind": "location",
+      "name": "森林小路",
+      "description": "阳光穿透树冠的林间小径，野花遍地，蝴蝶飞舞。"
+    },
+    "loc_forest_deep": {
+      "kind": "location",
+      "name": "森林深处",
+      "description": "大橡树旁的阴暗林地，光线昏暗，氛围紧张。"
+    },
+    "loc_grandma_house": {
+      "kind": "location",
+      "name": "外婆的小屋",
+      "description": "林中温馨小木屋，壁炉、摇椅、碎花窗帘。",
+      "areas": [
+        { "id": "area_doorway", "name": "门口", "description": "木门，门廊上挂着干花。" },
+        { "id": "area_bedroom", "name": "卧室", "description": "碎花窗帘，铁架床，壁炉旁的摇椅。" },
+        { "id": "area_dining", "name": "餐桌旁", "description": "木质餐桌，桌上铺着格子桌布。" }
+      ]
+    },
+    "prop_basket": {
+      "kind": "prop",
+      "name": "篮子",
+      "description": "藤编篮子，盖着红白格子布，装着蛋糕和葡萄酒。",
+      "initialOwnerId": "char_red"
+    },
+    "prop_axe": {
+      "kind": "prop",
+      "name": "猎斧",
+      "description": "猎人随身携带的铁斧。",
+      "initialOwnerId": "char_hunter"
+    }
+  },
+  "scenes": {
+    "scene_001": {
+      "id": "scene_001",
+      "title": "妈妈的嘱托",
+      "summary": "小红帽在村庄家中收到妈妈准备的篮子，被叮嘱走大路、不要和陌生人说话。",
+      "locationId": "loc_village",
+      "time": { "timeOfDay": "morning" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "setup",
+      "mood": "温馨明快",
+      "participants": {
+        "char_red": { "emotion": "开心期待", "goal": "出发去外婆家", "appearance": null },
+        "char_mother": { "emotion": "温柔叮嘱", "goal": "叮嘱女儿注意安全", "appearance": null }
+      },
+      "locationState": null,
+      "props": {
+        "prop_basket": { "holderId": "char_red" }
+      },
+      "beats": [
+        { "id": "beat_0001", "kind": "action", "text": "小红帽站在家门口，阳光照在她的红色斗篷上。妈妈从屋内走出，递给她一个藤编篮子。" },
+        { "id": "beat_0002", "kind": "dialogue", "speakerId": "char_red", "tone": "好奇，兴奋", "text": "妈妈，篮子里装了什么呀？好香！" },
+        { "id": "beat_0003", "kind": "action", "text": "妈妈蹲下来，帮小红帽整理斗篷，轻轻拍了拍她的脸颊。" },
+        { "id": "beat_0004", "kind": "narration", "text": "妈妈叮嘱小红帽：走大路，不要在林子里逗留，不要和陌生人说话。" },
+        { "id": "beat_0005", "kind": "action", "text": "小红帽用力点头，提起篮子，蹦蹦跳跳地沿着石板路向村口走去。" }
+      ]
+    },
+    "scene_002": {
+      "id": "scene_002",
+      "title": "林间漫步",
+      "summary": "小红帽走在阳光明媚的森林小路上，欣赏花草蝴蝶，心情愉悦。",
+      "locationId": "loc_forest_path",
+      "time": { "timeOfDay": "morning" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "setup",
+      "mood": "轻快愉悦",
+      "participants": {
+        "char_red": { "emotion": "快乐天真", "appearance": null }
+      },
+      "locationState": null,
+      "props": {
+        "prop_basket": { "holderId": "char_red" }
+      },
+      "beats": [
+        { "id": "beat_0006", "kind": "action", "text": "小红帽走在铺满落叶的林间小路上，红色斗篷在树影间闪动。她一手提着篮子，一手拨开路旁的灌木。" },
+        { "id": "beat_0007", "kind": "action", "text": "一只蓝色蝴蝶飞到小红帽鼻尖，她咯咯笑着伸手去追，在花丛间转了个圈。" },
+        { "id": "beat_0008", "kind": "dialogue", "speakerId": "char_red", "tone": "自言自语，开心", "text": "外婆一定会喜欢这些花的！" },
+        { "id": "beat_0009", "kind": "action", "text": "小红帽弯腰摘了几朵野花，小心翼翼地放进篮子。远处树丛中，一双黄色的眼睛正注视着她。" }
+      ]
+    },
+    "scene_003": {
+      "id": "scene_003",
+      "title": "狼的出现",
+      "summary": "大灰狼在森林深处拦住小红帽，假装友善套话，得知她要去外婆家。",
+      "locationId": "loc_forest_deep",
+      "time": { "timeOfDay": "midday" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "表面友善，暗藏危险",
+      "participants": {
+        "char_red": { "emotion": "从好奇到轻信", "knowledge": "以为对方像一只大狗", "appearance": null },
+        "char_wolf": { "emotion": "伪善友好，内心贪婪", "goal": "问出外婆家的地址", "appearance": null }
+      },
+      "locationState": {
+        "lighting": "阳光被遮挡，只有零星光斑穿透树冠",
+        "condition": "树木高大密集，地面长满苔藓"
+      },
+      "props": {
+        "prop_basket": { "holderId": "char_red" }
+      },
+      "beats": [
+        { "id": "beat_0010", "kind": "action", "text": "小红帽走进森林深处，周围突然安静下来。一个高大的身影从橡树后缓缓走出——是一只灰褐色的大灰狼。" },
+        { "id": "beat_0011", "kind": "dialogue", "speakerId": "char_wolf", "tone": "温和友善，略带虚伪", "text": "你好啊小姑娘，你要去哪里呀？" },
+        { "id": "beat_0012", "kind": "action", "text": "小红帽没有害怕。她不认识大灰狼，觉得他看起来就像一只大狗。" },
+        { "id": "beat_0013", "kind": "dialogue", "speakerId": "char_red", "tone": "天真坦诚", "text": "我去外婆家，给她送蛋糕和葡萄酒。她生病了，住在森林那头的小木屋里。" },
+        { "id": "beat_0014", "kind": "action", "text": "大灰狼的耳朵微微竖起，尾巴不自觉地摇了一下。他的脑海中已经在盘算。" },
+        { "id": "beat_0015", "kind": "dialogue", "speakerId": "char_wolf", "tone": "诱导，暗藏算计", "text": "这片林子里有好多漂亮的花，你为什么不摘一些带给外婆呢？" },
+        { "id": "beat_0016", "kind": "action", "text": "小红帽看向路边的花丛，眼睛亮了起来。当她转身去摘花时，大灰狼已经悄无声息地消失在树丛中。" }
+      ]
+    },
+    "scene_004": {
+      "id": "scene_004",
+      "title": "狼的诡计",
+      "summary": "大灰狼抄近路飞奔到外婆家，敲门骗过外婆，将外婆吞入腹中。",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_doorway",
+      "time": { "timeOfDay": "midday" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "紧张凶险",
+      "participants": {
+        "char_wolf": { "emotion": "凶狠急切", "appearance": null },
+        "char_grandma": { "emotion": "虚弱，被惊吓", "appearance": null }
+      },
+      "locationState": null,
+      "props": {},
+      "beats": [
+        { "id": "beat_0017", "kind": "action", "text": "大灰狼气喘吁吁地跑到外婆家门前。他整理了一下毛皮，压低嗓音。" },
+        { "id": "beat_0018", "kind": "dialogue", "speakerId": "char_wolf", "tone": "模仿小女孩的声音", "text": "外婆，是我，小红帽。给您送蛋糕来了。" },
+        { "id": "beat_0019", "kind": "dialogue", "speakerId": "char_grandma", "tone": "虚弱，慈祥", "text": "拉一下门栓就开了，孩子。外婆今天没力气起床。" },
+        { "id": "beat_0020", "kind": "action", "text": "大灰狼推开门，露出森森白牙。外婆惊恐地睁大眼睛，但来不及呼救。" }
+      ]
+    },
+    "scene_005": {
+      "id": "scene_005",
+      "title": "伪装",
+      "summary": "大灰狼穿上外婆的睡衣，戴上睡帽，躺在床上等待小红帽。",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_bedroom",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "transition",
+      "mood": "诡异不安",
+      "participants": {
+        "char_wolf": {
+          "emotion": "得意狡猾",
+          "appearance": "穿着外婆的白色睡衣，戴着花边睡帽，把自己裹在被子里"
+        }
+      },
+      "locationState": {
+        "lighting": "壁炉火光映着墙上的阴影，光线昏暗",
+        "condition": "被褥凌乱，地上有挣扎的痕迹"
+      },
+      "props": {},
+      "beats": [
+        { "id": "beat_0021", "kind": "action", "text": "大灰狼笨拙地穿上外婆的白色睡衣，把花边睡帽扣在头上，尖耳朵从帽边露出来。" },
+        { "id": "beat_0022", "kind": "action", "text": "他爬上床，把被子拉到下巴，只露出戴着睡帽的脑袋。壁炉的暖光让这一切看起来几乎天衣无缝。" },
+        { "id": "beat_0023", "kind": "action", "text": "远处传来轻快的脚步声和小女孩的哼唱。大灰狼咧嘴笑了。" }
+      ]
+    },
+    "scene_006": {
+      "id": "scene_006",
+      "title": "经典问答",
+      "summary": "小红帽到达外婆家，对大灰狼的眼睛、耳朵、嘴巴产生疑问，大灰狼露出真面目。",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_bedroom",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "climax",
+      "mood": "悬疑紧张，从疑惑升级到恐惧",
+      "participants": {
+        "char_red": { "emotion": "从疑惑到恐惧", "appearance": null },
+        "char_wolf": {
+          "emotion": "从伪装到暴露",
+          "appearance": "从伪装的外婆恢复原形，掀开被子露出灰褐色毛皮和尖齿"
+        }
+      },
+      "locationState": null,
+      "props": {
+        "prop_basket": { "appearance": "被放在桌上，格子布掀开一角", "holderId": null }
+      },
+      "beats": [
+        { "id": "beat_0024", "kind": "action", "text": "小红帽推门进来，把篮子放在桌上。她走向床边，觉得外婆今天看起来有些不同。" },
+        { "id": "beat_0025", "kind": "dialogue", "speakerId": "char_red", "tone": "疑惑", "text": "外婆，你的耳朵怎么这么大呀？" },
+        { "id": "beat_0026", "kind": "dialogue", "speakerId": "char_wolf", "tone": "压低声音模仿外婆", "text": "为了更好地听你说话呀，孩子。" },
+        { "id": "beat_0027", "kind": "dialogue", "speakerId": "char_red", "tone": "越来越不安", "text": "外婆，你的眼睛怎么这么大呀？" },
+        { "id": "beat_0028", "kind": "dialogue", "speakerId": "char_wolf", "tone": "声音渐渐变粗", "text": "为了更好地看清你呀，孩子。" },
+        { "id": "beat_0029", "kind": "dialogue", "speakerId": "char_red", "tone": "恐惧颤抖", "text": "外婆，你的嘴巴怎么这么大呀？" },
+        { "id": "beat_0030", "kind": "dialogue", "speakerId": "char_wolf", "tone": "凶狠，暴露真面目", "text": "为了——吃掉你！" },
+        { "id": "beat_0031", "kind": "action", "text": "大灰狼猛地掀开被子，扑向小红帽。小红帽发出一声尖叫。" }
+      ]
+    },
+    "scene_007": {
+      "id": "scene_007",
+      "title": "猎人登场",
+      "summary": "路过的猎人听到屋内异常的鼾声，破门而入发现大灰狼。",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_bedroom",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "紧张果断",
+      "participants": {
+        "char_hunter": { "emotion": "警觉果断", "appearance": null },
+        "char_wolf": {
+          "emotion": "沉睡",
+          "appearance": "肚子膨胀，仍穿着外婆的睡衣，躺在床上打鼾"
+        }
+      },
+      "locationState": {
+        "lighting": "午后阳光从窗户斜照进来",
+        "condition": "房间凌乱，被褥歪斜，地上散落着外婆的拖鞋"
+      },
+      "props": {
+        "prop_axe": { "holderId": "char_hunter" }
+      },
+      "beats": [
+        { "id": "beat_0032", "kind": "action", "text": "猎人巡林路过外婆的小屋，听到里面传来震天的鼾声。他皱起眉头——老太太不会打这么响的呼噜。" },
+        { "id": "beat_0033", "kind": "dialogue", "speakerId": "char_hunter", "tone": "低声自语，警觉", "text": "不对劲……" },
+        { "id": "beat_0034", "kind": "action", "text": "猎人轻轻推开门，看到床上躺着一只肚子鼓胀的大灰狼，穿着外婆的睡衣，正打着呼噜。" },
+        { "id": "beat_0035", "kind": "action", "text": "猎人迅速从背后取下猎斧，一步步靠近床边。他注意到大灰狼鼓起的肚子还在动。" }
+      ]
+    },
+    "scene_008": {
+      "id": "scene_008",
+      "title": "团圆",
+      "summary": "猎人用猎斧救出外婆和小红帽，三人团聚，小红帽学到教训。",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_dining",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "transition",
+      "mood": "温暖感恩",
+      "participants": {
+        "char_red": { "emotion": "劫后余生，感恩", "appearance": null },
+        "char_grandma": { "emotion": "虚弱但欣慰", "appearance": null },
+        "char_hunter": { "emotion": "欣慰", "appearance": null }
+      },
+      "locationState": {
+        "lighting": "阳光从窗口照进来，温暖明亮",
+        "condition": "小屋恢复整洁温馨，壁炉火焰跳动"
+      },
+      "props": {
+        "prop_basket": { "appearance": "篮子打开，蛋糕和葡萄酒摆在桌上", "holderId": null },
+        "prop_axe": { "appearance": "猎斧靠在墙角", "holderId": "char_hunter" }
+      },
+      "beats": [
+        { "id": "beat_0036", "kind": "action", "text": "猎人小心地用猎斧割开大灰狼的肚子。小红帽先跳了出来，然后外婆也被救了出来。" },
+        { "id": "beat_0037", "kind": "dialogue", "speakerId": "char_red", "tone": "哭着扑过去", "text": "外婆！" },
+        { "id": "beat_0038", "kind": "action", "text": "小红帽紧紧抱住外婆，外婆虚弱地抚摸着她的头发。猎人站在一旁，露出宽慰的笑容。" },
+        { "id": "beat_0039", "kind": "action", "text": "三人围坐在桌边，吃着篮子里的蛋糕。阳光从窗口照进来，一切重归平静。" },
+        { "id": "beat_0040", "kind": "narration", "tone": "温暖收束", "text": "从那以后，小红帽再也不敢不听妈妈的话了。她学到了最重要的一课：不要轻信陌生人的花言巧语。" }
+      ]
+    }
+  },
+  "outline": {
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "第一幕：出发",
+        "summary": "小红帽受妈妈嘱托，带着篮子前往外婆家，在森林中遇到大灰狼。",
+        "sceneIds": ["scene_001", "scene_002", "scene_003"]
+      },
+      {
+        "id": "act_2",
+        "title": "第二幕：危机",
+        "summary": "大灰狼抢先到达外婆家，吞掉外婆并伪装成外婆等待小红帽。",
+        "sceneIds": ["scene_004", "scene_005", "scene_006"]
+      },
+      {
+        "id": "act_3",
+        "title": "第三幕：拯救",
+        "summary": "猎人及时赶到，救出小红帽和外婆，大灰狼受到惩罚。",
+        "sceneIds": ["scene_007", "scene_008"]
+      }
+    ]
+  },
+  "threads": {
+    "thread_main": { "id": "thread_main", "name": "主线", "description": "小红帽送食物并遭遇大灰狼。" }
+  },
+  "logicRelations": [
+    { "id": "lr_001", "kind": "before", "source": { "type": "scene", "id": "scene_001" }, "target": { "type": "scene", "id": "scene_002" } },
+    { "id": "lr_002", "kind": "before", "source": { "type": "scene", "id": "scene_002" }, "target": { "type": "scene", "id": "scene_003" } },
+    { "id": "lr_003", "kind": "before", "source": { "type": "scene", "id": "scene_003" }, "target": { "type": "scene", "id": "scene_004" } },
+    { "id": "lr_004", "kind": "before", "source": { "type": "scene", "id": "scene_004" }, "target": { "type": "scene", "id": "scene_005" } },
+    { "id": "lr_005", "kind": "before", "source": { "type": "scene", "id": "scene_005" }, "target": { "type": "scene", "id": "scene_006" } },
+    { "id": "lr_006", "kind": "before", "source": { "type": "scene", "id": "scene_006" }, "target": { "type": "scene", "id": "scene_007" } },
+    { "id": "lr_007", "kind": "before", "source": { "type": "scene", "id": "scene_007" }, "target": { "type": "scene", "id": "scene_008" } },
+    { "id": "lr_008", "kind": "setsUp", "source": { "type": "scene", "id": "scene_002" }, "target": { "type": "scene", "id": "scene_003" }, "description": "林间树丛里的黄色眼睛为林中相遇埋下铺垫。" },
+    { "id": "lr_009", "kind": "causes", "source": { "type": "beat", "id": "beat_0013" }, "target": { "type": "scene", "id": "scene_004" }, "description": "小红帽说出外婆家的地址，促使大灰狼赶去外婆家。" },
+    { "id": "lr_010", "kind": "causes", "source": { "type": "scene", "id": "scene_007" }, "target": { "type": "scene", "id": "scene_008" }, "description": "猎人救出小红帽和外婆，导向团圆。" }
+  ],
+  "characterRelations": [
+    { "id": "cr_001", "sourceCharacterId": "char_mother", "targetCharacterId": "char_red", "kind": "母女", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_002", "sourceCharacterId": "char_red", "targetCharacterId": "char_grandma", "kind": "祖孙", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_003", "sourceCharacterId": "char_red", "targetCharacterId": "char_wolf", "kind": "陌生人", "direction": "symmetric", "description": "小红帽并不认识大灰狼。", "scope": { "type": "scenes", "sceneIds": ["scene_003"] } },
+    { "id": "cr_004", "sourceCharacterId": "char_wolf", "targetCharacterId": "char_red", "kind": "猎食目标", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_003", "scene_004", "scene_005"] } },
+    { "id": "cr_005", "sourceCharacterId": "char_red", "targetCharacterId": "char_wolf", "kind": "恐惧对象", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_006", "scene_007"] } },
+    { "id": "cr_006", "sourceCharacterId": "char_wolf", "targetCharacterId": "char_grandma", "kind": "加害对象", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_004"] } },
+    { "id": "cr_007", "sourceCharacterId": "char_hunter", "targetCharacterId": "char_red", "kind": "救助者", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_007", "scene_008"] } },
+    { "id": "cr_008", "sourceCharacterId": "char_hunter", "targetCharacterId": "char_grandma", "kind": "救助者", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_008"] } }
+  ]
+}

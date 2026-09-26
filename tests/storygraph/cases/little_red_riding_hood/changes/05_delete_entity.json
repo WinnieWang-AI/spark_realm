@@ -1,0 +1,13 @@
+{
+  "name": "删除级联：删除仍被引用的人物应被拒绝并返回引用清单",
+  "changeSet": {
+    "changeId": "chg_05",
+    "storyId": "story_little_red",
+    "baseRevision": 1,
+    "actor": { "kind": "user", "id": "local" },
+    "operations": [
+      { "op": "entity.delete", "id": "char_wolf" }
+    ]
+  },
+  "expect": { "ok": false, "errorIncludes": ["引用"], "unchanged": true }
+}

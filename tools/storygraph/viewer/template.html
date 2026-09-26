@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="__LANG__" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ · SparkRealm StoryGraph</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<!--__ICONS__-->
+<header class="topbar">
+  <div class="brand"><img class="brand-logo" src="__BRAND_LOGO__" alt="SparkRealm"><strong>SparkRealm</strong><span class="divider"></span><span class="story-title" title="__TITLE__">__TITLE__</span></div>
+  <div class="header-actions">
+    <div class="search-wrap"><svg class="icon"><use href="#icon-search"/></svg><input id="search" type="search" autocomplete="off" placeholder="搜索故事" data-i18n-placeholder="search_placeholder" aria-label="搜索场景、节拍或要素" data-i18n-aria="aria_search" aria-controls="search-results" aria-expanded="false"><div id="search-results" class="search-results" hidden></div></div>
+    <button class="icon-button" id="theme" type="button" title="切换主题" data-i18n-title="title_theme" aria-label="切换主题" data-i18n-aria="title_theme"><svg class="icon"><use href="#icon-sun-moon"/></svg></button>
+  </div>
+</header>
+<nav class="workspace-bar" aria-label="图谱视图" data-i18n-aria="aria_workspace">
+  <button class="icon-button" id="toggle-left" title="显示或收起目录" data-i18n-title="title_toggle_left" aria-label="显示或收起目录" data-i18n-aria="title_toggle_left" aria-expanded="true" aria-controls="left-panel"><svg class="icon"><use href="#icon-panel-left"/></svg></button>
+  <div class="seg" role="tablist" aria-label="故事视图" data-i18n-aria="aria_views">
+    <button role="tab" data-view="logic" aria-selected="true" class="active" data-i18n="tab_logic">故事逻辑</button>
+    <button role="tab" data-view="charmap" aria-selected="false" tabindex="-1" data-i18n="tab_charmap">要素关系</button>
+  </div>
+
+  <span id="story-count" class="workspace-count"></span>
+  <button class="icon-button" id="toggle-right" title="显示或收起详情" data-i18n-title="title_toggle_right" aria-label="显示或收起详情" data-i18n-aria="title_toggle_right" aria-expanded="false" aria-controls="right-panel"><svg class="icon"><use href="#icon-panel-right"/></svg></button>
+</nav>
+<aside class="left" id="left-panel" aria-label="故事目录" data-i18n-aria="nav_outline">
+  <section class="panel"><div class="section-heading"><h2 data-i18n="nav_outline">故事大纲</h2><span id="scene-count"></span></div><div id="outline"></div></section>
+  <details class="panel" open><summary data-i18n="nav_entities">故事要素</summary><div id="entities"></div></details>
+  <details class="panel"><summary data-i18n="nav_plot">故事情节</summary><div id="legend"></div></details>
+</aside>
+<main class="canvas" id="canvas" aria-label="故事图谱画布" data-i18n-aria="aria_canvas">
+  <div class="context-bar"><span id="mode-context"></span><button type="button" id="layout-toggle" class="layout-toggle" hidden></button><label id="relation-scope-wrap" hidden><span data-i18n="relation_scope_label">关系时点</span> <select id="relation-scope" aria-label="关系生效场景" data-i18n-aria="relation_scope_label"></select></label></div>
+  <!--__GRAPHS__-->
+  <div id="empty-state" hidden data-i18n="empty_state">故事尚无场景</div>
+  <div class="canvas-toolbar" role="toolbar" aria-label="画布缩放" data-i18n-aria="aria_zoom">
+    <button class="icon-button" id="zoom-out" aria-label="缩小" data-i18n-aria="title_zoom_out" title="缩小" data-i18n-title="title_zoom_out"><svg class="icon"><use href="#icon-minus"/></svg></button>
+    <button id="zoom-reset" class="zoom-value" aria-label="恢复可读缩放" data-i18n-aria="title_zoom_reset" title="恢复可读缩放" data-i18n-title="title_zoom_reset">100%</button>
+    <button class="icon-button" id="zoom-in" aria-label="放大" data-i18n-aria="title_zoom_in" title="放大" data-i18n-title="title_zoom_in"><svg class="icon"><use href="#icon-plus"/></svg></button>
+    <span class="divider"></span>
+    <button class="icon-button" id="fit" aria-label="查看全图" data-i18n-aria="title_fit" title="查看全图" data-i18n-title="title_fit"><svg class="icon"><use href="#icon-scan"/></svg></button>
+    <button class="icon-button" id="focus" aria-label="定位所选节点" data-i18n-aria="title_focus" title="定位所选节点" data-i18n-title="title_focus" disabled><svg class="icon"><use href="#icon-focus"/></svg></button>
+  </div>
+  <button id="clear-selection" class="clear-selection" hidden><svg class="icon"><use href="#icon-x"/></svg><span data-i18n="clear_selection">清除选择</span></button>
+  <div id="minimap" class="minimap" aria-label="图谱缩略图" data-i18n-aria="aria_minimap"></div>
+</main>
+<aside class="right" id="right-panel" aria-label="故事详情" data-i18n-aria="aria_detail" inert>
+  <div class="detail-toolbar"><div class="detail-toolbar-left"><button class="icon-button" id="detail-back" aria-label="返回上一处" data-i18n-aria="title_back" title="返回上一处" data-i18n-title="title_back" disabled><svg class="icon"><use href="#icon-chevron-left"/></svg></button><span data-i18n="story_detail">故事详情</span></div><button class="icon-button" id="close-detail" aria-label="关闭详情" data-i18n-aria="title_close" title="关闭详情" data-i18n-title="title_close"><svg class="icon"><use href="#icon-x"/></svg></button></div>
+  <div id="detail" class="detail"></div>
+</aside>
+<div id="status" role="status" aria-live="polite" class="sr-only"></div>
+<script>/*__I18N__*/</script>
+<script>window.__STORYGRAPH__ = /*__DATA__*/;</script>
+<script>/*__JS__*/</script>
+</body>
+</html>

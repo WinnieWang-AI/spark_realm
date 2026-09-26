@@ -1,0 +1,21 @@
+{
+  "name": "全局推理修改：把狼改成熊（含正文提及）",
+  "changeSet": {
+    "changeId": "chg_06",
+    "storyId": "story_little_red",
+    "baseRevision": 1,
+    "actor": { "kind": "user", "id": "local" },
+    "operations": [
+      { "op": "entity.replace", "entityId": "char_wolf", "newName": "熊", "aliases": ["大灰狼", "狼"] }
+    ]
+  },
+  "expect": {
+    "planNonEmpty": true,
+    "planUnchanged": true,
+    "ok": true,
+    "revision": 2,
+    "changedIdsIncludes": ["char_wolf"],
+    "afterNoText": ["狼"],
+    "afterEntityName": { "char_wolf": "熊" }
+  }
+}
