@@ -1,0 +1,13 @@
+{
+  "name": "冲突：baseRevision 过期",
+  "changeSet": {
+    "changeId": "chg_03",
+    "storyId": "story_little_red",
+    "baseRevision": 99,
+    "actor": { "kind": "agent", "id": "external" },
+    "operations": [
+      { "op": "scene.update", "id": "scene_002", "changes": { "title": "林间漫步（改）" } }
+    ]
+  },
+  "expect": { "ok": false, "errorIncludes": ["conflict"], "unchanged": true }
+}

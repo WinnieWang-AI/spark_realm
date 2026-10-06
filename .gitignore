@@ -7,4 +7,6 @@ dist/
 .env.*
 !.env.example
 .DS_Store
-docs/
+/docs/development-plans/
+/generated/
+/CONTRIBUTING.md

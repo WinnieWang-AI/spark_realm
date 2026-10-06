@@ -1,0 +1,14 @@
+{
+  "name": "原子性：一批中一条非法则整批拒绝",
+  "changeSet": {
+    "changeId": "chg_04",
+    "storyId": "story_little_red",
+    "baseRevision": 1,
+    "actor": { "kind": "user", "id": "local" },
+    "operations": [
+      { "op": "scene.update", "id": "scene_001", "changes": { "title": "A" } },
+      { "op": "scene.update", "id": "scene_002", "changes": { "locationId": "loc_missing" } }
+    ]
+  },
+  "expect": { "ok": false, "errorIncludes": ["不存在"], "unchanged": true }
+}

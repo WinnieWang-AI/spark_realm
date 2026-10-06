@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "case": "little_red_riding_hood",
+  "validation": { "expected": "pass", "hardErrors": 0 },
+  "outlineOrder": [
+    "scene_001",
+    "scene_002",
+    "scene_003",
+    "scene_004",
+    "scene_005",
+    "scene_006",
+    "scene_007",
+    "scene_008"
+  ],
+  "storyTimeLinearization": [
+    "scene_001",
+    "scene_002",
+    "scene_003",
+    "scene_004",
+    "scene_005",
+    "scene_006",
+    "scene_007",
+    "scene_008"
+  ],
+  "relationEffectiveSets": {
+    "char_red|char_wolf": {
+      "scene_001": [],
+      "scene_002": [],
+      "scene_003": ["cr_003", "cr_004"],
+      "scene_004": ["cr_004"],
+      "scene_005": ["cr_004"],
+      "scene_006": ["cr_005"],
+      "scene_007": ["cr_005"],
+      "scene_008": []
+    }
+  },
+  "relationChangePoints": {
+    "char_red~char_wolf": ["scene_003", "scene_004", "scene_006"]
+  },
+  "featuresCovered": [
+    "线性 outline 讲述顺序",
+    "before 链（scene→scene）",
+    "setsUp（scene→scene）",
+    "causes Beat→Scene 跨级端点",
+    "causes scene→scene",
+    "location areas 与 areaId",
+    "道具状态与 holderId=null（无人持有）",
+    "participants 场景内状态",
+    "narration 节拍",
+    "人物关系 scope 与 global，及其随场景的有效集合与变化点"
+  ],
+  "featuresNotCovered": [
+    "闪回/非线性（narrativeMode 非 present）",
+    "overlaps",
+    "多故事线（threads 多于一条）",
+    "outline parts 层级",
+    "跨场景 Beat 级 before",
+    "ChangeSet 更新路径"
+  ]
+}

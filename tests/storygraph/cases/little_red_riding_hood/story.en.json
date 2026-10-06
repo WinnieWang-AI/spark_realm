@@ -1,0 +1,388 @@
+{
+  "schemaVersion": 1,
+  "storyId": "story_little_red",
+  "revision": 1,
+  "metadata": {
+    "title": "Little Red Riding Hood",
+    "logline": "On her way to Grandma's, Little Red Riding Hood trusts the Big Bad Wolf, and is saved by a hunter at the last moment.",
+    "theme": "Trust and its lessons",
+    "language": "en"
+  },
+  "entities": {
+    "char_red": {
+      "kind": "character",
+      "name": "Little Red Riding Hood",
+      "description": "A cheerful, naive little girl who always wears a red cloak.",
+      "tags": ["protagonist"],
+      "fixedTraits": {
+        "age": "7 years old",
+        "hair": "brown curly hair",
+        "signatureLook": "red velvet cloak, white dress"
+      },
+      "motivation": "to deliver cake and wine to her sick grandmother",
+      "voiceDescription": "bright, childlike voice, fast-paced, lifts at the end when curious"
+    },
+    "char_mother": {
+      "kind": "character",
+      "name": "Mother",
+      "description": "Little Red Riding Hood's mother, careful and cautious.",
+      "tags": ["supporting"],
+      "fixedTraits": {
+        "look": "apron, hair tied up"
+      },
+      "motivation": "to get her daughter safely to Grandma's with the food",
+      "voiceDescription": "gentle middle-aged woman"
+    },
+    "char_wolf": {
+      "kind": "character",
+      "name": "Big Bad Wolf",
+      "description": "A cunning, treacherous wolf skilled at disguise.",
+      "tags": ["antagonist"],
+      "fixedTraits": {
+        "body": "tall, grey-brown fur",
+        "features": "pointed ears, sharp teeth, bushy tail"
+      },
+      "motivation": "to eat Little Red Riding Hood and Grandma",
+      "voiceDescription": "low, hoarse male voice, softened when pretending"
+    },
+    "char_grandma": {
+      "kind": "character",
+      "name": "Grandmother",
+      "description": "Little Red Riding Hood's grandmother, frail and ill.",
+      "tags": ["protagonist"],
+      "fixedTraits": {
+        "age": "70 years old",
+        "appearance": "grey hair, lace nightcap, white nightgown"
+      },
+      "motivation": "longing for her granddaughter's visit",
+      "voiceDescription": "weak, aged female voice"
+    },
+    "char_hunter": {
+      "kind": "character",
+      "name": "Hunter",
+      "description": "A hunter passing the cottage, alert and decisive.",
+      "tags": ["supporting"],
+      "fixedTraits": {
+        "appearance": "stocky middle-aged man, green hunting coat, rifle on his back"
+      },
+      "motivation": "to patrol the woods and protect the villagers",
+      "voiceDescription": "steady, strong middle-aged male voice"
+    },
+    "loc_village": {
+      "kind": "location",
+      "name": "Village",
+      "description": "A quiet little European village, cobblestone lanes, garden fences."
+    },
+    "loc_forest_path": {
+      "kind": "location",
+      "name": "Forest Path",
+      "description": "A woodland trail with sunlight through the canopy, wildflowers and butterflies."
+    },
+    "loc_forest_deep": {
+      "kind": "location",
+      "name": "Deep Forest",
+      "description": "A dark grove beside a great oak, dim light, tense atmosphere."
+    },
+    "loc_grandma_house": {
+      "kind": "location",
+      "name": "Grandma's Cottage",
+      "description": "A cozy woodland cottage with a fireplace, rocking chair and floral curtains.",
+      "areas": [
+        { "id": "area_doorway", "name": "Doorway", "description": "A wooden door, dried flowers hanging on the porch." },
+        { "id": "area_bedroom", "name": "Bedroom", "description": "Floral curtains, an iron bed, a rocking chair by the fireplace." },
+        { "id": "area_dining", "name": "Dining Table", "description": "A wooden table with a checkered tablecloth." }
+      ]
+    },
+    "prop_basket": {
+      "kind": "prop",
+      "name": "Basket",
+      "description": "A wicker basket covered with a red-and-white checkered cloth, holding cake and wine.",
+      "initialOwnerId": "char_red"
+    },
+    "prop_axe": {
+      "kind": "prop",
+      "name": "Axe",
+      "description": "The iron axe the hunter carries.",
+      "initialOwnerId": "char_hunter"
+    }
+  },
+  "scenes": {
+    "scene_001": {
+      "id": "scene_001",
+      "title": "Mother's Warning",
+      "summary": "At home in the village, Little Red Riding Hood receives the basket her mother prepared and is told to take the main road and not talk to strangers.",
+      "locationId": "loc_village",
+      "time": { "timeOfDay": "morning" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "setup",
+      "mood": "warm and bright",
+      "participants": {
+        "char_red": { "emotion": "happy, expectant", "goal": "set off to Grandma's", "appearance": null },
+        "char_mother": { "emotion": "gently advising", "goal": "warn her daughter to stay safe", "appearance": null }
+      },
+      "locationState": null,
+      "props": {
+        "prop_basket": { "holderId": "char_red" }
+      },
+      "beats": [
+        { "id": "beat_0001", "kind": "action", "text": "Little Red Riding Hood stands at the door, sunlight on her red cloak. Her mother comes out and hands her a wicker basket." },
+        { "id": "beat_0002", "kind": "dialogue", "speakerId": "char_red", "tone": "curious, excited", "text": "Mother, what's in the basket? It smells so good!" },
+        { "id": "beat_0003", "kind": "action", "text": "Her mother kneels to straighten the cloak and gently pats her cheek." },
+        { "id": "beat_0004", "kind": "narration", "text": "Her mother tells her: take the main road, do not linger in the woods, and do not talk to strangers." },
+        { "id": "beat_0005", "kind": "action", "text": "Little Red Riding Hood nods hard, lifts the basket, and skips down the cobblestones toward the village gate." }
+      ]
+    },
+    "scene_002": {
+      "id": "scene_002",
+      "title": "A Walk in the Woods",
+      "summary": "Little Red Riding Hood walks the sunny forest path, delighting in flowers and butterflies.",
+      "locationId": "loc_forest_path",
+      "time": { "timeOfDay": "morning" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "setup",
+      "mood": "light and cheerful",
+      "participants": {
+        "char_red": { "emotion": "happy, innocent", "appearance": null }
+      },
+      "locationState": null,
+      "props": {
+        "prop_basket": { "holderId": "char_red" }
+      },
+      "beats": [
+        { "id": "beat_0006", "kind": "action", "text": "Little Red Riding Hood walks the leaf-strewn trail, her red cloak flickering between shadows. She carries the basket in one hand and parts the bushes with the other." },
+        { "id": "beat_0007", "kind": "action", "text": "A blue butterfly lands on the tip of her nose. She giggles and reaches for it, twirling among the flowers." },
+        { "id": "beat_0008", "kind": "dialogue", "speakerId": "char_red", "tone": "murmuring happily", "text": "Grandma will love these flowers!" },
+        { "id": "beat_0009", "kind": "action", "text": "She bends to pick a few wildflowers and tucks them carefully into the basket. In the distant thicket, a pair of yellow eyes watches her." }
+      ]
+    },
+    "scene_003": {
+      "id": "scene_003",
+      "title": "The Wolf Appears",
+      "summary": "In the deep forest the Big Bad Wolf stops Little Red Riding Hood, pretending to be friendly and coaxing out that she is going to Grandma's.",
+      "locationId": "loc_forest_deep",
+      "time": { "timeOfDay": "midday" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "friendly on the surface, dangerous underneath",
+      "participants": {
+        "char_red": { "emotion": "from curious to trusting", "knowledge": "thinks he is just a big dog", "appearance": null },
+        "char_wolf": { "emotion": "false friendliness, greedy inside", "goal": "to learn Grandma's address", "appearance": null }
+      },
+      "locationState": {
+        "lighting": "sunlight blocked, only stray beams through the canopy",
+        "condition": "tall dense trees, moss-covered ground"
+      },
+      "props": {
+        "prop_basket": { "holderId": "char_red" }
+      },
+      "beats": [
+        { "id": "beat_0010", "kind": "action", "text": "Little Red Riding Hood enters the deep forest and everything goes quiet. A tall figure steps slowly from behind the oak — a grey-brown Big Bad Wolf." },
+        { "id": "beat_0011", "kind": "dialogue", "speakerId": "char_wolf", "tone": "mild and friendly, faintly false", "text": "Hello there, little girl. Where are you going?" },
+        { "id": "beat_0012", "kind": "action", "text": "Little Red Riding Hood is not afraid. She does not know the wolf and thinks he looks like a big dog." },
+        { "id": "beat_0013", "kind": "dialogue", "speakerId": "char_red", "tone": "innocent and open", "text": "I'm going to Grandma's to bring her cake and wine. She's sick, and lives in the cottage on the other side of the woods." },
+        { "id": "beat_0014", "kind": "action", "text": "The wolf's ears prick up and his tail gives a twitch. In his mind he is already scheming." },
+        { "id": "beat_0015", "kind": "dialogue", "speakerId": "char_wolf", "tone": "coaxing, calculating", "text": "There are so many lovely flowers in these woods. Why not pick some to bring to Grandma?" },
+        { "id": "beat_0016", "kind": "action", "text": "Little Red Riding Hood looks at the flowers by the path, eyes brightening. As she turns to pick them, the wolf slips silently away into the thicket." }
+      ]
+    },
+    "scene_004": {
+      "id": "scene_004",
+      "title": "The Wolf's Trick",
+      "summary": "The Big Bad Wolf races a shortcut to Grandma's, knocks and deceives her, then swallows her whole.",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_doorway",
+      "time": { "timeOfDay": "midday" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "tense and menacing",
+      "participants": {
+        "char_wolf": { "emotion": "ferocious and eager", "appearance": null },
+        "char_grandma": { "emotion": "weak, terrified", "appearance": null }
+      },
+      "locationState": null,
+      "props": {},
+      "beats": [
+        { "id": "beat_0017", "kind": "action", "text": "The wolf runs panting to Grandma's door. He smooths his fur and lowers his voice." },
+        { "id": "beat_0018", "kind": "dialogue", "speakerId": "char_wolf", "tone": "mimicking a little girl", "text": "Grandma, it's me, Little Red Riding Hood. I've brought you cake." },
+        { "id": "beat_0019", "kind": "dialogue", "speakerId": "char_grandma", "tone": "weak and kind", "text": "Just lift the latch, child. Grandma is too tired to get up today." },
+        { "id": "beat_0020", "kind": "action", "text": "The wolf pushes the door open and bares his white teeth. Grandma's eyes widen in terror, but she cannot call for help." }
+      ]
+    },
+    "scene_005": {
+      "id": "scene_005",
+      "title": "The Disguise",
+      "summary": "The Big Bad Wolf puts on Grandma's nightgown and cap, and lies in bed waiting for Little Red Riding Hood.",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_bedroom",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "transition",
+      "mood": "eerie and uneasy",
+      "participants": {
+        "char_wolf": {
+          "emotion": "smug and sly",
+          "appearance": "wearing Grandma's white nightgown and lace cap, bundled under the covers"
+        }
+      },
+      "locationState": {
+        "lighting": "firelight throws shadows on the wall, dim",
+        "condition": "bedding rumpled, signs of a struggle on the floor"
+      },
+      "props": {},
+      "beats": [
+        { "id": "beat_0021", "kind": "action", "text": "The wolf clumsily pulls on Grandma's white nightgown and jams the lace cap onto his head, pointed ears poking out at the edges." },
+        { "id": "beat_0022", "kind": "action", "text": "He climbs into bed and pulls the covers to his chin, leaving only the capped head showing. The firelight makes it look almost seamless." },
+        { "id": "beat_0023", "kind": "action", "text": "Light footsteps and a little girl's humming drift in from outside. The wolf grins." }
+      ]
+    },
+    "scene_006": {
+      "id": "scene_006",
+      "title": "The Classic Questions",
+      "summary": "Little Red Riding Hood arrives and questions the wolf's eyes, ears and mouth, until he reveals his true face.",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_bedroom",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "climax",
+      "mood": "suspense rising from doubt to terror",
+      "participants": {
+        "char_red": { "emotion": "from doubt to fear", "appearance": null },
+        "char_wolf": {
+          "emotion": "from disguised to exposed",
+          "appearance": "sheds the Grandma disguise, throwing off the covers to reveal grey-brown fur and sharp teeth"
+        }
+      },
+      "locationState": null,
+      "props": {
+        "prop_basket": { "appearance": "set on the table, checkered cloth folded back", "holderId": null }
+      },
+      "beats": [
+        { "id": "beat_0024", "kind": "action", "text": "Little Red Riding Hood pushes the door open and sets the basket on the table. She walks to the bed and thinks Grandma looks different today." },
+        { "id": "beat_0025", "kind": "dialogue", "speakerId": "char_red", "tone": "puzzled", "text": "Grandma, what big ears you have!" },
+        { "id": "beat_0026", "kind": "dialogue", "speakerId": "char_wolf", "tone": "muffling his voice to mimic Grandma", "text": "The better to hear you with, my child." },
+        { "id": "beat_0027", "kind": "dialogue", "speakerId": "char_red", "tone": "increasingly uneasy", "text": "Grandma, what big eyes you have!" },
+        { "id": "beat_0028", "kind": "dialogue", "speakerId": "char_wolf", "tone": "voice growing coarser", "text": "The better to see you with, my child." },
+        { "id": "beat_0029", "kind": "dialogue", "speakerId": "char_red", "tone": "trembling with fear", "text": "Grandma, what a big mouth you have!" },
+        { "id": "beat_0030", "kind": "dialogue", "speakerId": "char_wolf", "tone": "fierce, mask off", "text": "The better to EAT you with!" },
+        { "id": "beat_0031", "kind": "action", "text": "The wolf throws off the covers and lunges at Little Red Riding Hood. She screams." }
+      ]
+    },
+    "scene_007": {
+      "id": "scene_007",
+      "title": "The Hunter Arrives",
+      "summary": "A passing hunter hears strange snoring inside, breaks in and finds the wolf.",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_bedroom",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "tense and decisive",
+      "participants": {
+        "char_hunter": { "emotion": "alert and decisive", "appearance": null },
+        "char_wolf": {
+          "emotion": "fast asleep",
+          "appearance": "belly swollen, still in Grandma's nightgown, snoring in bed"
+        }
+      },
+      "locationState": {
+        "lighting": "afternoon sun slanting through the window",
+        "condition": "room in disarray, bedding askew, Grandma's slippers scattered on the floor"
+      },
+      "props": {
+        "prop_axe": { "holderId": "char_hunter" }
+      },
+      "beats": [
+        { "id": "beat_0032", "kind": "action", "text": "The hunter passes the cottage on his rounds and hears thunderous snoring. He frowns — the old woman could never snore like that." },
+        { "id": "beat_0033", "kind": "dialogue", "speakerId": "char_hunter", "tone": "muttering, alert", "text": "Something's wrong..." },
+        { "id": "beat_0034", "kind": "action", "text": "The hunter eases the door open and sees a big-bellied wolf in Grandma's nightgown, snoring on the bed." },
+        { "id": "beat_0035", "kind": "action", "text": "The hunter swings the axe off his back and steps toward the bed. He notices the wolf's swollen belly is still moving." }
+      ]
+    },
+    "scene_008": {
+      "id": "scene_008",
+      "title": "Reunion",
+      "summary": "The hunter frees Grandma and Little Red Riding Hood with his axe; the three are reunited and she learns her lesson.",
+      "locationId": "loc_grandma_house",
+      "areaId": "area_dining",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "transition",
+      "mood": "warm and grateful",
+      "participants": {
+        "char_red": { "emotion": "grateful to have survived", "appearance": null },
+        "char_grandma": { "emotion": "weak but relieved", "appearance": null },
+        "char_hunter": { "emotion": "relieved", "appearance": null }
+      },
+      "locationState": {
+        "lighting": "sunlight through the window, warm and bright",
+        "condition": "the cottage tidy and cozy again, fire dancing in the hearth"
+      },
+      "props": {
+        "prop_basket": { "appearance": "opened, cake and wine set on the table", "holderId": null },
+        "prop_axe": { "appearance": "resting against the wall in a corner", "holderId": "char_hunter" }
+      },
+      "beats": [
+        { "id": "beat_0036", "kind": "action", "text": "The hunter carefully cuts open the wolf's belly with his axe. Little Red Riding Hood jumps out first, then Grandma is freed." },
+        { "id": "beat_0037", "kind": "dialogue", "speakerId": "char_red", "tone": "crying as she rushes over", "text": "Grandma!" },
+        { "id": "beat_0038", "kind": "action", "text": "Little Red Riding Hood hugs Grandma tightly as she weakly strokes her hair. The hunter stands aside with a relieved smile." },
+        { "id": "beat_0039", "kind": "action", "text": "The three sit around the table eating cake from the basket. Sunlight pours through the window; all is calm again." },
+        { "id": "beat_0040", "kind": "narration", "tone": "warm resolution", "text": "From that day on, Little Red Riding Hood never disobeyed her mother again. She had learned the most important lesson: do not trust a stranger's sweet words." }
+      ]
+    }
+  },
+  "outline": {
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "Act I: Setting Out",
+        "summary": "At her mother's bidding, Little Red Riding Hood carries the basket toward Grandma's and meets the Big Bad Wolf in the forest.",
+        "sceneIds": ["scene_001", "scene_002", "scene_003"]
+      },
+      {
+        "id": "act_2",
+        "title": "Act II: The Crisis",
+        "summary": "The wolf reaches Grandma's first, swallows her, and disguises himself to wait for Little Red Riding Hood.",
+        "sceneIds": ["scene_004", "scene_005", "scene_006"]
+      },
+      {
+        "id": "act_3",
+        "title": "Act III: The Rescue",
+        "summary": "The hunter arrives in time, frees Little Red Riding Hood and Grandma, and the wolf is punished.",
+        "sceneIds": ["scene_007", "scene_008"]
+      }
+    ]
+  },
+  "threads": {
+    "thread_main": { "id": "thread_main", "name": "Main Plot", "description": "Little Red Riding Hood delivers food and meets the Big Bad Wolf." }
+  },
+  "logicRelations": [
+    { "id": "lr_001", "kind": "before", "source": { "type": "scene", "id": "scene_001" }, "target": { "type": "scene", "id": "scene_002" } },
+    { "id": "lr_002", "kind": "before", "source": { "type": "scene", "id": "scene_002" }, "target": { "type": "scene", "id": "scene_003" } },
+    { "id": "lr_003", "kind": "before", "source": { "type": "scene", "id": "scene_003" }, "target": { "type": "scene", "id": "scene_004" } },
+    { "id": "lr_004", "kind": "before", "source": { "type": "scene", "id": "scene_004" }, "target": { "type": "scene", "id": "scene_005" } },
+    { "id": "lr_005", "kind": "before", "source": { "type": "scene", "id": "scene_005" }, "target": { "type": "scene", "id": "scene_006" } },
+    { "id": "lr_006", "kind": "before", "source": { "type": "scene", "id": "scene_006" }, "target": { "type": "scene", "id": "scene_007" } },
+    { "id": "lr_007", "kind": "before", "source": { "type": "scene", "id": "scene_007" }, "target": { "type": "scene", "id": "scene_008" } },
+    { "id": "lr_008", "kind": "setsUp", "source": { "type": "scene", "id": "scene_002" }, "target": { "type": "scene", "id": "scene_003" }, "description": "The yellow eyes in the thicket foreshadow the meeting in the woods." },
+    { "id": "lr_009", "kind": "causes", "source": { "type": "beat", "id": "beat_0013" }, "target": { "type": "scene", "id": "scene_004" }, "description": "Little Red Riding Hood reveals Grandma's address, prompting the wolf to race there." },
+    { "id": "lr_010", "kind": "causes", "source": { "type": "scene", "id": "scene_007" }, "target": { "type": "scene", "id": "scene_008" }, "description": "The hunter frees Little Red Riding Hood and Grandma, leading to the reunion." }
+  ],
+  "characterRelations": [
+    { "id": "cr_001", "sourceCharacterId": "char_mother", "targetCharacterId": "char_red", "kind": "Mother and daughter", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_002", "sourceCharacterId": "char_red", "targetCharacterId": "char_grandma", "kind": "Grandmother and grandchild", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_003", "sourceCharacterId": "char_red", "targetCharacterId": "char_wolf", "kind": "Strangers", "direction": "symmetric", "description": "Little Red Riding Hood does not know the wolf.", "scope": { "type": "scenes", "sceneIds": ["scene_003"] } },
+    { "id": "cr_004", "sourceCharacterId": "char_wolf", "targetCharacterId": "char_red", "kind": "Prey", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_003", "scene_004", "scene_005"] } },
+    { "id": "cr_005", "sourceCharacterId": "char_red", "targetCharacterId": "char_wolf", "kind": "Object of fear", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_006", "scene_007"] } },
+    { "id": "cr_006", "sourceCharacterId": "char_wolf", "targetCharacterId": "char_grandma", "kind": "Victim", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_004"] } },
+    { "id": "cr_007", "sourceCharacterId": "char_hunter", "targetCharacterId": "char_red", "kind": "Rescuer", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_007", "scene_008"] } },
+    { "id": "cr_008", "sourceCharacterId": "char_hunter", "targetCharacterId": "char_grandma", "kind": "Rescuer", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_008"] } }
+  ]
+}
