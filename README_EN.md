@@ -2,6 +2,10 @@
 
 <p align="center"><b>English</b> · <a href="README.md">简体中文</a></p>
 
+<p align="center">Follow Me @WinnieAIMonster: <a href="https://space.bilibili.com/3546576236579236">Bilibili</a> · <a href="https://www.youtube.com/@Winnie-AI-Monster">YouTube</a> · <a href="https://x.com/WinnieAIMonster">X</a> · <a href="https://www.xiaohongshu.com/user/profile/57c7d3ac5e87e70b868484f5">RedNote</a></p>
+
+<p align="center">Email: weiying.wang.wwy@gmail.com</p>
+
 # SparkRealm
 
 > *A single spark can start a prairie fire.*
@@ -9,6 +13,8 @@
 SparkRealm is a growing (in-development) AIGC creative assistant.<br>
 Its goal is to help more people express and create freely, turning sparks of inspiration into moving works.<br>
 SparkRealm is at an early stage — feedback and suggestions are welcome.
+
+<p align="center"><img src="assets/Phoenix/hatch.webp" alt="SparkRealm mascot: a phoenix hatching from its egg" width="300"></p>
 
 ## Features
 
