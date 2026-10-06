@@ -1,0 +1,518 @@
+{
+  "schemaVersion": 1,
+  "storyId": "story_lei_yu",
+  "revision": 1,
+  "metadata": {
+    "title": "雷雨",
+    "logline": "一个雷雨之夜，周、鲁两家三十年的恩怨与乱伦真相彻底爆发，走向毁灭。",
+    "theme": "压抑家庭的罪与罚",
+    "language": "zh-CN"
+  },
+  "entities": {
+    "char_puyuan": {
+      "kind": "character",
+      "name": "周朴园",
+      "description": "周家主人，矿业公司董事长，专横体面。",
+      "tags": ["周家", "家长"],
+      "fixedTraits": { "age": "55岁", "look": "身材高大，深色长衫，神情威严" },
+      "motivation": "维持周家的体面与秩序",
+      "voiceDescription": "低沉威严的男声"
+    },
+    "char_fanyi": {
+      "kind": "character",
+      "name": "繁漪",
+      "description": "周朴园的续弦妻子，被压抑而走向疯狂。",
+      "tags": ["周家", "女主"],
+      "fixedTraits": { "age": "35岁", "look": "面容苍白美丽，常穿深色旗袍" },
+      "motivation": "抓住周萍，摆脱窒息的生活",
+      "voiceDescription": "清冷而压抑的女声"
+    },
+    "char_ping": {
+      "kind": "character",
+      "name": "周萍",
+      "description": "周朴园与侍萍之子，周家长子，优柔矛盾。",
+      "tags": ["周家", "长子"],
+      "fixedTraits": { "age": "28岁", "look": "清秀，西装" },
+      "motivation": "摆脱过去，与四凤开始新生活",
+      "voiceDescription": "优柔而克制的男声"
+    },
+    "char_chong": {
+      "kind": "character",
+      "name": "周冲",
+      "description": "周朴园与繁漪之子，天真善良，向往新思想。",
+      "tags": ["周家", "次子"],
+      "fixedTraits": { "age": "17岁", "look": "少年，学生装" },
+      "motivation": "喜欢四凤，憧憬光明",
+      "voiceDescription": "清亮天真的少年声"
+    },
+    "char_shiping": {
+      "kind": "character",
+      "name": "鲁侍萍",
+      "description": "周朴园三十年前的旧情人与女佣，周萍生母。",
+      "tags": ["鲁家", "母亲"],
+      "fixedTraits": { "age": "47岁", "look": "鬓发微白，朴素布衣" },
+      "motivation": "保护女儿，逃离周家",
+      "voiceDescription": "沙哑而隐忍的女声"
+    },
+    "char_dahai": {
+      "kind": "character",
+      "name": "鲁大海",
+      "description": "鲁侍萍之子，矿工，罢工代表。",
+      "tags": ["鲁家", "工人"],
+      "fixedTraits": { "age": "27岁", "look": "体格壮实，粗布工装" },
+      "motivation": "为死难矿工讨公道",
+      "voiceDescription": "粗犷坚定的男声"
+    },
+    "char_sifeng": {
+      "kind": "character",
+      "name": "四凤",
+      "description": "鲁贵与侍萍之女，周家女佣，与周萍相恋。",
+      "tags": ["鲁家", "女佣"],
+      "fixedTraits": { "age": "18岁", "look": "清秀，周家女佣打扮" },
+      "motivation": "与周萍相守",
+      "voiceDescription": "清亮柔弱的女声"
+    },
+    "char_lugui": {
+      "kind": "character",
+      "name": "鲁贵",
+      "description": "周家仆人，贪财油滑。",
+      "tags": ["鲁家", "仆人"],
+      "fixedTraits": { "age": "50岁", "look": "瘦削，周家仆役装束" },
+      "motivation": "从周家捞取好处",
+      "voiceDescription": "油滑谄媚的男声"
+    },
+    "loc_zhou_hall": {
+      "kind": "location",
+      "name": "周家客厅",
+      "description": "富丽而沉闷的大客厅，落地窗，旧式家具。"
+    },
+    "loc_zhou_study": {
+      "kind": "location",
+      "name": "周朴园书房",
+      "description": "陈设古朴的书房，书桌抽屉里锁着旧照片与旧衬衣。"
+    },
+    "loc_lu_home": {
+      "kind": "location",
+      "name": "鲁家",
+      "description": "城郊简陋的民房，泥墙小窗，屋外立着电线杆。"
+    },
+    "loc_zhou_garden": {
+      "kind": "location",
+      "name": "周家花园",
+      "description": "雷雨夜的院子，树木狂摇，墙角垂落一段裸露的电线。"
+    },
+    "prop_photo": {
+      "kind": "prop",
+      "name": "侍萍的旧照片",
+      "description": "一张泛黄的年轻女子照片，锁在周朴园书房抽屉里。",
+      "initialOwnerId": "char_puyuan"
+    },
+    "prop_shirt": {
+      "kind": "prop",
+      "name": "绣梅花的旧衬衣",
+      "description": "一件旧衬衣，袖口绣着梅花，是侍萍当年缝补的。",
+      "initialOwnerId": "char_puyuan"
+    },
+    "prop_gun": {
+      "kind": "prop",
+      "name": "手枪",
+      "description": "周朴园藏在书房的手枪。",
+      "initialOwnerId": "char_puyuan"
+    }
+  },
+  "scenes": {
+    "scene_001": {
+      "id": "scene_001",
+      "title": "鲁贵的盘算",
+      "summary": "鲁贵醉醺醺地向四凤要钱，暗示自己知道她与周萍的私情，以此要挟。",
+      "locationId": "loc_zhou_hall",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "setup",
+      "mood": "阴郁压抑",
+      "participants": {
+        "char_lugui": { "emotion": "贪吝得意", "goal": "从四凤身上榨钱", "knowledge": "知道四凤与周萍的私情" },
+        "char_sifeng": { "emotion": "羞愤不安", "goal": "摆脱父亲的纠缠" }
+      },
+      "locationState": null,
+      "props": {},
+      "beats": [
+        { "id": "beat_0001", "kind": "action", "text": "鲁贵醉醺醺地在客厅里数落四凤，伸手向她要钱。" },
+        { "id": "beat_0002", "kind": "dialogue", "speakerId": "char_lugui", "tone": "油滑要挟", "text": "你现在阔了，跟大少爷好上了，就忘了你爹？" },
+        { "id": "beat_0003", "kind": "dialogue", "speakerId": "char_sifeng", "tone": "羞愤", "text": "爹，您别胡说……" },
+        { "id": "beat_0004", "kind": "action", "text": "鲁贵意味深长地提起周家见不得人的事，四凤又羞又怕，只得应下。" }
+      ]
+    },
+    "scene_002": {
+      "id": "scene_002",
+      "title": "周冲的心意",
+      "summary": "周冲真诚地向四凤表达爱意，说要出钱供她读书，四凤心神不宁地回避。",
+      "locationId": "loc_zhou_hall",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "setup",
+      "mood": "天真温和",
+      "participants": {
+        "char_chong": { "emotion": "热忱天真", "goal": "让四凤上学，与她相好" },
+        "char_sifeng": { "emotion": "局促愧疚", "knowledge": "心里只有周萍" }
+      },
+      "locationState": null,
+      "props": {},
+      "beats": [
+        { "id": "beat_0005", "kind": "dialogue", "speakerId": "char_chong", "tone": "真诚", "text": "四凤，我想让父亲出钱，送你上学。" },
+        { "id": "beat_0006", "kind": "dialogue", "speakerId": "char_sifeng", "tone": "慌乱", "text": "二少爷，我配不上……" },
+        { "id": "beat_0007", "kind": "action", "text": "周冲一片天真，四凤却低着头，心里全是周萍的影子。" }
+      ]
+    },
+    "scene_003": {
+      "id": "scene_003",
+      "title": "暗涌",
+      "summary": "繁漪试探周萍的心意，要他留下；周萍闪躲，繁漪心中埋下怨恨。",
+      "locationId": "loc_zhou_hall",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "暧昧压抑",
+      "participants": {
+        "char_fanyi": { "emotion": "幽怨执着", "goal": "留住周萍", "knowledge": "周萍想离开" },
+        "char_ping": { "emotion": "愧疚回避", "goal": "结束这段错关系" }
+      },
+      "locationState": null,
+      "props": {},
+      "beats": [
+        { "id": "beat_0008", "kind": "dialogue", "speakerId": "char_fanyi", "tone": "幽怨", "text": "萍，你就要走了，难道我们……就这样算了？" },
+        { "id": "beat_0009", "kind": "dialogue", "speakerId": "char_ping", "tone": "痛苦克制", "text": "太太，我们不能再错下去。" },
+        { "id": "beat_0010", "kind": "action", "text": "繁漪盯了他许久，冷笑一声，眼底埋下怨恨。" }
+      ]
+    },
+    "scene_004": {
+      "id": "scene_004",
+      "title": "罢工工人",
+      "summary": "鲁大海代表罢工矿工闯入周家讨说法，周朴园冷酷应对，双方结下深怨。",
+      "locationId": "loc_zhou_hall",
+      "time": { "timeOfDay": "afternoon" },
+      "threadIds": ["thread_strike"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "紧张对立",
+      "participants": {
+        "char_dahai": { "emotion": "愤怒坚定", "goal": "为死难矿工讨抚恤" },
+        "char_puyuan": { "emotion": "冷酷倨傲", "goal": "压下罢工事件" },
+        "char_ping": { "emotion": "尴尬不安", "goal": "置身事外" },
+        "char_chong": { "emotion": "惊愕同情" }
+      },
+      "locationState": null,
+      "props": {},
+      "beats": [
+        { "id": "beat_0011", "kind": "action", "text": "鲁大海闯进客厅，为罢工工人讨说法。" },
+        { "id": "beat_0012", "kind": "dialogue", "speakerId": "char_dahai", "tone": "激愤", "text": "矿上死了人，你们不能不管！" },
+        { "id": "beat_0013", "kind": "dialogue", "speakerId": "char_puyuan", "tone": "威严冷酷", "text": "乱党闹事，自有公事公办。" },
+        { "id": "beat_0014", "kind": "action", "text": "周朴园命人把大海赶出去，怒火在两人之间埋下。" }
+      ]
+    },
+    "scene_005": {
+      "id": "scene_005",
+      "title": "决裂",
+      "summary": "繁漪质问周萍是否为了四凤离开；周萍决意带四凤走，繁漪心生报复。",
+      "locationId": "loc_zhou_hall",
+      "time": { "timeOfDay": "evening" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "激烈尖锐",
+      "participants": {
+        "char_fanyi": { "emotion": "由哀求到怨恨", "knowledge": "周萍与四凤相恋" },
+        "char_ping": { "emotion": "决绝而疲惫", "goal": "带四凤离开周家" }
+      },
+      "locationState": null,
+      "props": {},
+      "beats": [
+        { "id": "beat_0015", "kind": "dialogue", "speakerId": "char_fanyi", "tone": "逼问", "text": "你要走，是为了四凤？" },
+        { "id": "beat_0016", "kind": "dialogue", "speakerId": "char_ping", "tone": "决绝", "text": "我不能再对不起自己。" },
+        { "id": "beat_0017", "kind": "action", "text": "繁漪冷笑，决意要毁掉他的幸福。" }
+      ]
+    },
+    "scene_006": {
+      "id": "scene_006",
+      "title": "侍萍寻女",
+      "summary": "鲁侍萍来到周家，要接四凤回家，面对熟悉又痛恨的客厅，往事的阴影笼罩。",
+      "locationId": "loc_zhou_hall",
+      "time": { "timeOfDay": "evening" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "setup",
+      "mood": "不安沉重",
+      "participants": {
+        "char_shiping": { "emotion": "惶恐克制", "goal": "带女儿离开周家", "knowledge": "三十年前在周家的遭遇" },
+        "char_sifeng": { "emotion": "意外无措" }
+      },
+      "locationState": { "lighting": "黄昏的余光斜照，客厅显得昏暗" },
+      "props": {},
+      "beats": [
+        { "id": "beat_0018", "kind": "action", "text": "鲁侍萍来到周家，要接四凤回去。" },
+        { "id": "beat_0019", "kind": "dialogue", "speakerId": "char_shiping", "tone": "隐忍", "text": "这地方，我一刻也不愿多待。" },
+        { "id": "beat_0020", "kind": "action", "text": "她环顾这间熟悉得可怕的客厅，三十年前的痛苦涌上心头。" }
+      ]
+    },
+    "scene_007": {
+      "id": "scene_007",
+      "title": "书房重逢",
+      "summary": "周朴园向乔装来访的侍萍问起旧事，取出旧照片与旧衬衣；侍萍忍不住点破自己的身份，两人相认。",
+      "locationId": "loc_zhou_study",
+      "time": { "timeOfDay": "evening" },
+      "threadIds": ["thread_past"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "惊心动魄",
+      "participants": {
+        "char_puyuan": { "emotion": "由矜持到惊骇", "goal": "探问旧人下落，维持体面" },
+        "char_shiping": { "emotion": "强忍悲愤", "goal": "说破真相" }
+      },
+      "locationState": null,
+      "props": {
+        "prop_photo": { "holderId": "char_puyuan" },
+        "prop_shirt": { "holderId": "char_puyuan" }
+      },
+      "beats": [
+        { "id": "beat_0021", "kind": "dialogue", "speakerId": "char_puyuan", "tone": "追忆", "text": "三十年前，我家里有个年轻女人……" },
+        { "id": "beat_0022", "kind": "action", "text": "周朴园打开抽屉，取出泛黄的旧照片和绣梅花的旧衬衣。" },
+        { "id": "beat_0023", "kind": "dialogue", "speakerId": "char_shiping", "tone": "颤抖", "text": "那件衬衣上的梅花，绣的是我。" },
+        { "id": "beat_0024", "kind": "action", "text": "周朴园大惊失色，终于认出眼前人正是当年的侍萍。" },
+        { "id": "beat_0025", "kind": "narration", "text": "三十年前的旧事，在这一刻被彻底揭开。" }
+      ]
+    },
+    "scene_008": {
+      "id": "scene_008",
+      "title": "带走四凤",
+      "summary": "周朴园想用钱了结旧账，鲁大海怒斥，鲁侍萍坚决带走四凤，不许她再回周家。",
+      "locationId": "loc_zhou_hall",
+      "time": { "timeOfDay": "evening" },
+      "threadIds": ["thread_main", "thread_strike"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "决绝愤怒",
+      "participants": {
+        "char_puyuan": { "emotion": "心虚强硬", "goal": "用钱息事宁人" },
+        "char_shiping": { "emotion": "悲愤坚决", "goal": "带走四凤，永不回头" },
+        "char_dahai": { "emotion": "暴怒", "goal": "揭穿周家的伪善" },
+        "char_sifeng": { "emotion": "茫然恐惧" }
+      },
+      "locationState": null,
+      "props": {},
+      "beats": [
+        { "id": "beat_0026", "kind": "dialogue", "speakerId": "char_puyuan", "tone": "收买", "text": "你要多少，我都给你。" },
+        { "id": "beat_0027", "kind": "dialogue", "speakerId": "char_dahai", "tone": "怒斥", "text": "谁要你的钱！" },
+        { "id": "beat_0028", "kind": "dialogue", "speakerId": "char_shiping", "tone": "决绝", "text": "四凤，跟妈走，永远别再回这儿。" },
+        { "id": "beat_0029", "kind": "action", "text": "侍萍拉着四凤离开，周朴园僵立在原地。" }
+      ]
+    },
+    "scene_009": {
+      "id": "scene_009",
+      "title": "鲁家对峙",
+      "summary": "雷雨将至，周萍冒雨到鲁家找四凤，被鲁大海撞见；鲁侍萍认出周萍是自己失散的儿子，惊觉两人竟是兄妹。",
+      "locationId": "loc_lu_home",
+      "time": { "timeOfDay": "night" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "climax",
+      "mood": "风雨交加，惊惶",
+      "participants": {
+        "char_shiping": { "emotion": "惊恐欲绝", "knowledge": "认出周萍是自己的儿子" },
+        "char_sifeng": { "emotion": "羞惧交加" },
+        "char_ping": { "emotion": "焦灼", "goal": "带四凤离开" },
+        "char_dahai": { "emotion": "愤怒", "goal": "教训周萍" }
+      },
+      "locationState": { "lighting": "屋外雷雨将至，屋内油灯昏黄", "weather": "雷雨" },
+      "props": {},
+      "beats": [
+        { "id": "beat_0030", "kind": "action", "text": "风雨欲来，周萍冒雨赶到鲁家找四凤。" },
+        { "id": "beat_0031", "kind": "dialogue", "speakerId": "char_dahai", "tone": "暴怒", "text": "你还敢来！" },
+        { "id": "beat_0032", "kind": "action", "text": "鲁侍萍看清周萍的脸，脸色惨白——她认出这是自己失散的儿子。" },
+        { "id": "beat_0033", "kind": "dialogue", "speakerId": "char_shiping", "tone": "绝望", "text": "你们……不能在一起。" },
+        { "id": "beat_0034", "kind": "narration", "text": "一道闪电劈开夜空，秘密在雷声中逼近。" }
+      ]
+    },
+    "scene_010": {
+      "id": "scene_010",
+      "title": "逼誓",
+      "summary": "鲁侍萍逼四凤对天发誓，永不再见周家人；四凤在雷声中含泪立誓。",
+      "locationId": "loc_lu_home",
+      "time": { "timeOfDay": "night" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "悲怆压抑",
+      "participants": {
+        "char_shiping": { "emotion": "痛彻心扉", "goal": "以誓言阻断这桩乱伦" },
+        "char_sifeng": { "emotion": "崩溃无助" }
+      },
+      "locationState": { "lighting": "雷电的光在窗上明明灭灭", "weather": "雷雨" },
+      "props": {},
+      "beats": [
+        { "id": "beat_0035", "kind": "dialogue", "speakerId": "char_shiping", "tone": "悲怆", "text": "你对天发誓，永远不见周家的人！" },
+        { "id": "beat_0036", "kind": "dialogue", "speakerId": "char_sifeng", "tone": "哭喊", "text": "妈……我发誓……" },
+        { "id": "beat_0037", "kind": "action", "text": "窗外惊雷炸响，四凤瘫软在地。" }
+      ]
+    },
+    "scene_011": {
+      "id": "scene_011",
+      "title": "私奔",
+      "summary": "周萍与四凤决意私奔，众人阻拦；繁漪近乎疯狂，唤出周朴园要当众揭穿一切。",
+      "locationId": "loc_zhou_hall",
+      "time": { "timeOfDay": "night" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "turningPoint",
+      "mood": "紧迫失控",
+      "participants": {
+        "char_ping": { "emotion": "决绝", "goal": "立刻带四凤离开" },
+        "char_sifeng": { "emotion": "惊惶" },
+        "char_fanyi": { "emotion": "癫狂", "goal": "毁掉周萍与四凤" },
+        "char_chong": { "emotion": "震惊" },
+        "char_shiping": { "emotion": "惊恐" },
+        "char_dahai": { "emotion": "愤恨" }
+      },
+      "locationState": { "lighting": "客厅灯火摇曳，窗外雷雨大作", "weather": "雷雨" },
+      "props": {},
+      "beats": [
+        { "id": "beat_0038", "kind": "dialogue", "speakerId": "char_ping", "tone": "急切", "text": "四凤，我们走，现在就走。" },
+        { "id": "beat_0039", "kind": "action", "text": "繁漪拦住两人，几近疯狂地大笑。" },
+        { "id": "beat_0040", "kind": "dialogue", "speakerId": "char_fanyi", "tone": "嘶喊", "text": "朴园！你出来！看看你养的好儿子！" },
+        { "id": "beat_0041", "kind": "action", "text": "众人僵在客厅，雷声压顶。" }
+      ]
+    },
+    "scene_012": {
+      "id": "scene_012",
+      "title": "真相",
+      "summary": "周朴园被迫当众说出：侍萍是周萍的生母，四凤与周萍是同母兄妹。真相击碎了一切。",
+      "locationId": "loc_zhou_hall",
+      "time": { "timeOfDay": "night" },
+      "threadIds": ["thread_main", "thread_past"],
+      "narrativeMode": "present",
+      "narrativeRole": "climax",
+      "mood": "天崩地裂",
+      "participants": {
+        "char_puyuan": { "emotion": "被迫崩溃", "goal": "止住失控的局面" },
+        "char_shiping": { "emotion": "绝望", "goal": "说出真相" },
+        "char_ping": { "emotion": "如遭雷击" },
+        "char_sifeng": { "emotion": "疯狂" },
+        "char_fanyi": { "emotion": "得意又恍惚" },
+        "char_chong": { "emotion": "呆滞" }
+      },
+      "locationState": { "lighting": "闪电映白整间客厅", "weather": "雷雨" },
+      "props": {},
+      "beats": [
+        { "id": "beat_0042", "kind": "dialogue", "speakerId": "char_puyuan", "tone": "嘶哑", "text": "侍萍，你告诉他们……" },
+        { "id": "beat_0043", "kind": "dialogue", "speakerId": "char_shiping", "tone": "崩溃", "text": "萍儿，四凤，你们……是一个母亲的孩子。" },
+        { "id": "beat_0044", "kind": "action", "text": "周萍踉跄后退，四凤发出绝望的惨叫。" },
+        { "id": "beat_0045", "kind": "action", "text": "四凤夺门冲出，闯入雷雨之中。" }
+      ]
+    },
+    "scene_013": {
+      "id": "scene_013",
+      "title": "雷雨",
+      "summary": "四凤触到漏电的电线；周冲扑救一同触电；周萍绝望自尽；繁漪与侍萍相继崩溃，周家一夜倾覆。",
+      "locationId": "loc_zhou_garden",
+      "time": { "timeOfDay": "night" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "climax",
+      "mood": "毁灭",
+      "participants": {
+        "char_sifeng": { "emotion": "疯狂绝望" },
+        "char_chong": { "emotion": "奋不顾身" },
+        "char_ping": { "emotion": "万念俱灰" },
+        "char_fanyi": { "emotion": "精神崩溃" },
+        "char_shiping": { "emotion": "痛不欲生" },
+        "char_puyuan": { "emotion": "震骇木然" }
+      },
+      "locationState": { "lighting": "漆黑雨夜，偶有闪电", "weather": "雷雨", "condition": "墙角一段电线垂落在积水中" },
+      "props": {
+        "prop_gun": { "holderId": "char_ping" }
+      },
+      "beats": [
+        { "id": "beat_0046", "kind": "action", "text": "四凤冲进花园，一脚踏入积水，触到垂落的电线，惨叫倒地。" },
+        { "id": "beat_0047", "kind": "action", "text": "周冲扑上去拉她，也被电流击倒——两人当场身亡。" },
+        { "id": "beat_0048", "kind": "action", "text": "周萍冲回书房取出手枪，在雷雨声中结束了自己的性命。" },
+        { "id": "beat_0049", "kind": "action", "text": "繁漪目睹一切，发出一声凄厉的怪笑，从此疯了。" },
+        { "id": "beat_0050", "kind": "narration", "text": "鲁侍萍也彻底崩溃。周家在同一个雷雨之夜，彻底崩塌。" }
+      ]
+    }
+  },
+  "outline": {
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "第一幕：阴云",
+        "summary": "周家客厅的下午：鲁贵的要挟、周冲的心意、繁漪的暗涌，以及罢工工人鲁大海的闯入。",
+        "sceneIds": ["scene_001", "scene_002", "scene_003", "scene_004"]
+      },
+      {
+        "id": "act_2",
+        "title": "第二幕：旧影",
+        "summary": "繁漪与周萍决裂；鲁侍萍来寻女；书房里三十年前的旧事被揭开。",
+        "sceneIds": ["scene_005", "scene_006", "scene_007", "scene_008"]
+      },
+      {
+        "id": "act_3",
+        "title": "第三幕：雷雨",
+        "summary": "雷雨之夜，鲁家的对峙与逼誓，兄妹之恋的秘密压向众人。",
+        "sceneIds": ["scene_009", "scene_010"]
+      },
+      {
+        "id": "act_4",
+        "title": "第四幕：倾覆",
+        "summary": "私奔被阻、真相揭穿、触电与自尽，周家在一夜之间毁灭。",
+        "sceneIds": ["scene_011", "scene_012", "scene_013"]
+      }
+    ]
+  },
+  "threads": {
+    "thread_main": { "id": "thread_main", "name": "主线", "description": "周、鲁两家纠缠的恩怨与乱伦悲剧。" },
+    "thread_strike": { "id": "thread_strike", "name": "罢工线", "description": "鲁大海代表的矿工罢工与周朴园的对立。" },
+    "thread_past": { "id": "thread_past", "name": "三十年前往事", "description": "周朴园与侍萍的旧事及其后患。" }
+  },
+  "logicRelations": [
+    { "id": "lr_b01", "kind": "before", "source": { "type": "scene", "id": "scene_001" }, "target": { "type": "scene", "id": "scene_002" } },
+    { "id": "lr_b02", "kind": "before", "source": { "type": "scene", "id": "scene_002" }, "target": { "type": "scene", "id": "scene_003" } },
+    { "id": "lr_b03", "kind": "before", "source": { "type": "scene", "id": "scene_003" }, "target": { "type": "scene", "id": "scene_004" } },
+    { "id": "lr_b04", "kind": "before", "source": { "type": "scene", "id": "scene_004" }, "target": { "type": "scene", "id": "scene_005" } },
+    { "id": "lr_b05", "kind": "before", "source": { "type": "scene", "id": "scene_005" }, "target": { "type": "scene", "id": "scene_006" } },
+    { "id": "lr_b06", "kind": "before", "source": { "type": "scene", "id": "scene_006" }, "target": { "type": "scene", "id": "scene_007" } },
+    { "id": "lr_b07", "kind": "before", "source": { "type": "scene", "id": "scene_007" }, "target": { "type": "scene", "id": "scene_008" } },
+    { "id": "lr_b08", "kind": "before", "source": { "type": "scene", "id": "scene_008" }, "target": { "type": "scene", "id": "scene_009" } },
+    { "id": "lr_b09", "kind": "before", "source": { "type": "scene", "id": "scene_009" }, "target": { "type": "scene", "id": "scene_010" } },
+    { "id": "lr_b10", "kind": "before", "source": { "type": "scene", "id": "scene_010" }, "target": { "type": "scene", "id": "scene_011" } },
+    { "id": "lr_b11", "kind": "before", "source": { "type": "scene", "id": "scene_011" }, "target": { "type": "scene", "id": "scene_012" } },
+    { "id": "lr_b12", "kind": "before", "source": { "type": "scene", "id": "scene_012" }, "target": { "type": "scene", "id": "scene_013" } },
+    { "id": "lr_su01", "kind": "setsUp", "source": { "type": "scene", "id": "scene_003" }, "target": { "type": "scene", "id": "scene_011" }, "description": "繁漪被抛弃的怨恨，为后来当众揭穿埋下铺垫。" },
+    { "id": "lr_su02", "kind": "setsUp", "source": { "type": "scene", "id": "scene_007" }, "target": { "type": "scene", "id": "scene_012" }, "description": "旧照片与旧衬衣引出的旧事，为当众说破身世埋伏笔。" },
+    { "id": "lr_ca01", "kind": "causes", "source": { "type": "scene", "id": "scene_007" }, "target": { "type": "scene", "id": "scene_008" }, "description": "侍萍与周朴园相认，促使她坚决带走四凤。" },
+    { "id": "lr_ca02", "kind": "causes", "source": { "type": "scene", "id": "scene_009" }, "target": { "type": "scene", "id": "scene_010" }, "description": "侍萍认出周萍是自己的儿子，才有逼四凤发誓。" },
+    { "id": "lr_ca03", "kind": "causes", "source": { "type": "scene", "id": "scene_012" }, "target": { "type": "scene", "id": "scene_013" }, "description": "真相揭穿，直接导致触电与自尽的惨剧。" },
+    { "id": "lr_ca04", "kind": "causes", "source": { "type": "beat", "id": "beat_0013" }, "target": { "type": "scene", "id": "scene_008" }, "description": "周朴园当众羞辱鲁大海，加深了鲁家对他的仇恨。" }
+  ],
+  "characterRelations": [
+    { "id": "cr_01", "sourceCharacterId": "char_puyuan", "targetCharacterId": "char_fanyi", "kind": "夫妻", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_02", "sourceCharacterId": "char_puyuan", "targetCharacterId": "char_ping", "kind": "父子", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_03", "sourceCharacterId": "char_puyuan", "targetCharacterId": "char_chong", "kind": "父子", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_04", "sourceCharacterId": "char_puyuan", "targetCharacterId": "char_shiping", "kind": "旧情", "direction": "directed", "description": "三十年前的旧情，也是被抛弃的债。", "scope": { "type": "scenes", "sceneIds": ["scene_007", "scene_008"] } },
+    { "id": "cr_05", "sourceCharacterId": "char_shiping", "targetCharacterId": "char_puyuan", "kind": "怨恨", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_008", "scene_009", "scene_010", "scene_011", "scene_012", "scene_013"] } },
+    { "id": "cr_06", "sourceCharacterId": "char_puyuan", "targetCharacterId": "char_dahai", "kind": "劳资对立", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_004", "scene_005", "scene_006", "scene_007", "scene_008"] } },
+    { "id": "cr_07", "sourceCharacterId": "char_puyuan", "targetCharacterId": "char_dahai", "kind": "父子", "direction": "directed", "description": "血缘关系在真相揭穿后显出。", "scope": { "type": "scenes", "sceneIds": ["scene_008", "scene_009", "scene_010", "scene_011", "scene_012", "scene_013"] } },
+    { "id": "cr_08", "sourceCharacterId": "char_fanyi", "targetCharacterId": "char_ping", "kind": "情人", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_003", "scene_004", "scene_005"] } },
+    { "id": "cr_09", "sourceCharacterId": "char_fanyi", "targetCharacterId": "char_ping", "kind": "怨恨", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_011", "scene_012", "scene_013"] } },
+    { "id": "cr_10", "sourceCharacterId": "char_ping", "targetCharacterId": "char_sifeng", "kind": "恋人", "direction": "symmetric", "scope": { "type": "scenes", "sceneIds": ["scene_009", "scene_010", "scene_011", "scene_012"] } },
+    { "id": "cr_11", "sourceCharacterId": "char_ping", "targetCharacterId": "char_sifeng", "kind": "兄妹", "direction": "symmetric", "description": "同母兄妹的真相被揭穿。", "scope": { "type": "scenes", "sceneIds": ["scene_012", "scene_013"] } },
+    { "id": "cr_12", "sourceCharacterId": "char_chong", "targetCharacterId": "char_sifeng", "kind": "暗恋", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_002"] } },
+    { "id": "cr_13", "sourceCharacterId": "char_shiping", "targetCharacterId": "char_sifeng", "kind": "母女", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_14", "sourceCharacterId": "char_shiping", "targetCharacterId": "char_dahai", "kind": "母子", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_15", "sourceCharacterId": "char_shiping", "targetCharacterId": "char_ping", "kind": "母子", "direction": "directed", "description": "失散多年的母子在鲁家相认。", "scope": { "type": "scenes", "sceneIds": ["scene_009", "scene_010", "scene_011", "scene_012", "scene_013"] } },
+    { "id": "cr_16", "sourceCharacterId": "char_lugui", "targetCharacterId": "char_sifeng", "kind": "父女", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_17", "sourceCharacterId": "char_lugui", "targetCharacterId": "char_shiping", "kind": "夫妻", "direction": "symmetric", "scope": { "type": "global" } },
+    { "id": "cr_18", "sourceCharacterId": "char_dahai", "targetCharacterId": "char_ping", "kind": "敌视", "direction": "directed", "scope": { "type": "scenes", "sceneIds": ["scene_009", "scene_010", "scene_011", "scene_012", "scene_013"] } }
+  ]
+}

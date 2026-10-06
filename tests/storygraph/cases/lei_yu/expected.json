@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "case": "lei_yu",
+  "validation": { "expected": "pass", "hardErrors": 0 },
+  "outlineOrder": [
+    "scene_001", "scene_002", "scene_003", "scene_004",
+    "scene_005", "scene_006", "scene_007", "scene_008",
+    "scene_009", "scene_010",
+    "scene_011", "scene_012", "scene_013"
+  ],
+  "storyTimeLinearization": [
+    "scene_001", "scene_002", "scene_003", "scene_004",
+    "scene_005", "scene_006", "scene_007", "scene_008",
+    "scene_009", "scene_010",
+    "scene_011", "scene_012", "scene_013"
+  ],
+  "relationChangePoints": {
+    "char_fanyi~char_ping": ["scene_003", "scene_011"],
+    "char_ping~char_sifeng": ["scene_009", "scene_012", "scene_013"],
+    "char_puyuan~char_shiping": ["scene_007", "scene_008", "scene_009"]
+  },
+  "stats": {
+    "scenes": 13,
+    "beats": 50,
+    "entities": 15,
+    "acts": 4,
+    "threads": 3
+  },
+  "featuresCovered": [
+    "多人物（8 个角色）与多故事线（主线 / 罢工线 / 往事线）",
+    "人物关系随场景变化（身份揭穿导致关系改变，如恋人 → 兄妹、旧情 → 怨恨）",
+    "同一对人物先后具有不同关系（周朴园与鲁大海：劳资对立 → 父子）",
+    "setsUp（繁漪的怨恨、旧照片旧衬衣）与 causes（相认 → 带走四凤、真相 → 悲剧）",
+    "Beat 级跨级 causes（周朴园羞辱鲁大海 → 带走四凤）",
+    "地点状态（雷雨夜、垂落的电线）与道具状态（旧照片 / 旧衬衣 / 手枪持有者变化）",
+    "剧本式对白与旁白节拍"
+  ],
+  "featuresNotCovered": [
+    "闪回 / 非线性讲述（本剧为线性，narrativeMode 均为 present）",
+    "overlaps（同一条主线顺序推进，未标注并行）",
+    "outline parts 层级",
+    "ChangeSet 更新路径"
+  ]
+}

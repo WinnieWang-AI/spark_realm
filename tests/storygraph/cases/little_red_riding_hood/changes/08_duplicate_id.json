@@ -1,0 +1,21 @@
+{
+  "name": "幂等冲突：同一 changeId 携带不同内容应被拒绝",
+  "changeSet": {
+    "changeId": "chg_08",
+    "storyId": "story_little_red",
+    "baseRevision": 1,
+    "actor": { "kind": "user", "id": "local" },
+    "operations": [
+      { "op": "scene.update", "id": "scene_001", "changes": { "title": "Y" } }
+    ]
+  },
+  "expect": {
+    "ok": true,
+    "revision": 2,
+    "repeatDifferent": {
+      "operations": [
+        { "op": "scene.update", "id": "scene_002", "changes": { "title": "Z" } }
+      ]
+    }
+  }
+}

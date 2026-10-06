@@ -1,0 +1,13 @@
+{
+  "name": "幂等：同一 changeId 相同内容重放返回原结果",
+  "changeSet": {
+    "changeId": "chg_07",
+    "storyId": "story_little_red",
+    "baseRevision": 1,
+    "actor": { "kind": "user", "id": "local" },
+    "operations": [
+      { "op": "scene.update", "id": "scene_008", "changes": { "summary": "三人团聚，故事收束。" } }
+    ]
+  },
+  "expect": { "ok": true, "revision": 2, "repeatSame": true }
+}

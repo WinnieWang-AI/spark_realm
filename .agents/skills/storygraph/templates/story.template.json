@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "storyId": "story_new",
+  "revision": 1,
+  "metadata": { "title": "未命名故事", "logline": "", "theme": "", "language": "zh-CN" },
+  "entities": {
+    "char_hero": { "kind": "character", "name": "主角", "tags": [], "fixedTraits": {}, "motivation": "", "voiceDescription": "" },
+    "loc_home": { "kind": "location", "name": "家", "description": "" }
+  },
+  "scenes": {
+    "scene_001": {
+      "id": "scene_001",
+      "title": "开场",
+      "summary": "一句话概述本场。",
+      "locationId": "loc_home",
+      "areaId": null,
+      "time": { "timeOfDay": "morning" },
+      "threadIds": ["thread_main"],
+      "narrativeMode": "present",
+      "narrativeRole": "setup",
+      "mood": "",
+      "participants": { "char_hero": { "emotion": "", "goal": "", "knowledge": "", "appearance": null } },
+      "locationState": null,
+      "props": {},
+      "beats": [
+        { "id": "beat_0001", "kind": "action", "text": "主角在家中开始一天。" },
+        { "id": "beat_0002", "kind": "dialogue", "speakerId": "char_hero", "tone": "", "text": "出发吧。" }
+      ]
+    }
+  },
+  "outline": {
+    "acts": [
+      { "id": "act_1", "title": "第一幕", "summary": "", "sceneIds": ["scene_001"] }
+    ]
+  },
+  "threads": {
+    "thread_main": { "id": "thread_main", "name": "主线", "description": "" }
+  },
+  "logicRelations": [],
+  "characterRelations": []
+}

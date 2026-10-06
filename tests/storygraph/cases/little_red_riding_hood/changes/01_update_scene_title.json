@@ -1,0 +1,13 @@
+{
+  "name": "合法修改：更新场景标题",
+  "changeSet": {
+    "changeId": "chg_01",
+    "storyId": "story_little_red",
+    "baseRevision": 1,
+    "actor": { "kind": "user", "id": "local" },
+    "operations": [
+      { "op": "scene.update", "id": "scene_001", "changes": { "title": "妈妈的嘱托（改）" } }
+    ]
+  },
+  "expect": { "ok": true, "revision": 2, "changedIdsIncludes": ["scene_001"] }
+}

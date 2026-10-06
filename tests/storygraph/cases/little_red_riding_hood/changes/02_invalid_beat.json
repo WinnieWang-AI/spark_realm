@@ -1,0 +1,14 @@
+{
+  "name": "非法修改：对白说话人不是本场参与人物",
+  "changeSet": {
+    "changeId": "chg_02",
+    "storyId": "story_little_red",
+    "baseRevision": 1,
+    "actor": { "kind": "user", "id": "local" },
+    "operations": [
+      { "op": "beat.insert", "sceneId": "scene_001", "index": 0,
+        "value": { "id": "beat_new_1", "kind": "dialogue", "speakerId": "char_wolf", "text": "测试对白" } }
+    ]
+  },
+  "expect": { "ok": false, "errorIncludes": ["speakerId"], "unchanged": true }
+}
