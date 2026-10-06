@@ -2,6 +2,10 @@
 
 <p align="center"><b>简体中文</b> · <a href="README_EN.md">English</a></p>
 
+<p align="center">Follow Me @WinnieAIMonster: <a href="https://space.bilibili.com/3546576236579236">哔哩哔哩</a> · <a href="https://www.youtube.com/@Winnie-AI-Monster">YouTube</a> · <a href="https://x.com/WinnieAIMonster">X</a> · <a href="https://www.xiaohongshu.com/user/profile/57c7d3ac5e87e70b868484f5">小红书</a></p>
+
+<p align="center">Email: weiying.wang.wwy@gmail.com</p>
+
 # SparkRealm
 
 > *A single spark can start a prairie fire.*
@@ -9,6 +13,8 @@
 SparkRealm 是一个正在不断成长（开发）的 AIGC 创作助手。<br>
 它的目标是帮助更多人自由表达和创作，将闪光的灵感转化为动人的作品。<br>
 SparkRealm 正在起步阶段，欢迎建议和反馈。
+
+<p align="center"><img src="assets/Phoenix/hatch.webp" alt="SparkRealm 吉祥物：小凤凰破壳而出" width="300"></p>
 
 ## 功能
 
