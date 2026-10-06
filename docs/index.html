@@ -3,72 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SparkRealm · 故事梳理</title>
-<meta name="description" content="SparkRealm 把零散的想法整理成清晰、可交互的故事图谱。">
+<title>SparkRealm · 故事梳理示例</title>
 <style>
-  :root{ --bg:#0b1220; --ink:#e6edf7; --muted:#93a3bd; --card:#111a2e; --line:#24324a; --gold:#ffd47a; }
-  *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;color:var(--ink);
-    font:16px/1.7 ui-sans-serif,system-ui,"PingFang SC","Microsoft YaHei",sans-serif;
-    background:radial-gradient(60% 55% at 50% 0%, #16233c, var(--bg) 65%)}
-  main{max-width:760px;margin:0 auto;padding:56px 24px 64px}
-  .hero{display:grid;justify-items:center;text-align:center;gap:6px}
-  .mascot{position:relative;width:360px;max-width:76vw;aspect-ratio:1/1;display:grid;place-items:center}
-  .mascot::before{content:"";position:absolute;inset:-6%;border-radius:50%;
-    background:radial-gradient(circle, rgba(255,206,120,.28), rgba(255,180,80,.06) 45%, transparent 68%);
-    filter:blur(6px);z-index:0}
-  .mascot img,.mascot video{position:relative;z-index:1;width:100%;height:100%;object-fit:contain}
-  .mascot img{filter:drop-shadow(0 22px 46px rgba(0,0,0,.55))}
-  h1{font-size:30px;letter-spacing:.06em;margin:14px 0 0;font-weight:700}
-  .tagline{color:var(--muted);margin:2px 0 0;font-size:15px}
-  .quote{color:var(--gold);font-size:13px;margin:10px 0 0;letter-spacing:.02em}
-  section{margin-top:52px}
-  .section-title{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
-  a.card{display:block;padding:16px 18px;margin:12px 0;border:1px solid var(--line);border-radius:12px;
-    background:var(--card);color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
-  a.card:hover{border-color:#4cc2f5;transform:translateY(-1px)}
+  body{margin:0;font:16px/1.7 ui-sans-serif,system-ui,"PingFang SC","Microsoft YaHei",sans-serif;background:#0b1220;color:#e6edf7}
+  main{max-width:760px;margin:0 auto;padding:48px 24px}
+  h1{font-size:24px;margin:0 0 6px}
+  p.sub{color:#93a3bd;margin:0 0 28px}
+  a.card{display:block;padding:16px 18px;margin:12px 0;border:1px solid #24324a;border-radius:12px;background:#111a2e;color:inherit;text-decoration:none}
+  a.card:hover{border-color:#4cc2f5}
   a.card b{font-size:17px}
-  a.card span{display:block;color:var(--muted);font-size:13px;margin-top:4px}
-  footer{color:#64748b;font-size:13px;margin-top:40px;text-align:center}
+  a.card span{display:block;color:#93a3bd;font-size:13px;margin-top:4px}
+  footer{color:#64748b;font-size:13px;margin-top:32px}
 </style>
 </head>
 <body>
 <main>
-  <div class="hero">
-    <div class="mascot" id="mascot">
-      <img src="mascot/hatch.webp" alt="SparkRealm 吉祥物：小凤凰破壳而出" width="360" height="360">
-    </div>
-    <h1>SparkRealm</h1>
-    <p class="tagline">把闪光的灵感，整理成清晰、可交互的故事图谱。</p>
-    <p class="quote">A single spark can start a prairie fire.</p>
-  </div>
-
-  <section>
-    <p class="section-title">交互示例</p>
-    <a class="card" href="demo/little_red.html"><b>小红帽</b><span>线性故事 · 演绎顺序即故事时间</span></a>
-    <a class="card" href="demo/little_red.en.html"><b>Little Red Riding Hood</b><span>English demo · telling order equals story time</span></a>
-  </section>
-
+  <h1>SparkRealm · 故事梳理示例</h1>
+  <p class="sub">点击进入可交互的故事图谱：可缩放、点选查看详情、切换「讲述顺序 / 故事时间 / 要素关系」。</p>
+  <a class="card" href="demo/little_red.html"><b>小红帽</b><span>线性故事 · 演绎顺序即故事时间</span></a>
+  <a class="card" href="demo/little_red.en.html"><b>Little Red Riding Hood</b><span>English demo · telling order equals story time</span></a>
   <footer>由 SparkRealm StoryGraph 生成 · 自包含可交互 HTML</footer>
 </main>
-
-<script>
-  // 渐进增强：Safari/Apple 支持 HEVC-alpha 的 .mov（更清晰）；其余浏览器用透明 WebP。
-  (function () {
-    var probe = document.createElement('video');
-    var canPlayMov = probe.canPlayType('video/quicktime');
-    if (!canPlayMov) return;
-    var box = document.getElementById('mascot');
-    var video = document.createElement('video');
-    video.src = 'mascot/hatch.mov';
-    video.autoplay = video.muted = video.loop = true;
-    video.playsInline = true;
-    video.setAttribute('playsinline', '');
-    video.setAttribute('muted', '');
-    video.setAttribute('aria-label', 'SparkRealm 吉祥物：小凤凰破壳而出');
-    video.onerror = function () { video.remove(); }; // 失败则保留 WebP
-    box.appendChild(video);
-  })();
-</script>
 </body>
 </html>
