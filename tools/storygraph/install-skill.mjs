@@ -11,7 +11,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '..', '..');
 const srcSkill = path.join(repoRoot, '.agents', 'skills', 'storygraph');
 const toolFiles = ['validate.mjs', 'derive.mjs', 'layout.mjs', 'i18n.mjs', 'render.mjs', 'serve.mjs', 'operations.mjs', 'store.mjs', 'store-cli.mjs'];
-const viewerFiles = ['template.html', 'viewer.css', 'viewer.js', 'icons.svg', 'logo-v1.png'];
+const viewerFiles = ['template.html', 'viewer.css', 'viewer.js', 'editor.js', 'icons.svg', 'logo-v1.png'];
 
 const check = process.argv.includes('--check');
 
